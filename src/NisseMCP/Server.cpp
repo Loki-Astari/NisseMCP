@@ -2,13 +2,16 @@
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>
+#include "NisseMCP/JsonRPC.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
 ThorsAnvil::Serialize::PrinterConfig    Server::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
 
 Server::Server(ServerConfig const& /*config*/)
-{}
+{
+    addExecutor<SetLevelRequestParams>("logging/setLevel", [&](SetLevelRequestParams const& level) -> JsonRPC::Response {return loggingSetLevel(level);});
+}
 
 bool Server::processesStream(std::istream& input, std::ostream& output)
 {
@@ -42,6 +45,11 @@ bool Server::processesStream(std::istream& input, std::ostream& output)
     return true;
 }
 
+JsonRPC::Response Server::loggingSetLevel(SetLevelRequestParams const& /*level*/)
+{
+    // TODO
+    return JsonRPC::Response{"2.0", {"OK"}, {}, {}};
+}
 
 void Server::processFunctionCall(std::istream& input, std::ostream& output)
 {
@@ -52,9 +60,14 @@ void Server::processFunctionCall(std::istream& input, std::ostream& output)
     }
 }
 
-JsonRPC::Response Server::execute(JsonRPC::Request const& /*request*/)
+JsonRPC::Response Server::execute(JsonRPC::Request const& request)
 {
-    JsonRPC::Response  result;
+    auto find = executeMap.find(request.method);
+    if (find == std::end(executeMap)) {
+        return JsonRPC::Response{"2.0", {}, JsonRPC::Error{12, "No Func", {}}, {}};
+    }
+
+    JsonRPC::Response  result = (find->second)(request.params->getView());
     return result;
 }
 
