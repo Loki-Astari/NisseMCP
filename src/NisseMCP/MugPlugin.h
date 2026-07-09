@@ -2,26 +2,26 @@
 #define THORSANVIL_NISSE_MCP_MUG_H
 
 #include "ThorsMug/MugPlugin.h"
+#include "Server.h"
 
 namespace ThorsAnvil::NisseMCP
 {
 
-struct MugPluginConfig
-{
-    bool    init    = false;
-};
-
 class MugPlugin: public ThorsAnvil::ThorsMug::MugPluginSimple
 {
-    MugPluginConfig     config;
+    static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
+
+    Server              server;
+
+    void processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
+    void processFunctionCall(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
+
+    char peekFirstNonWSChar(ThorsAnvil::Nisse::HTTP::Request const& request);
+    char getFirstNonWSChar(ThorsAnvil::Nisse::HTTP::Request const& request);
     public:
-        MugPlugin(MugPluginConfig const& config);
+        MugPlugin(MugServerConfig const& config);
 
         virtual std::vector<ThorsAnvil::ThorsMug::Action> getAction();
-
-        void resource();
-        void tool();
-        void prompt();
 };
 
 }

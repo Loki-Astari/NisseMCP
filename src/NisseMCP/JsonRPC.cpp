@@ -1,7 +1,7 @@
 #include "JsonRPC.h"
 
-using namespace ThorsAnvil::NisseMCP;
+using namespace ThorsAnvil::NisseMCP::JsonRPC;
 
-JsonRPC::JsonRPC(std::istream& /*requestStream*/)
+Request::Request(std::istream& /*requestStream*/)
 {
 }
