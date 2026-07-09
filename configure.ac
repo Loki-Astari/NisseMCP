@@ -1,4 +1,4 @@
-AC_INIT([NisseMCP], [0.1], [YourName+NisseMCP@Email.com])
+AC_INIT([NisseMCP], [0.1], [Loki.Astari+NisseMCP@Email.com])
 AC_PREREQ([2.65])
 
 AC_CONFIG_MACRO_DIR([build/autotools/m4])
