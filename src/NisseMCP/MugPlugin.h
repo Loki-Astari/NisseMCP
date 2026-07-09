@@ -4,23 +4,19 @@
 #include "ThorsMug/MugPlugin.h"
 #include "Server.h"
 
-namespace ThorsAnvil::NisseMCP
+namespace ThorsAnvil::Nisse::MCP
 {
 
 class MugPlugin: public ThorsAnvil::ThorsMug::MugPluginSimple
 {
-    static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
-
     Server              server;
 
+    // Send request to be handeled by the server.
     void processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
-    void processFunctionCall(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
-
-    char peekFirstNonWSChar(ThorsAnvil::Nisse::HTTP::Request const& request);
-    char getFirstNonWSChar(ThorsAnvil::Nisse::HTTP::Request const& request);
     public:
         MugPlugin(MugServerConfig const& config);
 
+        // Register handlers with mug server.
         virtual std::vector<ThorsAnvil::ThorsMug::Action> getAction();
 };
 

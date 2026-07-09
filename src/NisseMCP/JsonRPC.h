@@ -7,7 +7,7 @@
 
 // https://www.jsonrpc.org/specification
 
-namespace ThorsAnvil::NisseMCP::JsonRPC
+namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
     struct Params {};
     using OptParams = std::optional<Params>;
@@ -52,9 +52,9 @@ namespace ThorsAnvil::NisseMCP::JsonRPC
 }
 
 
-ThorsAnvil_MakeTrait(ThorsAnvil::NisseMCP::JsonRPC::Params);
-ThorsAnvil_MakeTrait(ThorsAnvil::NisseMCP::JsonRPC::Request, jsonrpc, method, params, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::NisseMCP::JsonRPC::Error, code, message, data);
-ThorsAnvil_MakeTrait(ThorsAnvil::NisseMCP::JsonRPC::Response, jsonrpc, result, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Params);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, params, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response, jsonrpc, result, error, id);
 
 #endif
