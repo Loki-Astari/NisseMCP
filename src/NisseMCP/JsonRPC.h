@@ -44,7 +44,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
 
     struct Response
     {
-        std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+        std::string         jsonrpc = "2.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
         OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
         OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
         Id                  id;

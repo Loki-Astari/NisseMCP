@@ -4,7 +4,7 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-MugPlugin::MugPlugin(MugServerConfig const& config)
+MugPlugin::MugPlugin(ServerConfig const& config)
     : server{config}
 {}
 

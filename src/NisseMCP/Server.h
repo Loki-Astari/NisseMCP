@@ -8,7 +8,7 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-class MugServerConfig
+class ServerConfig
 {
 };
 
@@ -17,7 +17,7 @@ class Server
     static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
 
     public:
-        Server(MugServerConfig const& config);
+        Server(ServerConfig const& config);
 
         bool                processesStream(std::istream& input, std::ostream& output);
         void                processFunctionCall(std::istream& input, std::ostream& output);
@@ -30,6 +30,6 @@ class Server
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::MugServerConfig);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::ServerConfig);
 
 #endif

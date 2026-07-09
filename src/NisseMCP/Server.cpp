@@ -7,7 +7,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 ThorsAnvil::Serialize::PrinterConfig    Server::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
 
-Server::Server(MugServerConfig const& /*config*/)
+Server::Server(ServerConfig const& /*config*/)
 {}
 
 bool Server::processesStream(std::istream& input, std::ostream& output)
@@ -34,6 +34,8 @@ bool Server::processesStream(std::istream& input, std::ostream& output)
         }
     }
     else {
+        // Put back the character we stole doing the check.
+        // Scan like normal handling any potential issues.
         input.unget();
         processFunctionCall(input, output);
     }

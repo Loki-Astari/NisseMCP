@@ -11,9 +11,9 @@ class Local
     Server              server;
 
     public:
-        Local(MugServerConfig const& config);
+        Local(ServerConfig const& config);
 
-        void run();
+        void run(std::istream& input = std::cin, std::ostream& output = std::cout);
 };
 
 }

@@ -14,7 +14,7 @@ class MugPlugin: public ThorsAnvil::ThorsMug::MugPluginSimple
     // Send request to be handeled by the server.
     void processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
     public:
-        MugPlugin(MugServerConfig const& config);
+        MugPlugin(ServerConfig const& config);
 
         // Register handlers with mug server.
         virtual std::vector<ThorsAnvil::ThorsMug::Action> getAction();
