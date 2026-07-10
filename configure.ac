@@ -10,6 +10,9 @@ AX_THOR_FUNC_INIT_BUILD([NisseMCP], [src/NisseMCP/NisseMCP.cpp])
 #
 # Add extra configuration here
 #
+AX_THOR_CHECK_USE_MAGIC_ENUM
+AX_THOR_CHECK_USE_THORS_SERIALIZE_HEADER_ONLY
+AX_THOR_CHECK_USE_THORS_SERIALIZE([ThorSerialize ThorsSocket ThorsLogging])
 
 
 LT_INIT
