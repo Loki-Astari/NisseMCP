@@ -1,8 +1,9 @@
 #ifndef THORSANVIL_NISSE_MCP_MUG_H
 #define THORSANVIL_NISSE_MCP_MUG_H
 
-#include "ThorsMug/MugPlugin.h"
+#include "NisseMCPConfig.h"
 #include "Server.h"
+#include "ThorsMug/MugPlugin.h"
 
 namespace ThorsAnvil::Nisse::MCP
 {

@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_MCP_LOCAL_H
 #define THORSANVIL_NISSE_MCP_LOCAL_H
 
+#include "NisseMCPConfig.h"
 #include "Server.h"
 
 namespace ThorsAnvil::Nisse::MCP

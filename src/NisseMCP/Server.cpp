@@ -1,4 +1,6 @@
 #include "Server.h"
+#include "JsonRPC.h"
+
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>

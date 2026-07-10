@@ -1,6 +1,8 @@
 #ifndef THORSANVIL_NISSE_MCP_JSON_RCP_H
 #define THORSANVIL_NISSE_MCP_JSON_RCP_H
 
+#include "NisseMCPConfig.h"
+
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 #include <any>
