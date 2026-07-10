@@ -25,12 +25,12 @@ TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters)
     ThorsAnvil::Nisse::MCP::ServerConfig    config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
-    local.addExecutor<SubtractParam>("subtract", [](SubtractParam const& param){return JsonRPC::Response{std::to_string(param.minuend - param.subtrahend)};});
+    local.addExecutor<SubtractParam>("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
 
-    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": "3"})"};
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3})"};
     std::ostringstream   result;
 
     local.run(command, result);
 
-    EXPECT_EQ(R"({"jsonrpc":"2.0","result":"19","id":"3"})", result.str());
+    EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":3})", result.str());
 }

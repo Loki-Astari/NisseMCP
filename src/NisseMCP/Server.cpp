@@ -4,7 +4,6 @@
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 #include <ThorSerialize/JsonThor.h>
-#include "NisseMCP/JsonRPC.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
@@ -58,7 +57,7 @@ void Server::processFunctionCall(std::istream& input, std::ostream& output)
     JsonRPC::Request    rpc{input};
     JsonRPC::Response   result = execute(rpc);
     if (rpc.id.has_value()) {
-        result.id.assign(rpc.id.value());
+        result.id   = rpc.id.value();
         output << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
     }
 }

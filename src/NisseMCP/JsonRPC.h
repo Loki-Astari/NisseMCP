@@ -2,14 +2,13 @@
 #define THORSANVIL_NISSE_MCP_JSON_RCP_H
 
 #include "NisseMCPConfig.h"
+#include <ThorsLogging/ThorsLogging.h>
 
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
+
 #include <any>
 #include <istream>
-#include "ThorSerialize/JsonThor.h"
-#include "ThorSerialize/Serialize.h"
-
 // https://www.jsonrpc.org/specification
 
 namespace ThorsAnvil::Nisse::MCP::JsonRPC
@@ -17,7 +16,55 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     using Params = ThorsAnvil::Serialize::AnyBlock;
     using OptParams = std::optional<Params>;
 
-    using Id = std::string;
+    using Id = std::variant<std::string, long>;
+    struct IdWriter
+    {
+        ThorsAnvil::Serialize::Serializer&          parent;
+        ThorsAnvil::Serialize::PrinterInterface&    printer;
+        template<typename T>
+        void operator()(T const& val) const
+        {
+            using Traits = ThorsAnvil::Serialize::Traits<T>;
+            ThorsAnvil::Serialize::SerializerForBlock<Traits::type, T> serializer(parent, printer, std::any_cast<T>(val));
+            serializer.printMembers();
+        }
+    };
+    struct IdSizer
+    {
+        ThorsAnvil::Serialize::PrinterInterface&    printer;
+        template<typename T>
+        std::size_t operator()(T const& val) const
+        {
+            using Traits = ThorsAnvil::Serialize::Traits<T>;
+            return Traits::getPrintSize(printer, val, true);
+        }
+    };
+    class IdSerializer
+    {
+        public:
+            static std::size_t getPrintSize(ThorsAnvil::Serialize::PrinterInterface& printer, Id const& object)
+            {
+                return std::visit(IdSizer{printer}, object);
+            }
+            static void writeCustom(ThorsAnvil::Serialize::Serializer& parent, ThorsAnvil::Serialize::PrinterInterface& printer, Id const& object)
+            {
+                std::visit(IdWriter{parent, printer}, object);
+            }
+            static void readCustom(ThorsAnvil::Serialize::DeSerializer& /*parent*/, ThorsAnvil::Serialize::ParserInterface& parser, Id& object)
+            {
+                auto token = parser.getNextToken();
+                if (token != ThorsAnvil::Serialize::ParserToken::Value) {
+                    ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer", "readCustom", "Expected Value!");
+                }
+                switch (parser.peekType())
+                {
+                    case ThorsAnvil::Serialize::ValueType::Number:   {long value;        parser.getValue(value);object = value;}
+                    case ThorsAnvil::Serialize::ValueType::String:   {std::string value; parser.getValue(value);object = value;}
+                    default:
+                        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer", "readCustom", "Expected integer or string for id");
+                }
+            }
+    };
     using OptId = std::optional<Id>;
 
     struct Request
@@ -66,7 +113,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
             }
             static void writeCustom(ThorsAnvil::Serialize::Serializer& serializer, ThorsAnvil::Serialize::PrinterInterface& printer, Result const& object)
             {
-                return object.outputer(serializer, printer, object.value);
+                object.outputer(serializer, printer, object.value);
             }
             static void readCustom(ThorsAnvil::Serialize::DeSerializer&, ThorsAnvil::Serialize::ParserInterface& parser, Result& object);
     };
@@ -104,6 +151,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     };
 }
 
+ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Id, ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer);
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, params, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);
