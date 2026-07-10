@@ -56,6 +56,7 @@ void Server::processFunctionCall(std::istream& input, std::ostream& output)
     JsonRPC::Request    rpc{input};
     JsonRPC::Response   result = execute(rpc);
     if (rpc.id.has_value()) {
+        result.id.assign(rpc.id.value());
         output << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
     }
 }

@@ -6,10 +6,8 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-class Local
+class Local: public Server
 {
-    Server              server;
-
     public:
         Local(ServerConfig const& config);
 

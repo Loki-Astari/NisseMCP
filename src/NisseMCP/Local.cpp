@@ -5,12 +5,12 @@
 using namespace ThorsAnvil::Nisse::MCP;
 
 Local::Local(ServerConfig const& config)
-    : server{config}
+    : Server{config}
 {}
 
 void Local::run(std::istream& input, std::ostream& output)
 {
-    while (server.processesStream(input, output)) {
+    while (processesStream(input, output)) {
         ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
     }
 }
