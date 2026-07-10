@@ -48,7 +48,7 @@ bool Server::processesStream(std::istream& input, std::ostream& output)
 JsonRPC::Response Server::loggingSetLevel(SetLevelRequestParams const& /*level*/)
 {
     // TODO
-    return JsonRPC::Response{"2.0", {"OK"}, {}, {}};
+    return JsonRPC::Response{std::string{"OK"}};
 }
 
 void Server::processFunctionCall(std::istream& input, std::ostream& output)
@@ -65,7 +65,7 @@ JsonRPC::Response Server::execute(JsonRPC::Request const& request)
 {
     auto find = executeMap.find(request.method);
     if (find == std::end(executeMap)) {
-        return JsonRPC::Response{"2.0", {}, JsonRPC::Error{12, "No Func", {}}, {}};
+        return JsonRPC::Response{12, "No Func"};
     }
 
     JsonRPC::Response  result = (find->second)(request.params->getView());
