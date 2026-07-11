@@ -54,11 +54,18 @@ JsonRPC::Response Server::loggingSetLevel(SetLevelRequestParams const& /*level*/
 
 void Server::processFunctionCall(std::istream& input, std::ostream& output)
 {
-    JsonRPC::Request    rpc{input};
-    JsonRPC::Response   result = execute(rpc);
-    if (rpc.id.has_value()) {
-        result.id   = rpc.id.value();
-        output << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
+    JsonRPC::Request    rpc;
+    if (input >> ThorsAnvil::Serialize::jsonImporter(rpc))
+    {
+        JsonRPC::Response   result = execute(rpc);
+        if (rpc.id.has_value()) {
+            result.id   = rpc.id.value();
+            output << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
+        }
+    }
+    else
+    {
+        output << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32700, "Parse error"}, outputConfig);
     }
 }
 

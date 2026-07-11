@@ -16,7 +16,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     using Params = ThorsAnvil::Serialize::AnyBlock;
     using OptParams = std::optional<Params>;
 
-    using Id = std::variant<std::string, long>;
+    using Id = std::variant<std::string, long, char*>;
     struct IdWriter
     {
         ThorsAnvil::Serialize::Serializer&          parent;
@@ -69,10 +69,6 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
 
     struct Request
     {
-        Request(std::istream& stream);
-        Request(std::string_view view);
-
-
         std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
         std::string         method;         // A String containing the name of the method to be invoked.
         OptParams           params;
@@ -143,10 +139,12 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
             Response(T&& result)
                 : jsonrpc{"2.0"}
                 , result{std::move(result)}
+                , id{static_cast<char*>(nullptr)}
             {}
             Response(int code, std::string&& message)
                 : jsonrpc{"2.0"}
                 , error{Error{code, std::move(message), {}}}
+                , id{static_cast<char*>(nullptr)}
             {}
     };
 }

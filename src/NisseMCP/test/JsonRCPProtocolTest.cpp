@@ -129,5 +129,21 @@ TEST(JsonRCPProtocolTest, RPC_NonExistentMethod)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"})", result.str());
 }
 
+TEST(JsonRCPProtocolTest, RPC_InvalidJson)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
 
+    local.addExecutor<std::string>("foobar", [&](std::string const& param){return 1;});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar, "params": "bar", "baz])"};
+                                                                                        //     ^^^^^
+                                                                                        // Missing close quote
+                                                                                        // Bad close ']' not '}'
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
 
