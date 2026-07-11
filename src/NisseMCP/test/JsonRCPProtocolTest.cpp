@@ -116,4 +116,18 @@ TEST(JsonRCPProtocolTest, RPC_Notification2)
     EXPECT_TRUE(used);
 }
 
+TEST(JsonRCPProtocolTest, RPC_NonExistentMethod)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar", "id": "1"})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"})", result.str());
+}
+
+
 

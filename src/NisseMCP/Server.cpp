@@ -66,7 +66,7 @@ JsonRPC::Response Server::execute(JsonRPC::Request const& request)
 {
     auto find = executeMap.find(request.method);
     if (find == std::end(executeMap)) {
-        return JsonRPC::Response{12, "No Func"};
+        return JsonRPC::Response{-32601, "Method not found"};
     }
 
     JsonRPC::Response  result = (find->second)(request.params->getView());
