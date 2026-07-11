@@ -147,3 +147,38 @@ TEST(JsonRCPProtocolTest, RPC_InvalidJson)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
+TEST(JsonRCPProtocolTest, RPC_InvalidRequest1)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor<std::string>("foobar", [&](std::string const& param){return 1;});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": 1, "params": "bar"})"};
+                                                            //   ^ Invalid Type: Should be string.
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    // This is deteted as PARSE Errors. because the method must be a string.
+    // EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_InvalidRequest2)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor<std::string>("foobar", [&](std::string const& param){return 1;});
+
+    std::istringstream   command{R"({"jsonrpc": "2.1", "method": "name", "params": "bar"})"};
+                                                            //   ^ Invalid Type: Should be string.
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+}
+
+
+

@@ -47,7 +47,6 @@ class Server
 
         bool                processesStream(std::istream& input, std::ostream& output);
         void                processFunctionCall(std::istream& input, std::ostream& output);
-        JsonRPC::Response   execute(JsonRPC::Request const& request);
 
         void resource();
         void tool();
@@ -66,16 +65,28 @@ class Server
             executeMap[name] = [executor = std::forward<Executor<T>>(f)](std::string_view view)
             {
                 T   param;
-                view >> ThorsAnvil::Serialize::jsonImporter(param);
+                if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
+                    return JsonRPC::Response{-32602, "Invalid params"};
+                }
 
-                return executor(param);
+                try {
+                    return executor(param);
+                }
+                catch (...) {
+                    return JsonRPC::Response{-32603, "Internal error"};
+                }
             };
         }
         void addExecutor(std::string const& name, ExecutorVoid&& f)
         {
             executeMap[name] = [executor = std::forward<ExecutorVoid>(f)](std::string_view)
             {
-                return executor();
+                try {
+                    return executor();
+                }
+                catch (...) {
+                    return JsonRPC::Response{-32603, "Internal error"};
+                }
             };
         }
 };

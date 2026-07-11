@@ -141,10 +141,17 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
                 , result{std::move(result)}
                 , id{static_cast<char*>(nullptr)}
             {}
-            Response(int code, std::string&& message)
+            Response(int code, std::string&& message, OptId const& requestId)
                 : jsonrpc{"2.0"}
                 , error{Error{code, std::move(message), {}}}
                 , id{static_cast<char*>(nullptr)}
+            {
+                if (requestId.has_value()) {
+                    id = requestId.value();
+                }
+            }
+            Response(int code, std::string&& message)
+                : Response(code, std::forward<std::string>(message), {})
             {}
     };
 }

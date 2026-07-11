@@ -1,5 +1,6 @@
 #include "Server.h"
 #include "JsonRPC.h"
+#include "ThorSerialize/ParserConfig.h"
 
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
@@ -55,29 +56,26 @@ JsonRPC::Response Server::loggingSetLevel(SetLevelRequestParams const& /*level*/
 void Server::processFunctionCall(std::istream& input, std::ostream& output)
 {
     JsonRPC::Request    rpc;
-    if (input >> ThorsAnvil::Serialize::jsonImporter(rpc))
-    {
-        JsonRPC::Response   result = execute(rpc);
-        if (rpc.id.has_value()) {
-            result.id   = rpc.id.value();
-            output << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
-        }
-    }
-    else
-    {
+    if (!(input >> ThorsAnvil::Serialize::jsonImporter(rpc))) {
         output << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32700, "Parse error"}, outputConfig);
+        return;
     }
-}
+    if (rpc.jsonrpc != "2.0") {
+        output << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32600, "Invalid Request", rpc.id}, outputConfig);
+        return;
+    }
 
-JsonRPC::Response Server::execute(JsonRPC::Request const& request)
-{
-    auto find = executeMap.find(request.method);
+    auto find = executeMap.find(rpc.method);
     if (find == std::end(executeMap)) {
-        return JsonRPC::Response{-32601, "Method not found"};
+        output << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32601, "Method not found", rpc.id}, outputConfig);
+        return;
     }
 
-    JsonRPC::Response  result = (find->second)(request.params->getView());
-    return result;
+    JsonRPC::Response  result = (find->second)(rpc.params->getView());
+    if (rpc.id.has_value()) {
+        result.id   = rpc.id.value();
+        output << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
+    }
 }
 
 void Server::resource()
