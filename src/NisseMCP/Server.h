@@ -15,7 +15,7 @@ namespace ThorsAnvil::Nisse::MCP
 // *****
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#logginglevel
-enum LoggingLevel {debug, info, notice, warning, error, critical, alert, emergency};
+enum LoggingLevel /* Vera Ignore */ {debug, info, notice, warning, error, critical, alert, emergency};
 
 
 // *****
@@ -25,8 +25,6 @@ struct SetLevelRequestParams
 {
     LoggingLevel level;
 };
-
-
 
 /*
  * Server Types;
@@ -60,6 +58,7 @@ class Server
 
         template<typename T>
         using Executor = std::function<JsonRPC::Response(T const&)>;
+        using ExecutorVoid = std::function<JsonRPC::Response()>;
 
         template<typename T>
         void addExecutor(std::string const& name, Executor<T>&& f)
@@ -70,6 +69,13 @@ class Server
                 view >> ThorsAnvil::Serialize::jsonImporter(param);
 
                 return executor(param);
+            };
+        }
+        void addExecutor(std::string const& name, ExecutorVoid&& f)
+        {
+            executeMap[name] = [executor = std::forward<ExecutorVoid>(f)](std::string_view)
+            {
+                return executor();
             };
         }
 };

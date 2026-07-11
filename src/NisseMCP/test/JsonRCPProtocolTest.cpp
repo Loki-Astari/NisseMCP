@@ -79,3 +79,41 @@ TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters2)
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":4})", result.str());
 }
+
+TEST(JsonRCPProtocolTest, RPC_Notification1)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    std::size_t                             size = 0;
+
+    local.addExecutor<std::vector<int>>("update", [&](std::vector<int> const& param){size = param.size();return 1;});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"()", result.str());
+    EXPECT_EQ(5, size);
+}
+
+TEST(JsonRCPProtocolTest, RPC_Notification2)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    bool                                    used = false;
+
+    local.addExecutor("foobar", [&](){used = true;return 1;});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar"})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"()", result.str());
+    EXPECT_TRUE(used);
+}
+
+
