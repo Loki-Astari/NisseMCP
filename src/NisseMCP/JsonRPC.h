@@ -58,8 +58,8 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
                 }
                 switch (parser.peekType())
                 {
-                    case ThorsAnvil::Serialize::ValueType::Number:   {long value;        parser.getValue(value);object = value;}
-                    case ThorsAnvil::Serialize::ValueType::String:   {std::string value; parser.getValue(value);object = value;}
+                    case ThorsAnvil::Serialize::ValueType::Number:   {long value;        parser.getValue(value);object = value;break;}
+                    case ThorsAnvil::Serialize::ValueType::String:   {std::string value; parser.getValue(value);object = value;break;}
                     default:
                         ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer", "readCustom", "Expected integer or string for id");
                 }
