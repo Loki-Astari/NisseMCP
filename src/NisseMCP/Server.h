@@ -45,8 +45,10 @@ class Server
     public:
         Server(ServerConfig const& config);
 
-        bool                processesStream(std::istream& input, std::ostream& output);
-        void                processFunctionCall(std::istream& input, std::ostream& output);
+        enum State {OK, ErrorReported, ErrorNoInput};
+
+        State   processesStream(std::istream& input, std::ostream& output);
+        bool    processFunctionCall(std::istream& input, std::ostream& output, std::string_view const& sep);
 
         void resource();
         void tool();

@@ -10,7 +10,8 @@ Local::Local(ServerConfig const& config)
 
 void Local::run(std::istream& input, std::ostream& output)
 {
-    while (processesStream(input, output)) {
+    // ErrorNoInput means we hit the end of stream nothing was there.
+    while (processesStream(input, output) != Server::State::ErrorNoInput) {
         ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
     }
 }
