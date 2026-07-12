@@ -255,5 +255,24 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
                 , result.str());
 }
 
+TEST(JsonRCPProtocolTest, RPC_BatchNotification)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor<std::vector<int>>("notify_sum",   [](std::vector<int> const& args){return std::accumulate(std::begin(args), std::end(args), 0);});
+    local.addExecutor<std::vector<int>>("notify_hello", [](std::vector<int> const& /*a*/){return 1;});
+
+    std::istringstream   command{R"([)"
+                                    R"({"jsonrpc": "2.0", "method": "notify_sum", "params": [1,2,4]},)"
+                                    R"({"jsonrpc": "2.0", "method": "notify_hello", "params": [7]})"
+                                 R"(])"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ("", result.str());
+}
+
 
 

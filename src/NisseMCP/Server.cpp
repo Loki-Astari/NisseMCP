@@ -47,9 +47,10 @@ Server::State Server::processesStream(std::istream& input, std::ostream& output)
         // Put back the next char we just stole for empty array checks.
         input.unget();
 
-
-        for (std::size_t count = 0; nextChar != ']'; ++count) {
-            if (!processFunctionCall(input, output, (count == 0) ? "["sv : ","sv)) {
+        std::size_t count = 0;
+        while (nextChar != ']')
+        {
+            if (!processFunctionCall(input, output, count, (count == 0) ? "["sv : ","sv)) {
                 // Bad Json. So we are going to exit.
                 //           Other types of error allow us to continue.
                 result = Server::State::ErrorReported;
@@ -62,13 +63,16 @@ Server::State Server::processesStream(std::istream& input, std::ostream& output)
             }
         }
         // Close the output array.
-        output << "]";
+        if (count > 0) {
+            output << "]";
+        }
     }
     else {
         // Put back the character we stole doing the check for an array.
         input.unget();
         // Scan like normal handling any potential issues.
-        if (!processFunctionCall(input, output, ""sv)) {
+        std::size_t count = 0;
+        if (!processFunctionCall(input, output, count, ""sv)) {
             result = Server::State::ErrorReported;
         }
     }
@@ -81,27 +85,31 @@ JsonRPC::Response Server::loggingSetLevel(SetLevelRequestParams const& /*level*/
     return JsonRPC::Response{std::string{"OK"}};
 }
 
-bool Server::processFunctionCall(std::istream& input, std::ostream& output, std::string_view const& sep)
+bool Server::processFunctionCall(std::istream& input, std::ostream& output, std::size_t& count, std::string_view sep)
 {
     JsonRPC::Request    rpc;
     if (!(input >> ThorsAnvil::Serialize::jsonImporter(rpc))) {
         output << sep << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32700, "Parse error"}, outputConfig);
+        ++count;
         return false;
     }
     if (rpc.jsonrpc != "2.0") {
         output << sep << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32600, "Invalid Request", rpc.id}, outputConfig);
+        ++count;
         return true;
     }
 
     auto find = executeMap.find(rpc.method);
     if (find == std::end(executeMap)) {
         output << sep << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32601, "Method not found", rpc.id}, outputConfig);
+        ++count;
         return true;
     }
 
     JsonRPC::Response  result = (find->second)(rpc.params->getView());
     if (rpc.id.has_value()) {
         result.id   = rpc.id.value();
+        ++count;
         output << sep << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
     }
     return true;
