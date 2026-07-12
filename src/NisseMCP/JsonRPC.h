@@ -86,17 +86,21 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
         public:
             template<typename T>
             Result(T&& v)
-                : value(std::move(v))
+                : value(std::forward<T>(v))
                 , outputer([](ThorsAnvil::Serialize::Serializer& parent, ThorsAnvil::Serialize::PrinterInterface& printer, std::any const& val)
                   {
-                        using Traits = ThorsAnvil::Serialize::Traits<T>;
-                        ThorsAnvil::Serialize::SerializerForBlock<Traits::type, T> serializer(parent, printer, std::any_cast<T>(val));
+                        using Base = std::decay_t<T>;
+                        using Traits = ThorsAnvil::Serialize::Traits<Base>;
+                        Base const& val1 = std::any_cast<Base>(val);
+                        ThorsAnvil::Serialize::SerializerForBlock<Traits::type, Base> serializer(parent, printer, val1);
                         serializer.printMembers();
                   })
                 , sizer([](ThorsAnvil::Serialize::PrinterInterface& printer, std::any const& val)
                   {
-                        using Traits = ThorsAnvil::Serialize::Traits<T>;
-                        return Traits::getPrintSize(printer, std::any_cast<T>(val), true);
+                        using Base = std::decay_t<T>;
+                        using Traits = ThorsAnvil::Serialize::Traits<Base>;
+                        Base const& val1 = std::any_cast<Base>(val);
+                        return Traits::getPrintSize(printer, val1, true);
                   })
             {}
     };
@@ -138,7 +142,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
             template<typename T>
             Response(T&& result)
                 : jsonrpc{"2.0"}
-                , result{std::move(result)}
+                , result{std::forward<T>(result)}
                 , id{static_cast<char*>(nullptr)}
             {}
             Response(int code, std::string&& message, OptId const& requestId)

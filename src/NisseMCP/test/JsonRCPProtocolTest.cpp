@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "JsonRPC.h"
+#include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
+#include <numeric>
 #include <sstream>
 
 
@@ -178,6 +180,79 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequest2)
     local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_EmptyBatch)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    std::istringstream   command{R"([])"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_InvalidRequests1)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    std::istringstream   command{R"([1,2,3])"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    /* Specs say this */
+#if 0
+    EXPECT_EQ(R"([)"
+                R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})"
+                R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})"
+                R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})"
+              R"(])"
+                , result.str());
+#endif
+    // But we check the type of each member on input. This is not a JsonRPC request so we get a parse error.
+    // When trying to read the first command.
+    // Because we have a parse errors (this is bad JSON so we have to abort any further reading.
+    EXPECT_EQ(R"([)"
+                R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})"
+              R"(])"
+                , result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor<std::vector<int>>("sum",          [](std::vector<int> const& args){return std::accumulate(std::begin(args), std::end(args), 0);});
+    local.addExecutor<std::vector<int>>("subtract",     [](std::vector<int> const& args){return args[0] - args[1];});
+    local.addExecutor<std::vector<int>>("notify_hello", [](std::vector<int> const& /*a*/){return 1;});
+    local.addExecutor("get_data",                       [](){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); std::cerr << "Result: " << ThorsAnvil::Serialize::jsonExporter(result) << "\n";return JsonRPC::Response{result};});
+
+    std::istringstream   command{R"([)"
+                                    R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},)"
+                                    R"({"jsonrpc": "2.0", "method": "notify_hello", "params": [7]},)"
+                                    R"({"jsonrpc": "2.0", "method": "subtract", "params": [42,23], "id": "2"},)"
+                                    R"({"foo": "boo"},)"
+                                    R"({"jsonrpc": "2.0", "method": "foo.get", "params": {"name": "myself"}, "id": "5"},)"
+                                    R"({"jsonrpc": "2.0", "method": "get_data", "id": "9"} )"
+                                 R"(])"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"([)"
+                R"({"jsonrpc":"2.0","result":7,"id":"1"},)"
+                R"({"jsonrpc":"2.0","result":19,"id":"2"},)"
+                R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null},)"
+                R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"5"},)"
+                R"({"jsonrpc":"2.0","result":["hello","5"],"id":"9"})"
+              R"(])"
+                , result.str());
 }
 
 
