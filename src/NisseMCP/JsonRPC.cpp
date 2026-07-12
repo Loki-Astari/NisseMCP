@@ -2,4 +2,3 @@
 #include "ThorSerialize/JsonThor.h"
 
 using namespace ThorsAnvil::Nisse::MCP::JsonRPC;
-

@@ -114,10 +114,12 @@ class Server
                     return JsonRPC::Response{-32602, "Invalid params"};
                 }
 
-                try {
+                try
+                {
                     return executor(param);
                 }
-                catch (...) {
+                catch (...)
+                {
                     return JsonRPC::Response{-32603, "Internal error"};
                 }
             };
@@ -131,10 +133,12 @@ class Server
                 if (!param.empty()) {
                     return JsonRPC::Response{-32602, "Invalid params"};
                 }
-                try {
+                try
+                {
                     return executor();
                 }
-                catch (...) {
+                catch (...)
+                {
                     return JsonRPC::Response{-32603, "Internal error"};
                 }
             };

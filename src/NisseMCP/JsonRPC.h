@@ -24,8 +24,10 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
         template<typename T>
         void operator()(T const& val) const
         {
-            using Traits = ThorsAnvil::Serialize::Traits<T>;
-            ThorsAnvil::Serialize::SerializerForBlock<Traits::type, T> serializer(parent, printer, std::any_cast<T>(val));
+            using Base = std::remove_cvref_t<T>;
+            using Traits = ThorsAnvil::Serialize::Traits<Base>;
+            Base const& val1 =  std::any_cast<Base>(val);
+            ThorsAnvil::Serialize::SerializerForBlock<Traits::type, Base> serializer(parent, printer, val1);
             serializer.printMembers();
         }
     };
@@ -35,7 +37,8 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
         template<typename T>
         std::size_t operator()(T const& val) const
         {
-            using Traits = ThorsAnvil::Serialize::Traits<T>;
+            using Base = std::remove_cvref_t<T>;
+            using Traits = ThorsAnvil::Serialize::Traits<Base>;
             return Traits::getPrintSize(printer, val, true);
         }
     };

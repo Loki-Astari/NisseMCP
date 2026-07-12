@@ -37,6 +37,21 @@ TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters1)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":1})", result.str());
 }
 
+TEST(JsonRCPProtocolTest, RPC_UsingAStringID)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": "long-string-that-forms-id"})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":"long-string-that-forms-id"})", result.str());
+}
+
 TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters2)
 {
     ThorsAnvil::Nisse::MCP::ServerConfig    config;
@@ -274,5 +289,70 @@ TEST(JsonRCPProtocolTest, RPC_BatchNotification)
     EXPECT_EQ("", result.str());
 }
 
+TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor1)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
 
+    local.addExecutor("sum",   [](std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": 5})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
+            result.str());
+}
+
+TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor2)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("note",   []()->int {throw std::runtime_error("Hi");});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "note", "id": 5})"};
+                                                                                // ^^ Array of string not integer.
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
+            result.str());
+}
+
+TEST(JsonRCPProtocolTest, CheckForInvalidParameters)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("sum",   [](std::vector<int> const& args){return std::accumulate(std::begin(args), std::end(args), 0);});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "sum", "params": ["1","2","4"], "id": 5})"};
+                                                                                // ^^ Array of string not integer.
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
+            result.str());
+}
+
+TEST(JsonRCPProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("note",   [](){return "Hi";});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "note", "params": 1, "id": 5})"};
+                                                                                // ^^ Array of string not integer.
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
+            result.str());
+}
 
