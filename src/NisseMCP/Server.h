@@ -6,6 +6,7 @@
 #include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
 #include <iostream>
+#include <type_traits>
 
 namespace ThorsAnvil::Nisse::MCP
 {
@@ -35,6 +36,47 @@ class ServerConfig
 
 using ExecuteMap = std::map<std::string, std::function<JsonRPC::Response(std::string_view)>>;
 
+// Map an `operator()` signature to its single parameter.
+// Catch-all: no `Param` member. Only the `P const&` single-parameter forms
+// below define `Param`, so anything else (by-value, multi-arg, zero-arg)
+// is a clean SFINAE-friendly rejection rather than a hard error.
+template<typename F>
+struct ParamOfSignature
+{};
+template<typename R, typename C, typename P>
+struct ParamOfSignature<R(C::*)(P const&) const>
+{
+    using Param = P;
+};
+template<typename R, typename C, typename P>
+struct ParamOfSignature<R(C::*)(P const&)>
+{
+    using Param = P;
+};
+
+// Primary template: for callables (lambdas, functors) deduce from operator().
+// Delegating to ParamOfSignature (not FirstParam) means an unrecognised
+// signature stops here with no `Param` instead of recursing into a hard error.
+template<typename T>
+struct FirstParam : ParamOfSignature<decltype(&std::remove_reference_t<T>::operator())>
+{};
+
+// Raw function type.
+template<typename R, typename P>
+struct FirstParam<R(P const&)>
+{
+    using Param = P;
+};
+// std::function.
+template<typename R, typename P>
+struct FirstParam<std::function<R(P const&)>>
+{
+    using Param = P;
+};
+
+template<typename C>
+concept HadSingleParam = requires {typename FirstParam<std::remove_reference_t<C>>::Param;};
+
 class Server
 {
     static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
@@ -61,12 +103,13 @@ class Server
         using Executor = std::function<JsonRPC::Response(T const&)>;
         using ExecutorVoid = std::function<JsonRPC::Response()>;
 
-        template<typename T>
-        void addExecutor(std::string const& name, Executor<T>&& f)
+        template<typename C, typename P = typename FirstParam<std::remove_reference_t<C>>::Param>
+        requires HadSingleParam<C>
+        void addExecutor(std::string const& name, C&& callable)
         {
-            executeMap[name] = [executor = std::forward<Executor<T>>(f)](std::string_view view)
+            executeMap[name] = [executor = Executor<P>{std::forward<C>(callable)}](std::string_view view)
             {
-                T   param;
+                P   param;
                 if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
                     return JsonRPC::Response{-32602, "Invalid params"};
                 }
@@ -79,10 +122,15 @@ class Server
                 }
             };
         }
-        void addExecutor(std::string const& name, ExecutorVoid&& f)
+        template<typename C>
+        requires std::invocable<C>
+        void addExecutor(std::string const& name, C&& f)
         {
-            executeMap[name] = [executor = std::forward<ExecutorVoid>(f)](std::string_view)
+            executeMap[name] = [executor = ExecutorVoid{std::forward<C>(f)}](std::string_view param)
             {
+                if (!param.empty()) {
+                    return JsonRPC::Response{-32602, "Invalid params"};
+                }
                 try {
                     return executor();
                 }

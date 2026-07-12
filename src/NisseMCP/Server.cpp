@@ -12,7 +12,7 @@ ThorsAnvil::Serialize::PrinterConfig    Server::outputConfig{ThorsAnvil::Seriali
 
 Server::Server(ServerConfig const& /*config*/)
 {
-    addExecutor<SetLevelRequestParams>("logging/setLevel", [&](SetLevelRequestParams const& level) -> JsonRPC::Response {return loggingSetLevel(level);});
+    addExecutor("logging/setLevel", [&](SetLevelRequestParams const& level) -> JsonRPC::Response {return loggingSetLevel(level);});
 }
 
 Server::State Server::processesStream(std::istream& input, std::ostream& output)
@@ -106,7 +106,8 @@ bool Server::processFunctionCall(std::istream& input, std::ostream& output, std:
         return true;
     }
 
-    JsonRPC::Response  result = (find->second)(rpc.params->getView());
+    using namespace std::string_view_literals;
+    JsonRPC::Response  result = (find->second)(rpc.params.has_value() ? rpc.params->getView() : ""sv);
     if (rpc.id.has_value()) {
         result.id   = rpc.id.value();
         ++count;
