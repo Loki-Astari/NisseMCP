@@ -1,4 +1,5 @@
 #include "Local.h"
+#include <tuple>
 
 #include "ThorsLogging/ThorsLogging.h"
 
@@ -11,7 +12,10 @@ Local::Local(ServerConfig const& config)
 void Local::run(std::istream& input, std::ostream& output)
 {
     // ErrorNoInput means we hit the end of stream nothing was there.
-    while (processesStream(input, output) != Server::State::ErrorNoInput) {
+    for (Server::State state = processesStream(input, output); state != Server::State::ErrorNoInput; state = processesStream(input, output)) {
+        if (state == Server::State::ErrorReported) {
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
         ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
     }
 }

@@ -52,6 +52,81 @@ TEST(JsonRCPProtocolTest, RPC_UsingAStringID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":"long-string-that-forms-id"})", result.str());
 }
 
+TEST(JsonRCPProtocolTest, RPC_UsingAStructureID)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": {"name": "long-string-that-forms-id"}})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_UsingAnArrayID)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": ["name", "long-string-that-forms-id"]})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_UsingABoolID)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": true})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_UsingANullID)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": null})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_UsingAFloatID)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("subtract", [](SubtractParam const& param){return JsonRPC::Response{param.minuend - param.subtrahend};});
+
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 22.234})"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
+
 TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters2)
 {
     ThorsAnvil::Nisse::MCP::ServerConfig    config;
@@ -210,6 +285,19 @@ TEST(JsonRCPProtocolTest, RPC_EmptyBatch)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
 }
 
+TEST(JsonRCPProtocolTest, RPC_InvalidEmptyBatch)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    std::istringstream   command{R"([)"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+}
+
 TEST(JsonRCPProtocolTest, RPC_InvalidRequests1)
 {
     ThorsAnvil::Nisse::MCP::ServerConfig    config;
@@ -266,6 +354,36 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
                 R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null},)"
                 R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"5"},)"
                 R"({"jsonrpc":"2.0","result":["hello","5"],"id":"9"})"
+              R"(])"
+                , result.str());
+}
+
+TEST(JsonRCPProtocolTest, RPC_InvalidRequestsBADJSONInArray)
+{
+    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::Local           local{config};
+
+    local.addExecutor("sum",          [](std::vector<int> const& args){return std::accumulate(std::begin(args), std::end(args), 0);});
+    local.addExecutor("subtract",     [](std::vector<int> const& args){return args[0] - args[1];});
+    local.addExecutor("notify_hello", [](std::vector<int> const& /*a*/){return 1;});
+    local.addExecutor("get_data",     [](){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); std::cerr << "Result: " << ThorsAnvil::Serialize::jsonExporter(result) << "\n";return JsonRPC::Response{result};});
+
+    std::istringstream   command{R"([)"
+                                    R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},)"
+                                    R"({"jsonrpc": "2.0", "method": "notify_hello", "params": [7]},)"
+                                    R"({"jsonrpc": "2.0", "method": "subtract", "params": [42,23], "id": "2"})" // Not Missing comma
+                                    R"({"foo": "boo"},)"
+                                    R"({"jsonrpc": "2.0", "method": "foo.get", "params": {"name": "myself"}, "id": "5"},)"
+                                    R"({"jsonrpc": "2.0", "method": "get_data", "id": "9"} )"
+                                 R"(])"};
+    std::ostringstream   result;
+
+    local.run(command, result);
+
+    EXPECT_EQ(R"([)"
+                R"({"jsonrpc":"2.0","result":7,"id":"1"},)"
+                R"({"jsonrpc":"2.0","result":19,"id":"2"},)"
+                R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})"
               R"(])"
                 , result.str());
 }

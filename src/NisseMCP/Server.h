@@ -92,12 +92,11 @@ class Server
         State   processesStream(std::istream& input, std::ostream& output);
         bool    processFunctionCall(std::istream& input, std::ostream& output, std::size_t& count, std::string_view sep);
 
+#if 0
         void resource();
         void tool();
         void prompt();
-
-        // Utility Functions:
-        JsonRPC::Response loggingSetLevel(SetLevelRequestParams const& level);
+#endif
 
         template<typename T>
         using Executor = std::function<JsonRPC::Response(T const&)>;

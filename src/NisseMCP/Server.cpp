@@ -11,9 +11,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 ThorsAnvil::Serialize::PrinterConfig    Server::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
 
 Server::Server(ServerConfig const& /*config*/)
-{
-    addExecutor("logging/setLevel", [&](SetLevelRequestParams const& level) -> JsonRPC::Response {return loggingSetLevel(level);});
-}
+{}
 
 Server::State Server::processesStream(std::istream& input, std::ostream& output)
 {
@@ -79,12 +77,6 @@ Server::State Server::processesStream(std::istream& input, std::ostream& output)
     return result;
 }
 
-JsonRPC::Response Server::loggingSetLevel(SetLevelRequestParams const& /*level*/)
-{
-    // TODO
-    return JsonRPC::Response{std::string{"OK"}};
-}
-
 bool Server::processFunctionCall(std::istream& input, std::ostream& output, std::size_t& count, std::string_view sep)
 {
     JsonRPC::Request    rpc;
@@ -116,6 +108,7 @@ bool Server::processFunctionCall(std::istream& input, std::ostream& output, std:
     return true;
 }
 
+#if 0
 void Server::resource()
 {
 }
@@ -127,3 +120,4 @@ void Server::tool()
 void Server::prompt()
 {
 }
+#endif
