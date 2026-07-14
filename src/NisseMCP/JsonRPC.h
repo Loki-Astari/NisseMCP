@@ -17,33 +17,33 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     using OptParams = std::optional<Params>;
 
     using Id = std::variant<std::string, long, char*>;
-    struct IdWriter
-    {
-        ThorsAnvil::Serialize::Serializer&          parent;
-        ThorsAnvil::Serialize::PrinterInterface&    printer;
-        template<typename T>
-        void operator()(T const& val) const
-        {
-            using Base = std::remove_cvref_t<T>;
-            using Traits = ThorsAnvil::Serialize::Traits<Base>;
-            Base const& val1 =  std::any_cast<Base>(val);
-            ThorsAnvil::Serialize::SerializerForBlock<Traits::type, Base> serializer(parent, printer, val1);
-            serializer.printMembers();
-        }
-    };
-    struct IdSizer
-    {
-        ThorsAnvil::Serialize::PrinterInterface&    printer;
-        template<typename T>
-        std::size_t operator()(T const& val) const
-        {
-            using Base = std::remove_cvref_t<T>;
-            using Traits = ThorsAnvil::Serialize::Traits<Base>;
-            return Traits::getPrintSize(printer, val, true);
-        }
-    };
     class IdSerializer
     {
+        struct IdWriter
+        {
+            ThorsAnvil::Serialize::Serializer&          parent;
+            ThorsAnvil::Serialize::PrinterInterface&    printer;
+            template<typename T>
+            void operator()(T const& val) const
+            {
+                using Base = std::remove_cvref_t<T>;
+                using Traits = ThorsAnvil::Serialize::Traits<Base>;
+                Base const& val1 =  std::any_cast<Base>(val);
+                ThorsAnvil::Serialize::SerializerForBlock<Traits::type, Base> serializer(parent, printer, val1);
+                serializer.printMembers();
+            }
+        };
+        struct IdSizer
+        {
+            ThorsAnvil::Serialize::PrinterInterface&    printer;
+            template<typename T>
+            std::size_t operator()(T const& val) const
+            {
+                using Base = std::remove_cvref_t<T>;
+                using Traits = ThorsAnvil::Serialize::Traits<Base>;
+                return Traits::getPrintSize(printer, val, true);
+            }
+        };
         public:
             static std::size_t getPrintSize(ThorsAnvil::Serialize::PrinterInterface& printer, Id const& object)
             {

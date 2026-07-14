@@ -1,7 +1,7 @@
 THORSANVIL_ROOT				?= $(realpath ../../)
 TARGET						= NisseMCP.slib
 
-FILE_WARNING_FLAGS			+= -Wno-missing-braces
+FILE_WARNING_FLAGS			+= -Wno-missing-braces -Wno-dollar-in-identifier-extension
 LINK_LIBS					+= Nisse ThorSerialize ThorsLogging
 UNITTEST_LINK_LIBS			+= Nisse ThorSerialize ThorsLogging
 
