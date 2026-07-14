@@ -2,6 +2,7 @@
 #define THORSANVIL_NISSE_MCP_JSON_RCP_H
 
 #include "NisseMCPConfig.h"
+#include "SerializableId.h"
 #include <ThorsLogging/ThorsLogging.h>
 
 #include <ThorSerialize/Traits.h>
@@ -16,66 +17,28 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     using Params = ThorsAnvil::Serialize::AnyBlock;
     using OptParams = std::optional<Params>;
 
-    using Id = std::variant<std::string, long, char*>;
-    class IdSerializer
+    using RequestId  = SerializableId;
+    using OptRequestId = std::optional<RequestId>;
+
+    using ResponseId = SerializableNullId;
+    using OptResponseId = std::optional<ResponseId>;
+
+    struct ResponseConverter
     {
-        struct IdWriter
-        {
-            ThorsAnvil::Serialize::Serializer&          parent;
-            ThorsAnvil::Serialize::PrinterInterface&    printer;
-            template<typename T>
-            void operator()(T const& val) const
-            {
-                using Base = std::remove_cvref_t<T>;
-                using Traits = ThorsAnvil::Serialize::Traits<Base>;
-                Base const& val1 =  std::any_cast<Base>(val);
-                ThorsAnvil::Serialize::SerializerForBlock<Traits::type, Base> serializer(parent, printer, val1);
-                serializer.printMembers();
-            }
-        };
-        struct IdSizer
-        {
-            ThorsAnvil::Serialize::PrinterInterface&    printer;
-            template<typename T>
-            std::size_t operator()(T const& val) const
-            {
-                using Base = std::remove_cvref_t<T>;
-                using Traits = ThorsAnvil::Serialize::Traits<Base>;
-                return Traits::getPrintSize(printer, val, true);
-            }
-        };
-        public:
-            static std::size_t getPrintSize(ThorsAnvil::Serialize::PrinterInterface& printer, Id const& object)
-            {
-                return std::visit(IdSizer{printer}, object);
-            }
-            static void writeCustom(ThorsAnvil::Serialize::Serializer& parent, ThorsAnvil::Serialize::PrinterInterface& printer, Id const& object)
-            {
-                std::visit(IdWriter{parent, printer}, object);
-            }
-            static void readCustom(ThorsAnvil::Serialize::DeSerializer& /*parent*/, ThorsAnvil::Serialize::ParserInterface& parser, Id& object)
-            {
-                auto token = parser.getNextToken();
-                if (token != ThorsAnvil::Serialize::ParserToken::Value) {
-                    ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer", "readCustom", "Expected Value!");
-                }
-                switch (parser.peekType())
-                {
-                    case ThorsAnvil::Serialize::ValueType::Number:   {long value;        parser.getValue(value);object = value;break;}
-                    case ThorsAnvil::Serialize::ValueType::String:   {std::string value; parser.getValue(value);object = value;break;}
-                    default:
-                        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer", "readCustom", "Expected integer or string for id");
-                }
-            }
+        template<typename T>
+        ResponseId operator()(T const& val)   const {return val;}
     };
-    using OptId = std::optional<Id>;
+    inline ResponseId makeId(RequestId const& r)
+    {
+        return std::visit(ResponseConverter{}, r);
+    }
 
     struct Request
     {
         std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
         std::string         method;         // A String containing the name of the method to be invoked.
         OptParams           params;
-        OptId               id;
+        OptRequestId        id;
     };
 
     class ResultSerializer;
@@ -139,7 +102,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
         std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
         OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
         OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-        Id                  id;
+        OptResponseId       id;
 
         public:
             template<typename T>
@@ -148,13 +111,13 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
                 , result{std::forward<T>(result)}
                 , id{static_cast<char*>(nullptr)}
             {}
-            Response(int code, std::string&& message, OptId const& requestId)
+            Response(int code, std::string&& message, OptRequestId const& requestId)
                 : jsonrpc{"2.0"}
                 , error{Error{code, std::move(message), {}}}
                 , id{static_cast<char*>(nullptr)}
             {
                 if (requestId.has_value()) {
-                    id = requestId.value();
+                    id = makeId(requestId.value());
                 }
             }
             Response(int code, std::string&& message)
@@ -163,7 +126,6 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     };
 }
 
-ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Id, ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer);
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, params, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);

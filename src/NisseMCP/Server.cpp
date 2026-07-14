@@ -101,7 +101,7 @@ bool Server::processFunctionCall(std::istream& input, std::ostream& output, std:
     using namespace std::string_view_literals;
     JsonRPC::Response  result = (find->second)(rpc.params.has_value() ? rpc.params->getView() : ""sv);
     if (rpc.id.has_value()) {
-        result.id   = rpc.id.value();
+        result.id   = JsonRPC::makeId(rpc.id.value());
         ++count;
         output << sep << ThorsAnvil::Serialize::jsonExporter(result, outputConfig);
     }
