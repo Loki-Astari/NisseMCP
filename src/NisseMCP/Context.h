@@ -7,7 +7,7 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-    enum State {OK, ErrorReported, ErrorNoInput, ErrorItem};
+    enum State {OK, ErrorReported, ErrorItem};
 
     class Context
     {
@@ -47,6 +47,10 @@ namespace ThorsAnvil::Nisse::MCP
                 std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
                 ++count;
                 return output << sep;
+            }
+            State getState() const
+            {
+                return state;
             }
     };
 }

@@ -11,12 +11,12 @@ Local::Local(ServerConfig const& config)
 
 void Local::run(std::istream& input, std::ostream& output)
 {
-    // ErrorNoInput means we hit the end of stream nothing was there.
     State state = State::OK;
-    while (state != State::ErrorNoInput) {
+    while (true) {
         LocalContext    context(output);
-        state = processesStream(input, context);
-        if (state == State::ErrorNoInput) {
+        processesStream(input, context);
+        state = context.getState();
+        if (!input.good()) {
             break;
         }
         if (state == State::ErrorReported) {

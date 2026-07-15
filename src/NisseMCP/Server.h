@@ -30,7 +30,7 @@ class Server
     public:
         Server(ServerConfig const& config);
 
-        State   processesStream(std::istream& input, Context& context);
+        void   processesStream(std::istream& input, Context& context);
 
 #if 0
         void resource();

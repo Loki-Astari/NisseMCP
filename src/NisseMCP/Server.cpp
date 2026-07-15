@@ -13,7 +13,7 @@ ThorsAnvil::Serialize::PrinterConfig    Server::outputConfig{ThorsAnvil::Seriali
 Server::Server(ServerConfig const& /*config*/)
 {}
 
-State Server::processesStream(std::istream& input, Context& context)
+void Server::processesStream(std::istream& input, Context& context)
 {
     using namespace std::string_view_literals;
 
@@ -23,11 +23,9 @@ State Server::processesStream(std::istream& input, Context& context)
     if (!(input >> nextChar)) {
         // No input.
         // This is probably because this is being called on stream in a loop.
-        context.error(State::ErrorNoInput);
-        return State::ErrorNoInput;
+        return;
     }
 
-    State result = State::OK;
     if (nextChar == '[') {
 
         // If this is a batch request.
@@ -36,12 +34,12 @@ State Server::processesStream(std::istream& input, Context& context)
         if (!(input >> nextChar)) {
             // If input fails then this is a parser error.
             context.error(State::ErrorReported) << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32700, "Parse error"}, outputConfig);
-            return State::ErrorReported;
+            return;
         }
         if (nextChar == ']') {
             // If this is an empty array then it is an invalid request.
             context.error(State::ErrorReported) << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32600, "Invalid Request"}, outputConfig);
-            return State::ErrorReported;
+            return;
         }
         // Put back the next char we just stole for empty array checks.
         input.unget();
@@ -53,24 +51,20 @@ State Server::processesStream(std::istream& input, Context& context)
             if (!processFunctionCall(input, context)) {
                 // Bad Json. So we are going to exit.
                 //           Other types of error allow us to continue.
-                result = State::ErrorReported;
-                break;
+                return;
             }
             if (!(input >> nextChar && (nextChar == ',' || nextChar == ']'))) {
                 context.error(State::ErrorReported) << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{-32700, "Parse error"}, outputConfig);
-                result = State::ErrorReported;
-                break;
+                return;
             }
         }
     }
     else {
         // Put back the character we stole doing the check for an array.
         input.unget();
-        if (!processFunctionCall(input, context)) {
-            result = State::ErrorReported;
-        }
+        processFunctionCall(input, context);
     }
-    return result;
+    return;
 }
 
 bool Server::processFunctionCall(std::istream& input, Context& context)
