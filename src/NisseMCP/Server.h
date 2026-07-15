@@ -102,11 +102,23 @@ class Server
         using Executor = std::function<JsonRPC::Response(T const&)>;
         using ExecutorVoid = std::function<JsonRPC::Response()>;
 
+        template<typename F, typename... Args>
+        static JsonRPC::Response invokeToResponse(F&& f, Args&&... args)
+        {
+            if constexpr (std::is_void_v<std::invoke_result_t<F, Args...>>) {
+                std::forward<F>(f)(std::forward<Args>(args)...);
+                return JsonRPC::Response{};
+            }
+            else {
+                return JsonRPC::Response(std::forward<F>(f)(std::forward<Args>(args)...));
+            }
+        }
+
         template<typename C, typename P = typename FirstParam<std::remove_reference_t<C>>::Param>
         requires HadSingleParam<C>
         void addExecutor(std::string const& name, C&& callable)
         {
-            executeMap[name] = [executor = Executor<P>{std::forward<C>(callable)}](std::string_view view)
+            executeMap[name] = [executor = std::forward<C>(callable)](std::string_view view) -> JsonRPC::Response
             {
                 P   param;
                 if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
@@ -115,7 +127,7 @@ class Server
 
                 try
                 {
-                    return executor(param);
+                    return invokeToResponse(executor, param);
                 }
                 catch (...)
                 {
@@ -127,14 +139,14 @@ class Server
         requires std::invocable<C>
         void addExecutor(std::string const& name, C&& f)
         {
-            executeMap[name] = [executor = ExecutorVoid{std::forward<C>(f)}](std::string_view param)
+            executeMap[name] = [executor = std::forward<C>(f)](std::string_view param) -> JsonRPC::Response
             {
                 if (!param.empty()) {
                     return JsonRPC::Response{-32602, "Invalid params"};
                 }
                 try
                 {
-                    return executor();
+                    return invokeToResponse(executor);
                 }
                 catch (...)
                 {

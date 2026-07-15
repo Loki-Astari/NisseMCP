@@ -105,6 +105,11 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
         OptResponseId       id;
 
         public:
+            Response(void)
+                : jsonrpc{"2.0"}
+                , result{}
+                , id{static_cast<char*>(nullptr)}
+            {}
             template<typename T>
             Response(T&& result)
                 : jsonrpc{"2.0"}
