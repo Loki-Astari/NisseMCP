@@ -11,10 +11,15 @@ Local::Local(ServerConfig const& config)
 
 void Local::run(std::istream& input, std::ostream& output)
 {
-    LocalContext    context(output);
     // ErrorNoInput means we hit the end of stream nothing was there.
-    for (Server::State state = processesStream(input, context); state != Server::State::ErrorNoInput; state = processesStream(input, context)) {
-        if (state == Server::State::ErrorReported) {
+    State state = State::OK;
+    while (state != State::ErrorNoInput) {
+        LocalContext    context(output);
+        state = processesStream(input, context);
+        if (state == State::ErrorNoInput) {
+            break;
+        }
+        if (state == State::ErrorReported) {
             input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");

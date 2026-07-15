@@ -7,10 +7,47 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
+    enum State {OK, ErrorReported, ErrorNoInput, ErrorItem};
+
     class Context
     {
+        std::ostream&   output;
+        State           state = OK;
+        std::size_t     count;
+        bool            stream;
         public:
-            virtual std::ostream&  output() = 0;
+            Context(std::ostream& output)
+                : output(output)
+                , state(State::OK)
+                , count(0)
+                , stream(false)
+            {}
+            ~Context()
+            {
+                // Close the output array.
+                if (stream && count > 0) {
+                    output << "]";
+                }
+            }
+            std::ostream&  error(State newState)
+            {
+                if (newState != State::ErrorItem) {
+                    state = newState;
+                }
+                std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
+                ++count;
+                return output << sep;
+            }
+            void serverSideStream()
+            {
+                stream = true;
+            }
+            std::ostream&  addItem()
+            {
+                std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
+                ++count;
+                return output << sep;
+            }
     };
 }
 

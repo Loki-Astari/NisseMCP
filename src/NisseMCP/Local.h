@@ -10,12 +10,10 @@ namespace ThorsAnvil::Nisse::MCP
 
 class LocalContext: public Context
 {
-    std::ostream&       out;
     public:
-        LocalContext(std::ostream& out)
-            : out(out)
+        LocalContext(std::ostream& output)
+            : Context(output)
         {}
-        virtual std::ostream&  output()     override {return out;}
 };
 
 class Local: public Server

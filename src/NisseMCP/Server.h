@@ -26,11 +26,9 @@ class Server
 
     ExecuteMap executeMap;
 
-        bool    processFunctionCall(std::istream& input, Context& context, std::size_t& count, std::string_view sep);
+        bool    processFunctionCall(std::istream& input, Context& context);
     public:
         Server(ServerConfig const& config);
-
-        enum State {OK, ErrorReported, ErrorNoInput};
 
         State   processesStream(std::istream& input, Context& context);
 
