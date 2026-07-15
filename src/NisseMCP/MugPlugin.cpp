@@ -1,5 +1,9 @@
 #include "MugPlugin.h"
 
+// Temporary: We will need our own context.
+//            But use this as a stop gap.
+#include "Local.h"
+
 #include "NisseHTTP/Request.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
@@ -37,5 +41,7 @@ std::vector<ThorsAnvil::ThorsMug::Action> MugPlugin::getAction()
 
 void MugPlugin::processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
-    server.processesStream(request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
+    // MIY TODO: Fix Context
+    LocalContext        context(response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
+    server.processesStream(request.body(), context);
 }

@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
+#include "Context.h"
 #include "MetaFunction.h"
 #include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
@@ -25,13 +26,13 @@ class Server
 
     ExecuteMap executeMap;
 
+        bool    processFunctionCall(std::istream& input, Context& context, std::size_t& count, std::string_view sep);
     public:
         Server(ServerConfig const& config);
 
         enum State {OK, ErrorReported, ErrorNoInput};
 
-        State   processesStream(std::istream& input, std::ostream& output);
-        bool    processFunctionCall(std::istream& input, std::ostream& output, std::size_t& count, std::string_view sep);
+        State   processesStream(std::istream& input, Context& context);
 
 #if 0
         void resource();
