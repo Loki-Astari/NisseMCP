@@ -35,14 +35,13 @@ namespace ThorsAnvil::Nisse::MCP
             void error(int code, std::string_view message, JsonRPC::OptRequestId const& id);
             void setId(IdRef id);
             void serverSideStream();
+            std::ostream& addItem();
 
             template<typename T>
             void  addItem(T const& value)
             {
                 if (requestId.get().has_value()) {
-                    std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
-                    ++count;
-                    output << sep << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, requestId}, outputConfig);
+                    addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, requestId}, outputConfig);
                 }
             }
     };

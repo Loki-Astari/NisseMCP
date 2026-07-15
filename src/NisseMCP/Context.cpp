@@ -46,6 +46,13 @@ void Context::serverSideStream()
     stream = true;
 }
 
+std::ostream& Context::addItem()
+{
+    std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
+    ++count;
+    return output << sep;
+}
+
 bool Context::handleInputStream(Server& server)
 {
     if (protocol < Protocol::v2025_06_18) {
