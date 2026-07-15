@@ -22,7 +22,6 @@ namespace ThorsAnvil::Nisse::MCP
         std::istream&   input;
         std::ostream&   output;
         IdRef           requestId;
-        bool            errorState;
         std::size_t     count;
         bool            stream;
 

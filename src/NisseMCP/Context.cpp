@@ -11,7 +11,6 @@ Context::Context(std::istream& input, std::ostream& output, Protocol protocol)
     , input(input)
     , output(output)
     , requestId(defaultId)
-    , errorState(false)
     , count(0)
     , stream(false)
 {}
@@ -22,9 +21,7 @@ Context::~Context()
     if (stream && count > 0) {
         output << "]";
     }
-    if (errorState) {
-        input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 void Context::stop()
@@ -34,7 +31,6 @@ void Context::stop()
 
 void Context::error(int code, std::string_view message, JsonRPC::OptRequestId const& id)
 {
-    errorState = true;
     std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
     ++count;
     output << sep << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, id}, outputConfig);
