@@ -64,19 +64,18 @@ class Server
                 std::string_view view = rpc.params.has_value() ? rpc.params->getView() : ""sv;
                 P                param;
                 if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
-                    context.error(-32602, "Invalid params", rpc.id);
+                    context.error(-32602, "Invalid params");
                     context.stop();
                     return;
                 }
 
                 try
                 {
-                    context.setId(rpc.id);
                     executor(context, param);
                 }
                 catch (...)
                 {
-                    context.error(-32603, "Internal error", rpc.id);
+                    context.error(-32603, "Internal error");
                 }
             };
         }
@@ -87,17 +86,16 @@ class Server
             executeMap[name] = [executor = std::forward<C>(f)](Context& context, JsonRPC::Request const& rpc)
             {
                 if (rpc.params.has_value()) {
-                    context.error(-32602, "Invalid params", rpc.id);
+                    context.error(-32602, "Invalid params");
                     context.stop();
                 }
                 try
                 {
-                    context.setId(rpc.id);
                     executor(context);
                 }
                 catch (...)
                 {
-                    context.error(-32603, "Internal error", rpc.id);
+                    context.error(-32603, "Internal error");
                 }
             };
         }

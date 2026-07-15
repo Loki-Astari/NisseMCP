@@ -10,10 +10,18 @@ namespace ThorsAnvil::Nisse::MCP
 
 class LocalContext: public Context
 {
+    private:
+        std::size_t     count;
+
+        bool handleInputStreamWithBatch(Server& server);
     public:
-        LocalContext(std::istream& input, std::ostream& output, Protocol protocol)
-            : Context(input, output, protocol)
-        {}
+        LocalContext(std::istream& input, std::ostream& output, Protocol protocol);
+
+        ~LocalContext();
+
+        virtual void stop() override;
+        virtual bool handleInputStream(Server& server) override;
+        virtual std::ostream& addItem() override;
 };
 
 class Local: public Server

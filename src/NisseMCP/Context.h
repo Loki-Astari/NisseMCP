@@ -11,36 +11,38 @@ namespace ThorsAnvil::Nisse::MCP
 {
     enum class Protocol {v2024_11_05, v2025_03_26, v2025_06_18, v2025_11_25};
 
-    using IdRef = std::reference_wrapper<const JsonRPC::OptRequestId>;
     class Server;
     class Context
     {
-        static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
-        static JsonRPC::OptRequestId                   defaultId;
+        protected:
+            static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
+            static JsonRPC::OptRequestId                   defaultId;
 
-        Protocol        protocol;
-        std::istream&   input;
-        std::ostream&   output;
-        IdRef           requestId;
-        std::size_t     count;
-        bool            stream;
+            Protocol                protocol;
+            std::istream&           input;
+            std::ostream&           output;
+            JsonRPC::OptRequestId   requestId;
+            bool                    stream;
 
-        bool handleInputStreamWithBatch(Server& server);
         public:
             Context(std::istream& input, std::ostream& output, Protocol protocol = Protocol::v2025_11_25);
-            ~Context();
+            virtual ~Context();
 
-            void stop();
-            bool handleInputStream(Server& server);
-            void error(int code, std::string_view message, JsonRPC::OptRequestId const& id);
-            void setId(IdRef id);
+            virtual void stop() = 0;
+            virtual bool handleInputStream(Server& server) = 0;
+            virtual std::ostream& addItem() = 0;
+
             void serverSideStream();
-            std::ostream& addItem();
+            void setId(JsonRPC::OptRequestId const& id);
+            void error(int code, std::string_view message)
+            {
+                addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, requestId}, outputConfig);
+            }
 
             template<typename T>
             void  addItem(T const& value)
             {
-                if (requestId.get().has_value()) {
+                if (requestId.has_value()) {
                     addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, requestId}, outputConfig);
                 }
             }
