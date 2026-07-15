@@ -12,25 +12,6 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-// *****
-// https://modelcontextprotocol.io/specification/2025-11-25/schema#common-types
-// *****
-
-// https://modelcontextprotocol.io/specification/2025-11-25/schema#logginglevel
-enum LoggingLevel /* Vera Ignore */ {debug, info, notice, warning, error, critical, alert, emergency};
-
-
-// *****
-// https://modelcontextprotocol.io/specification/2025-11-25/schema#logging/setlevel
-// ******
-struct SetLevelRequestParams
-{
-    LoggingLevel level;
-};
-
-/*
- * Server Types;
- */
 class ServerConfig
 {
 };
@@ -57,10 +38,6 @@ class Server
         void tool();
         void prompt();
 #endif
-
-        template<typename T>
-        using Executor = std::function<JsonRPC::Response(T const&)>;
-        using ExecutorVoid = std::function<JsonRPC::Response()>;
 
         template<typename F, typename... Args>
         static JsonRPC::Response invokeToResponse(F&& f, Args&&... args)
@@ -118,7 +95,6 @@ class Server
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::SetLevelRequestParams, level);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::ServerConfig);
 
 #endif
