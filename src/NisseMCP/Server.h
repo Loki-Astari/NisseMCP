@@ -26,11 +26,10 @@ class Server
 
     ExecuteMap executeMap;
 
-        bool    processFunctionCall(std::istream& input, Context& context);
     public:
         Server(ServerConfig const& config);
 
-        void   processesStream(std::istream& input, Context& context);
+        bool   readOneAction(std::istream& input, Context& context);
 
 #if 0
         void resource();

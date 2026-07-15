@@ -13,7 +13,8 @@ void Local::run(std::istream& input, std::ostream& output)
 {
     while (true) {
         LocalContext    context(input, output);
-        processesStream(input, context);
+        context.handleInputStream(*this);
+
         if (!input.good()) {
             break;
         }

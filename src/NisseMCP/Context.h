@@ -12,6 +12,7 @@ namespace ThorsAnvil::Nisse::MCP
     enum class Protocol {v2024_11_05, v2025_03_26, v2025_06_18, v2025_11_25};
 
     using IdRef = std::reference_wrapper<const JsonRPC::OptRequestId>;
+    class Server;
     class Context
     {
         static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
@@ -24,12 +25,13 @@ namespace ThorsAnvil::Nisse::MCP
         bool            errorState;
         std::size_t     count;
         bool            stream;
+
         public:
             Context(std::istream& input, std::ostream& output, Protocol protocol = Protocol::v2025_11_25);
             ~Context();
 
             void stop();
-            bool good() const;
+            void handleInputStream(Server& server);
             void error(int code, std::string_view message, JsonRPC::OptRequestId const& id);
             void setId(IdRef id);
             void serverSideStream();

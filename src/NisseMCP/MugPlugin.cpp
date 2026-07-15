@@ -43,7 +43,6 @@ std::vector<ThorsAnvil::ThorsMug::Action> MugPlugin::getAction()
 void MugPlugin::processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     // MIY TODO: Fix Context
-    std::stringstream   s;
-    LocalContext        context(s, response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
-    server.processesStream(request.body(), context);
+    LocalContext        context(request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
+    context.handleInputStream(server);
 }
