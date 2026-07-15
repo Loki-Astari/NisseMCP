@@ -11,13 +11,12 @@ Local::Local(ServerConfig const& config)
 
 void Local::run(std::istream& input, std::ostream& output)
 {
-    while (true) {
-        LocalContext    context(input, output);
-        context.handleInputStream(*this);
-
-        if (!input.good()) {
+    while (true)
+    {
+        ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
+        LocalContext    context(input, output, getConfig().minProtocol);
+        if (!context.handleInputStream(*this)) {
             break;
         }
-        ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
     }
 }

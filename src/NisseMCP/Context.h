@@ -26,12 +26,13 @@ namespace ThorsAnvil::Nisse::MCP
         std::size_t     count;
         bool            stream;
 
+        bool handleInputStreamWithBatch(Server& server);
         public:
             Context(std::istream& input, std::ostream& output, Protocol protocol = Protocol::v2025_11_25);
             ~Context();
 
             void stop();
-            void handleInputStream(Server& server);
+            bool handleInputStream(Server& server);
             void error(int code, std::string_view message, JsonRPC::OptRequestId const& id);
             void setId(IdRef id);
             void serverSideStream();

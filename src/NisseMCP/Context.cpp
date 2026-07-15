@@ -50,7 +50,25 @@ void Context::serverSideStream()
     stream = true;
 }
 
-void Context::handleInputStream(Server& server)
+bool Context::handleInputStream(Server& server)
+{
+    if (protocol < Protocol::v2025_06_18) {
+        return handleInputStreamWithBatch(server);
+    }
+    else {
+        char nextChar;
+
+        if (!(input >> nextChar)) {
+            // No input.
+            // This is probably because this is being called on stream in a loop.
+            return false;
+        }
+        input.unget();
+        return server.readOneAction(input, *this);
+    }
+}
+
+bool Context::handleInputStreamWithBatch(Server& server)
 {
     using namespace std::string_view_literals;
 
@@ -60,7 +78,7 @@ void Context::handleInputStream(Server& server)
     if (!(input >> nextChar)) {
         // No input.
         // This is probably because this is being called on stream in a loop.
-        return;
+        return false;
     }
 
     if (nextChar == '[') {
@@ -72,13 +90,13 @@ void Context::handleInputStream(Server& server)
             // If input fails then this is a parser error.
             error(-32700, "Parse error", {});
             stop();
-            return;
+            return false;
         }
         if (nextChar == ']') {
             // If this is an empty array then it is an invalid request.
             error(-32600, "Invalid Request", {});
             stop();
-            return;
+            return false;
         }
         // Put back the next char we just stole for empty array checks.
         input.unget();
@@ -90,20 +108,19 @@ void Context::handleInputStream(Server& server)
             if (!server.readOneAction(input, *this)) {
                 // Bad Json. So we are going to exit.
                 //           Other types of error allow us to continue.
-                return;
+                return false;
             }
             if (!(input >> nextChar && (nextChar == ',' || nextChar == ']'))) {
                 error(-32700, "Parse error", {});
                 stop();
-                return;
+                return false;
             }
         }
+        return input.good();
     }
     else {
         // Put back the character we stole doing the check for an array.
         input.unget();
-        server.readOneAction(input, *this);
+        return server.readOneAction(input, *this);
     }
-    return;
 }
-

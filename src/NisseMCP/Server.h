@@ -13,8 +13,9 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-class ServerConfig
+struct ServerConfig
 {
+    Protocol    minProtocol = Protocol::v2024_11_05;
 };
 
 using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
@@ -24,7 +25,11 @@ class Server
     static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
 
 
-    ExecuteMap executeMap;
+    ExecuteMap      executeMap;
+    ServerConfig    config;
+
+    protected:
+        ServerConfig const& getConfig() const {return config;}
 
     public:
         Server(ServerConfig const& config);

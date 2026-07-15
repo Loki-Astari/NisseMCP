@@ -8,7 +8,8 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-Server::Server(ServerConfig const& /*config*/)
+Server::Server(ServerConfig const& config)
+    : config(config)
 {}
 
 bool Server::readOneAction(std::istream& input, Context& context)

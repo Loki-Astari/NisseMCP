@@ -11,8 +11,8 @@ namespace ThorsAnvil::Nisse::MCP
 class LocalContext: public Context
 {
     public:
-        LocalContext(std::istream& input, std::ostream& output)
-            : Context(input, output)
+        LocalContext(std::istream& input, std::ostream& output, Protocol protocol)
+            : Context(input, output, protocol)
         {}
 };
 
