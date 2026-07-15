@@ -3,13 +3,20 @@
 
 #include "NisseMCPConfig.h"
 #include "SerializableId.h"
-#include <ThorsLogging/ThorsLogging.h>
 
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 
 #include <any>
+#include <string>
+#include <string_view>
 #include <istream>
+#include <optional>
+#include <variant>
+#include <functional>
+#include <utility>
+#include <type_traits>
+
 // https://www.jsonrpc.org/specification
 
 namespace ThorsAnvil::Nisse::MCP::JsonRPC

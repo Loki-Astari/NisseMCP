@@ -1,5 +1,4 @@
 #include "Local.h"
-#include <tuple>
 
 #include "ThorsLogging/ThorsLogging.h"
 

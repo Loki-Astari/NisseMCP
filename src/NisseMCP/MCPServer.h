@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_MCP_MCPSERVER_H
 #define THORSANVIL_NISSE_MCP_MCPSERVER_H
 
+#include "NisseMCPConfig.h"
 #include "Server.h"
 #include "Context.h"
 #include "CommandInitialize.h"

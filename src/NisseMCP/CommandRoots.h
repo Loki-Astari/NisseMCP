@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_MCP_COMMAND_ROOTS_H
 #define THORSANVIL_NISSE_MCP_COMMAND_ROOTS_H
 
+#include "NisseMCPConfig.h"
 #include "CommandCommon.h"
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#roots/list

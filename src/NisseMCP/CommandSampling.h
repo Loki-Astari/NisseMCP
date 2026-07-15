@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_MCP_COMMAND_SAMPLING_H
 #define THORSANVIL_NISSE_MCP_COMMAND_SAMPLING_H
 
+#include "NisseMCPConfig.h"
 #include "CommandCommon.h"
 #include "CommandContent.h"
 #include "CommandTask.h"

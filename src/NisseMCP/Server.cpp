@@ -1,10 +1,4 @@
 #include "Server.h"
-#include "JsonRPC.h"
-#include "ThorSerialize/ParserConfig.h"
-
-#include <ThorSerialize/Traits.h>
-#include <ThorSerialize/SerUtil.h>
-#include <ThorSerialize/JsonThor.h>
 
 using namespace ThorsAnvil::Nisse::MCP;
 

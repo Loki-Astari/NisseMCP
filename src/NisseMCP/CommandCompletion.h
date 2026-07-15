@@ -1,8 +1,9 @@
 #ifndef THORSANVIL_NISSE_MCP_COMMAND_COMPLETION_H
 #define THORSANVIL_NISSE_MCP_COMMAND_COMPLETION_H
 
+#include "NisseMCPConfig.h"
 #include "CommandCommon.h"
-#include <map>
+
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#completion/complete
 namespace ThorsAnvil::Nisse::MCP::Command

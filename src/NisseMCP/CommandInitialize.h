@@ -1,9 +1,8 @@
 #ifndef THORSANVIL_NISSE_MCP_COMMAND_INITIALIZE_H
 #define THORSANVIL_NISSE_MCP_COMMAND_INITIALIZE_H
 
+#include "NisseMCPConfig.h"
 #include "CommandCommon.h"
-#include <ThorSerialize/Traits.h>
-#include <ThorSerialize/SerUtil.h>
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#initialize
 namespace ThorsAnvil::Nisse::MCP::Command

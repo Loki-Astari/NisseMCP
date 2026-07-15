@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_MCP_CONTEXT_H
 #define THORSANVIL_NISSE_MCP_CONTEXT_H
 
+#include "NisseMCPConfig.h"
 #include "JsonRPC.h"
 #include <ThorSerialize/JsonThor.h>
 

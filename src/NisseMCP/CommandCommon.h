@@ -1,14 +1,19 @@
 #ifndef THORSANVIL_NISSE_MCP_COMMAND_COMMON_H
 #define THORSANVIL_NISSE_MCP_COMMAND_COMMON_H
 
+#include "NisseMCPConfig.h"
 #include "JsonRPC.h"
 
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 
-#include <vector>
 #include <optional>
+#include <string>
+#include <vector>
 #include <any>
+#include <variant>
+#include <map>
+#include <memory>
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#common-types
 namespace ThorsAnvil::Nisse::MCP::Command
@@ -35,7 +40,7 @@ namespace ThorsAnvil::Nisse::MCP::Command
 
     struct RequestParams
     {};
-    using OptRequestParams              = std::optional<RequestParams>;
+    using OptRequestParams          = std::optional<RequestParams>;
 
     struct Properties
     {

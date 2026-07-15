@@ -7,7 +7,13 @@
 #include "MetaFunction.h"
 #include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
+
+#include <map>
+#include <string>
+#include <string_view>
 #include <iostream>
+#include <functional>
+#include <utility>
 #include <type_traits>
 
 namespace ThorsAnvil::Nisse::MCP

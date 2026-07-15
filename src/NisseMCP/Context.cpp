@@ -1,5 +1,4 @@
 #include "Context.h"
-#include "Server.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 

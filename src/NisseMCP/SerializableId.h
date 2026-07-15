@@ -7,6 +7,12 @@
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 
+#include <variant>
+#include <string>
+#include <type_traits>
+#include <any>
+#include <stdexcept>
+
 namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
     // An object that can be a String / Number / Null

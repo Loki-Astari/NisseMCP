@@ -2,12 +2,13 @@
 #define THORSANVIL_NISSE_MCP_METAFUNCTION_H
 
 #include "NisseMCPConfig.h"
-#include "Context.h"
 #include <functional>
 #include <type_traits>
 
 namespace ThorsAnvil::Nisse::MCP
 {
+
+class Context;
 
 // Map an `operator()` signature to its single parameter.
 // Catch-all: no `Param` member. Only the `P const&` single-parameter forms
