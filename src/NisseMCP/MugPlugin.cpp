@@ -1,4 +1,5 @@
 #include "MugPlugin.h"
+#include <sstream>
 
 // Temporary: We will need our own context.
 //            But use this as a stop gap.
@@ -42,6 +43,7 @@ std::vector<ThorsAnvil::ThorsMug::Action> MugPlugin::getAction()
 void MugPlugin::processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     // MIY TODO: Fix Context
-    LocalContext        context(response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
+    std::stringstream   s;
+    LocalContext        context(s, response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
     server.processesStream(request.body(), context);
 }

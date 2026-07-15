@@ -17,7 +17,7 @@ class ServerConfig
 {
 };
 
-using ExecuteMap = std::map<std::string, std::function<JsonRPC::Response(std::string_view)>>;
+using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
 
 class Server
 {
@@ -54,39 +54,46 @@ class Server
         requires HadSingleParam<C>
         void addExecutor(std::string const& name, C&& callable)
         {
-            executeMap[name] = [executor = std::forward<C>(callable)](std::string_view view) -> JsonRPC::Response
+            executeMap[name] = [executor = std::forward<C>(callable)](Context& context, JsonRPC::Request const& rpc)
             {
-                P   param;
+                using namespace std::string_view_literals;
+                std::string_view view = rpc.params.has_value() ? rpc.params->getView() : ""sv;
+                P                param;
                 if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
-                    return JsonRPC::Response{-32602, "Invalid params"};
+                    context.error(-32602, "Invalid params", rpc.id);
+                    context.stop();
+                    return;
                 }
 
                 try
                 {
-                    return invokeToResponse(executor, param);
+                    context.setId(rpc.id);
+                    executor(context, param);
                 }
                 catch (...)
                 {
-                    return JsonRPC::Response{-32603, "Internal error"};
+                    context.error(-32603, "Internal error", rpc.id);
                 }
             };
         }
         template<typename C>
-        requires std::invocable<C>
+        requires std::invocable<C, Context&>
         void addExecutor(std::string const& name, C&& f)
         {
-            executeMap[name] = [executor = std::forward<C>(f)](std::string_view param) -> JsonRPC::Response
+            executeMap[name] = [executor = std::forward<C>(f)](Context& context, JsonRPC::Request const& rpc)
             {
-                if (!param.empty()) {
-                    return JsonRPC::Response{-32602, "Invalid params"};
+                if (rpc.params.has_value()) {
+                    context.error(-32602, "Invalid params", rpc.id);
+                    context.stop();
                 }
                 try
                 {
-                    return invokeToResponse(executor);
+                    context.setId(rpc.id);
+                    executor(context);
                 }
                 catch (...)
                 {
-                    return JsonRPC::Response{-32603, "Internal error"};
+                    context.error(-32603, "Internal error", rpc.id);
                 }
             };
         }

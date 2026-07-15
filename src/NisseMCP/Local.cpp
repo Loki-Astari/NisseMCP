@@ -11,16 +11,11 @@ Local::Local(ServerConfig const& config)
 
 void Local::run(std::istream& input, std::ostream& output)
 {
-    State state = State::OK;
     while (true) {
-        LocalContext    context(output);
+        LocalContext    context(input, output);
         processesStream(input, context);
-        state = context.getState();
         if (!input.good()) {
             break;
-        }
-        if (state == State::ErrorReported) {
-            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
         ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
     }

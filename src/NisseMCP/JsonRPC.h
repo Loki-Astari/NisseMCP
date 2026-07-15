@@ -92,7 +92,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     struct Error
     {
         int                 code;
-        std::string         message;
+        std::string_view    message;
         OptData             data;
     };
     using OptError = std::optional<Error>;
@@ -111,23 +111,24 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
                 , id{static_cast<char*>(nullptr)}
             {}
             template<typename T>
-            Response(T&& result)
+            Response(T&& result, OptRequestId const& requestId)
                 : jsonrpc{"2.0"}
                 , result{std::forward<T>(result)}
-                , id{static_cast<char*>(nullptr)}
-            {}
-            Response(int code, std::string&& message, OptRequestId const& requestId)
-                : jsonrpc{"2.0"}
-                , error{Error{code, std::move(message), {}}}
                 , id{static_cast<char*>(nullptr)}
             {
                 if (requestId.has_value()) {
                     id = makeId(requestId.value());
                 }
             }
-            Response(int code, std::string&& message)
-                : Response(code, std::forward<std::string>(message), {})
-            {}
+            Response(int code, std::string_view message, OptRequestId const& requestId)
+                : jsonrpc{"2.0"}
+                , error{Error{code, message, {}}}
+                , id{static_cast<char*>(nullptr)}
+            {
+                if (requestId.has_value()) {
+                    id = makeId(requestId.value());
+                }
+            }
     };
 }
 
