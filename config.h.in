@@ -9,8 +9,17 @@
 
     
 
+/* define if the Boost library is available */
+#undef HAVE_BOOST
+
+/* We have found package Boost CoRoutines */
+#undef HAVE_BoostCoRoutine
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
+
+/* We have found package Event */
+#undef HAVE_EVENT
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -23,6 +32,9 @@
 
 /* Magic Enum V2 being used */
 #undef HAVE_MagicEnumHeaderOnlyV2
+
+/* We have found package Nisse */
+#undef HAVE_NISSE
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

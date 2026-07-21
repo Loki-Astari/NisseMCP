@@ -684,6 +684,13 @@ SED
 ac_ct_CC
 CFLAGS
 CC
+LIBTOOL
+BoostCoRoutine_ROOT_LIB
+BoostCoRoutine_ROOT_DIR
+BOOST_ROOT_LIB
+BOOST_ROOT_DIR
+BOOST_LDFLAGS
+BOOST_CPPFLAGS
 host_os
 host_vendor
 host_cpu
@@ -692,13 +699,16 @@ build_os
 build_vendor
 build_cpu
 build
-LIBTOOL
-ThorSerialize_ROOT_LIB
-ThorSerialize_ROOT_DIR
 ThorSerializeHeaderOnly_ROOT_DIR
+event_ROOT_LIB
+event_ROOT_DIR
+Nisse_ROOT_LIB
+Nisse_ROOT_DIR
 MAGIC_ENUM_FILE
 HAVE_MagicEnumHeaderOnly
 MagicEnumHeaderOnly_ROOT_DIR
+ThorSerialize_ROOT_LIB
+ThorSerialize_ROOT_DIR
 UNZIP
 CXX_STD_FLAG
 CXXSTDVER
@@ -783,9 +793,15 @@ enable_vera
 enable_dark_mode
 with_standard_version
 enable_submodule
-with_magicenum_header_only_root
-with_thorserialize_header_only_root
 with_thorserialize_root
+with_magicenum_header_only_root
+with_nisse_root
+with_custom_event
+with_event_root
+with_thorserialize_header_only_root
+with_boost
+with_boost_libdir
+with_boost_coroutine_root
 enable_shared
 enable_static
 enable_pic
@@ -1474,17 +1490,40 @@ Optional Packages:
                           Use the specified version <version> of the C++
                           standard. Default 20
 
+  --with-thorserialize-root=<location>
+                          Define the root directory of package Thors
+                          Serializer
+
   --with-magicenum-header-only-root=<location>
                           Directory of MagicEnumHeaderOnly include folder: the
                           folder that has the include file
+
+  --with-nisse-root=<location>
+                          Define the root directory of package Nisse
+
+  --with-custom-event=<lib>
+                          Override the libevent library name (default: event).
+                          Use event_core for Conan component-split builds.
+
+  --with-event-root=<location>
+                          Define the root directory of package Event
 
   --with-thorserialize-header-only-root=<location>
                           Directory of ThorSerializeHeaderOnly include folder:
                           the folder that has the include file
 
-  --with-thorserialize-root=<location>
-                          Define the root directory of package Thors
-                          Serializer
+  --with-boost[=ARG]      use Boost library from a standard location
+                          (ARG=yes), from the specified location (ARG=<path>),
+                          or disable it (ARG=no) [ARG=yes]
+  --with-boost-libdir=LIB_DIR
+                          Force given directory for boost libraries. Note that
+                          this will override library path detection, so use
+                          this parameter only if default library detection
+                          fails and you know exactly where your boost
+                          libraries are located.
+  --with-boost-coroutine-root=<location>
+                          Define the root directory of package Boost
+                          CoRoutines
 
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
@@ -1625,41 +1664,6 @@ fi
 
 } # ac_fn_cxx_try_compile
 
-# ac_fn_cxx_check_header_compile LINENO HEADER VAR INCLUDES
-# ---------------------------------------------------------
-# Tests whether HEADER exists and can be compiled using the include files in
-# INCLUDES, setting the cache variable VAR accordingly.
-ac_fn_cxx_check_header_compile ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
-printf %s "checking for $2... " >&6; }
-if eval test \${$3+y}
-then :
-  printf %s "(cached) " >&6
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-#include <$2>
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
-then :
-  eval "$3=yes"
-else case e in #(
-  e) eval "$3=no" ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-eval ac_res=\$$3
-	       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf '%s\n' "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_cxx_check_header_compile
-
 # ac_fn_cxx_try_link LINENO
 # -------------------------
 # Try to link conftest.$ac_ext, and return whether this succeeded.
@@ -1707,6 +1711,41 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_cxx_try_link
+
+# ac_fn_cxx_check_header_compile LINENO HEADER VAR INCLUDES
+# ---------------------------------------------------------
+# Tests whether HEADER exists and can be compiled using the include files in
+# INCLUDES, setting the cache variable VAR accordingly.
+ac_fn_cxx_check_header_compile ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+printf %s "checking for $2... " >&6; }
+if eval test \${$3+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+#include <$2>
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  eval "$3=yes"
+else case e in #(
+  e) eval "$3=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
+esac
+fi
+eval ac_res=\$$3
+	       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf '%s\n' "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_cxx_check_header_compile
 
 # ac_fn_c_try_compile LINENO
 # --------------------------
@@ -2676,7 +2715,7 @@ main (int argc, char **argv)
 
 
 # Auxiliary files required by this configure script.
-ac_aux_files="missing install-sh compile config.guess config.sub ltmain.sh"
+ac_aux_files="missing install-sh compile ltmain.sh config.guess config.sub"
 
 # Locations in which to look for auxiliary files.
 ac_aux_dir_candidates="${srcdir}/build/autotools/build"
@@ -4654,6 +4693,212 @@ fi
 #
 # Add extra configuration here
 #
+
+    if [ "" == "" ]; then
+        libs="ThorSerialize ThorsSocket ThorsStorage ThorsLogging ThorsMongo"
+    else
+        libs=""
+    fi
+
+    echo "Libs: ${libs}"
+
+
+# Check whether --with-thorserialize-root was given.
+if test ${with_thorserialize_root+y}
+then :
+  withval=$with_thorserialize_root;
+fi
+
+
+    if test "xThorSerialize" != "x"
+then :
+
+
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
+
+        grep -q 'ThorSerialize_ROOT_DIR=@ThorSerialize_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting ThorSerialize_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        ThorSerialize_ROOT_DIR=@ThorSerialize_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
+
+        grep -q 'ThorSerialize_ROOT_LIB=@ThorSerialize_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting ThorSerialize_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        ThorSerialize_ROOT_LIB=@ThorSerialize_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x13" ]; then
+        grep -q 'ThorSerializeHeaderOnly_ROOT_DIR=@ThorSerializeHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting ThorSerializeHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        ThorSerializeHeaderOnly_ROOT_DIR=@ThorSerializeHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
+
+    LIBRARY_DIR="-L ${with_thorserialize_root}/lib"
+    if test "x${with_thorserialize_root}" == "x"
+then :
+  LIBRARY_DIR="-L ${DefaultLinkDir}/lib"
+
+fi
+
+    if test "x${thorserialize_header_only_defined}" == "x"
+then :
+
+            ORIG_LDFLAGS="${LDFLAGS}"
+            LDFLAGS="$LDFLAGS ${LIBRARY_DIR}"
+
+            echo "Building: ThorsSerializer"
+            echo "Checking for libThorSerialize${askedLangFeature}"
+            if test "x$BUILDING_ThorsSerializer" == "x1"
+then :
+
+
+    if test "x${with_thorserialize_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_THORSSERIALIZER 1" >>confdefs.h
+
+            ThorSerialize_ROOT_DIR=${with_thorserialize_root}
+
+            subconfigure="${subconfigure} --with-thorserialize-root=${with_thorserialize_root}"
+
+
+fi
+    echo "Setting: ThorSerialize_ROOT_LIB TO ${libs}"
+    ThorSerialize_ROOT_LIB="${libs}"
+
+
+
+else case e in #(
+  e)
+                    as_ac_Lib=`printf '%s\n' "ac_cv_lib_ThorSerialize${askedLangFeature}""__ZN10ThorsAnvil9Serialize10JsonParser12getNextTokenEv" | sed "$as_sed_sh"`
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for _ZN10ThorsAnvil9Serialize10JsonParser12getNextTokenEv in -lThorSerialize${askedLangFeature}" >&5
+printf %s "checking for _ZN10ThorsAnvil9Serialize10JsonParser12getNextTokenEv in -lThorSerialize${askedLangFeature}... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_check_lib_save_LIBS=$LIBS
+LIBS="-lThorSerialize${askedLangFeature}  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int _ZN10ThorsAnvil9Serialize10JsonParser12getNextTokenEv ();
+}
+int
+main (void)
+{
+return conftest::_ZN10ThorsAnvil9Serialize10JsonParser12getNextTokenEv ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else case e in #(
+  e) eval "$as_ac_Lib=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS ;;
+esac
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf '%s\n' "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+
+
+    if test "x${with_thorserialize_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_THORSSERIALIZER 1" >>confdefs.h
+
+            ThorSerialize_ROOT_DIR=${with_thorserialize_root}
+
+            subconfigure="${subconfigure} --with-thorserialize-root=${with_thorserialize_root}"
+
+
+fi
+    echo "Setting: ThorSerialize_ROOT_LIB TO ${libs}"
+    ThorSerialize_ROOT_LIB="${libs}"
+
+
+
+else case e in #(
+  e)
+                            echo "FAIL: Using: >${with_thorserialize_root}<"
+                            as_fn_error $? "
+Error: Could not find libThorSerialize${askedLangFeature}
+
+You can solve this by installing Thors Serializer
+    brew install thors-anvil
+
+Alternately specify install location with:
+    --with-thorserialize-root=<location of ThorsSerializer installation>
+
+
+    " "$LINENO" 5
+                            echo "FAIL DONE"
+
+                     ;;
+esac
+fi
+
+
+             ;;
+esac
+fi
+            echo "Checking DONE"
+
+            LDFLAGS="${ORIG_LDFLAGS}"
+
+
+fi
+
+
 ac_header= ac_cache=
 for ac_item in $ac_header_cxx_list
 do
@@ -4890,6 +5135,447 @@ then :
 
 fi
     fi
+
+
+
+    remove=""
+    libs="Nisse"
+    libs=${libs//"${remove}"/}
+    echo "Libs: ${libs}"
+
+
+# Check whether --with-nisse-root was given.
+if test ${with_nisse_root+y}
+then :
+  withval=$with_nisse_root;
+fi
+
+
+    if test "xNisse" != "x"
+then :
+
+
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
+
+        grep -q 'Nisse_ROOT_DIR=@Nisse_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting Nisse_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        Nisse_ROOT_DIR=@Nisse_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
+
+        grep -q 'Nisse_ROOT_LIB=@Nisse_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting Nisse_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        Nisse_ROOT_LIB=@Nisse_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x13" ]; then
+        grep -q 'NisseHeaderOnly_ROOT_DIR=@NisseHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting NisseHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        NisseHeaderOnly_ROOT_DIR=@NisseHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
+
+    LIBRARY_DIR="-L ${with_nisse_root}/lib"
+    if test "x${with_nisse_root}" == "x"
+then :
+  LIBRARY_DIR="-L ${DefaultLinkDir}/lib"
+
+fi
+
+    if test "x${nisse_header_only_defined}" == "x"
+then :
+
+            ORIG_LDFLAGS="${LDFLAGS}"
+            LDFLAGS="$LDFLAGS ${LIBRARY_DIR}"
+
+            echo "Building: Nisse"
+            echo "Checking for libNisse${askedLangFeature}"
+            if test "x$BUILDING_Nisse" == "x1"
+then :
+
+
+    if test "x${with_nisse_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_NISSE 1" >>confdefs.h
+
+            Nisse_ROOT_DIR=${with_nisse_root}
+
+            subconfigure="${subconfigure} --with-nisse-root=${with_nisse_root}"
+
+
+fi
+    echo "Setting: Nisse_ROOT_LIB TO ${libs}"
+    Nisse_ROOT_LIB="${libs}"
+
+
+
+else case e in #(
+  e)
+                    as_ac_Lib=`printf '%s\n' "ac_cv_lib_Nisse${askedLangFeature}""__ZN10ThorsAnvil5Nisse6Server11AsyncStreamD2Ev" | sed "$as_sed_sh"`
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for _ZN10ThorsAnvil5Nisse6Server11AsyncStreamD2Ev in -lNisse${askedLangFeature}" >&5
+printf %s "checking for _ZN10ThorsAnvil5Nisse6Server11AsyncStreamD2Ev in -lNisse${askedLangFeature}... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_check_lib_save_LIBS=$LIBS
+LIBS="-lNisse${askedLangFeature}  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int _ZN10ThorsAnvil5Nisse6Server11AsyncStreamD2Ev ();
+}
+int
+main (void)
+{
+return conftest::_ZN10ThorsAnvil5Nisse6Server11AsyncStreamD2Ev ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else case e in #(
+  e) eval "$as_ac_Lib=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS ;;
+esac
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf '%s\n' "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+
+
+    if test "x${with_nisse_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_NISSE 1" >>confdefs.h
+
+            Nisse_ROOT_DIR=${with_nisse_root}
+
+            subconfigure="${subconfigure} --with-nisse-root=${with_nisse_root}"
+
+
+fi
+    echo "Setting: Nisse_ROOT_LIB TO ${libs}"
+    Nisse_ROOT_LIB="${libs}"
+
+
+
+else case e in #(
+  e)
+                            echo "FAIL: Using: >${with_nisse_root}<"
+                            as_fn_error $? "
+Error: Could not find libNisse${askedLangFeature}
+
+#
+## TODO
+##You can solve this by installing Nisse
+##    brew install thors-anvil
+
+Alternately specify install location with:
+    --with-nisse-root=<location of Nisse installation>
+
+
+    " "$LINENO" 5
+                            echo "FAIL DONE"
+
+                     ;;
+esac
+fi
+
+
+             ;;
+esac
+fi
+            echo "Checking DONE"
+
+            LDFLAGS="${ORIG_LDFLAGS}"
+
+
+fi
+
+
+
+    if test "x${UNAME}" = "xMSYS_NT" || test "x${UNAME}" = "xMINGW64_NT"
+then :
+  threadEvent=ws2_32
+else case e in #(
+  e) threadEvent=event_pthreads
+     ;;
+esac
+fi
+
+
+# Check whether --with-custom-event was given.
+if test ${with_custom_event+y}
+then :
+  withval=$with_custom_event;
+fi
+
+
+    if test "x${with_custom_event}" != "x"
+then :
+
+            thor_event_lib=${with_custom_event}
+            subconfigure="${subconfigure} --with-custom-event=${with_custom_event}"
+
+else case e in #(
+  e)
+            thor_event_lib=event
+
+     ;;
+esac
+fi
+
+
+
+# Check whether --with-event-root was given.
+if test ${with_event_root+y}
+then :
+  withval=$with_event_root;
+fi
+
+
+    if test "xevent" != "x"
+then :
+
+
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
+
+        grep -q 'event_ROOT_DIR=@event_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting event_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        event_ROOT_DIR=@event_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
+
+        grep -q 'event_ROOT_LIB=@event_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting event_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        event_ROOT_LIB=@event_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x13" ]; then
+        grep -q 'eventHeaderOnly_ROOT_DIR=@eventHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting eventHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        eventHeaderOnly_ROOT_DIR=@eventHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
+
+    LIBRARY_DIR="-L ${with_event_root}/lib"
+    if test "x${with_event_root}" == "x"
+then :
+  LIBRARY_DIR="-L ${DefaultLinkDir}/lib"
+
+fi
+
+    if test "x${event_header_only_defined}" == "x"
+then :
+
+            ORIG_LDFLAGS="${LDFLAGS}"
+            LDFLAGS="$LDFLAGS ${LIBRARY_DIR}"
+
+            echo "Building: NotThor"
+            echo "Checking for lib${thor_event_lib}"
+            if test "x$BUILDING_NotThor" == "x1"
+then :
+
+
+    if test "x${with_event_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_EVENT 1" >>confdefs.h
+
+            event_ROOT_DIR=${with_event_root}
+
+            subconfigure="${subconfigure} --with-event-root=${with_event_root}"
+
+
+fi
+    echo "Setting: event_ROOT_LIB TO ${thor_event_lib} ${threadEvent}"
+    event_ROOT_LIB="${thor_event_lib} ${threadEvent}"
+
+
+
+else case e in #(
+  e)
+                    as_ac_Lib=`printf '%s\n' "ac_cv_lib_${thor_event_lib}""_event_dispatch" | sed "$as_sed_sh"`
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for event_dispatch in -l${thor_event_lib}" >&5
+printf %s "checking for event_dispatch in -l${thor_event_lib}... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_check_lib_save_LIBS=$LIBS
+LIBS="-l${thor_event_lib}  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int event_dispatch ();
+}
+int
+main (void)
+{
+return conftest::event_dispatch ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else case e in #(
+  e) eval "$as_ac_Lib=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS ;;
+esac
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf '%s\n' "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+
+
+    if test "x${with_event_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_EVENT 1" >>confdefs.h
+
+            event_ROOT_DIR=${with_event_root}
+
+            subconfigure="${subconfigure} --with-event-root=${with_event_root}"
+
+
+fi
+    echo "Setting: event_ROOT_LIB TO ${thor_event_lib} ${threadEvent}"
+    event_ROOT_LIB="${thor_event_lib} ${threadEvent}"
+
+
+
+else case e in #(
+  e)
+                            echo "FAIL: Using: >${with_event_root}<"
+                            as_fn_error $? "
+
+Error: Could not find libevent
+
+    You can solve this by installing libevent
+    see http://libevent.org/
+
+    If libevent is not installed in the default location (/usr/local or /opt/homebrew) then you will need to specify its location.
+    --with-event-root=<location of event installation>
+
+    If libevent is installed with split components (e.g. Conan), use:
+    --with-custom-event=event_core
+
+
+
+
+    " "$LINENO" 5
+                            echo "FAIL DONE"
+
+                     ;;
+esac
+fi
+
+
+             ;;
+esac
+fi
+            echo "Checking DONE"
+
+            LDFLAGS="${ORIG_LDFLAGS}"
+
+
+fi
 
 
 
@@ -5222,35 +5908,6 @@ fi
 
 
 
-
-case `pwd` in
-  *\ * | *\	*)
-    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
-printf '%s\n' "$as_me: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&2;} ;;
-esac
-
-
-
-macro_version='2.5.4'
-macro_revision='2.5.4'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ltmain=$ac_aux_dir/ltmain.sh
-
-
-
   # Make sure we can run config.sub.
 $SHELL "${ac_aux_dir}config.sub" sun4 >/dev/null 2>&1 ||
   as_fn_error $? "cannot run $SHELL ${ac_aux_dir}config.sub" "$LINENO" 5
@@ -5325,6 +5982,612 @@ host_os=$*
 IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`printf '%s\n' "$host_os" | sed 's/ /-/g'`;; esac
 
+
+
+
+
+# Check whether --with-boost was given.
+if test ${with_boost+y}
+then :
+  withval=$with_boost;
+     case $withval in #(
+  no) :
+    want_boost="no";_AX_BOOST_BASE_boost_path="" ;; #(
+  yes) :
+    want_boost="yes";_AX_BOOST_BASE_boost_path="" ;; #(
+  *) :
+    want_boost="yes";_AX_BOOST_BASE_boost_path="$withval" ;;
+esac
+
+else case e in #(
+  e) want_boost="yes" ;;
+esac
+fi
+
+
+
+
+# Check whether --with-boost-libdir was given.
+if test ${with_boost_libdir+y}
+then :
+  withval=$with_boost_libdir;
+   if test -d "$withval"
+then :
+  _AX_BOOST_BASE_boost_lib_path="$withval"
+else case e in #(
+  e) as_fn_error $? "--with-boost-libdir expected directory name" "$LINENO" 5 ;;
+esac
+fi
+
+else case e in #(
+  e) _AX_BOOST_BASE_boost_lib_path="" ;;
+esac
+fi
+
+
+BOOST_LDFLAGS=""
+BOOST_CPPFLAGS=""
+if test "x$want_boost" = "xyes"
+then :
+
+
+  if test "x1.70" = "x"
+then :
+  _AX_BOOST_BASE_TONUMERICVERSION_req="1.20.0"
+else case e in #(
+  e) _AX_BOOST_BASE_TONUMERICVERSION_req="1.70" ;;
+esac
+fi
+  _AX_BOOST_BASE_TONUMERICVERSION_req_shorten=`expr $_AX_BOOST_BASE_TONUMERICVERSION_req : '\([0-9]*\.[0-9]*\)'`
+  _AX_BOOST_BASE_TONUMERICVERSION_req_major=`expr $_AX_BOOST_BASE_TONUMERICVERSION_req : '\([0-9]*\)'`
+  if test "x$_AX_BOOST_BASE_TONUMERICVERSION_req_major" = "x"
+then :
+  as_fn_error $? "You should at least specify libboost major version" "$LINENO" 5
+fi
+  _AX_BOOST_BASE_TONUMERICVERSION_req_minor=`expr $_AX_BOOST_BASE_TONUMERICVERSION_req : '[0-9]*\.\([0-9]*\)'`
+  if test "x$_AX_BOOST_BASE_TONUMERICVERSION_req_minor" = "x"
+then :
+  _AX_BOOST_BASE_TONUMERICVERSION_req_minor="0"
+fi
+  _AX_BOOST_BASE_TONUMERICVERSION_req_sub_minor=`expr $_AX_BOOST_BASE_TONUMERICVERSION_req : '[0-9]*\.[0-9]*\.\([0-9]*\)'`
+  if test "X$_AX_BOOST_BASE_TONUMERICVERSION_req_sub_minor" = "X"
+then :
+  _AX_BOOST_BASE_TONUMERICVERSION_req_sub_minor="0"
+fi
+  _AX_BOOST_BASE_TONUMERICVERSION_RET=`expr $_AX_BOOST_BASE_TONUMERICVERSION_req_major \* 100000 \+  $_AX_BOOST_BASE_TONUMERICVERSION_req_minor \* 100 \+ $_AX_BOOST_BASE_TONUMERICVERSION_req_sub_minor`
+  WANT_BOOST_VERSION=$_AX_BOOST_BASE_TONUMERICVERSION_RET
+
+    succeeded=no
+
+
+
+                        case ${host_cpu} in #(
+  x86_64) :
+    libsubdirs="lib64 libx32 lib lib64" ;; #(
+  mips*64*) :
+    libsubdirs="lib64 lib32 lib lib64" ;; #(
+  ppc64|powerpc64|s390x|sparc64|aarch64|ppc64le|powerpc64le|riscv64|e2k|loongarch64) :
+    libsubdirs="lib64 lib lib64" ;; #(
+  *) :
+    libsubdirs="lib"
+     ;;
+esac
+
+                case ${host_cpu} in #(
+  i?86) :
+    multiarch_libsubdir="lib/i386-${host_os}" ;; #(
+  armv7l) :
+    multiarch_libsubdir="lib/arm-${host_os}" ;; #(
+  *) :
+    multiarch_libsubdir="lib/${host_cpu}-${host_os}"
+     ;;
+esac
+
+                if test "x$_AX_BOOST_BASE_boost_path" != "x"
+then :
+
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for boostlib >= 1.70 ($WANT_BOOST_VERSION) includes in \"$_AX_BOOST_BASE_boost_path/include\"" >&5
+printf %s "checking for boostlib >= 1.70 ($WANT_BOOST_VERSION) includes in \"$_AX_BOOST_BASE_boost_path/include\"... " >&6; }
+         if test -d "$_AX_BOOST_BASE_boost_path/include" && test -r "$_AX_BOOST_BASE_boost_path/include"
+then :
+
+           { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+           BOOST_CPPFLAGS="-I$_AX_BOOST_BASE_boost_path/include"
+           for _AX_BOOST_BASE_boost_path_tmp in $multiarch_libsubdir $libsubdirs; do
+                { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for boostlib >= 1.70 ($WANT_BOOST_VERSION) lib path in \"$_AX_BOOST_BASE_boost_path/$_AX_BOOST_BASE_boost_path_tmp\"" >&5
+printf %s "checking for boostlib >= 1.70 ($WANT_BOOST_VERSION) lib path in \"$_AX_BOOST_BASE_boost_path/$_AX_BOOST_BASE_boost_path_tmp\"... " >&6; }
+                if test -d "$_AX_BOOST_BASE_boost_path/$_AX_BOOST_BASE_boost_path_tmp" && test -r "$_AX_BOOST_BASE_boost_path/$_AX_BOOST_BASE_boost_path_tmp"
+then :
+
+                        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+                        BOOST_LDFLAGS="-L$_AX_BOOST_BASE_boost_path/$_AX_BOOST_BASE_boost_path_tmp";
+                        break;
+
+else case e in #(
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; } ;;
+esac
+fi
+           done
+else case e in #(
+  e)
+      { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; } ;;
+esac
+fi
+
+else case e in #(
+  e)
+        if test X"$cross_compiling" = Xyes; then
+            search_libsubdirs=$multiarch_libsubdir
+        else
+            search_libsubdirs="$multiarch_libsubdir $libsubdirs"
+        fi
+        for _AX_BOOST_BASE_boost_path_tmp in /usr /usr/local /opt /opt/local /opt/homebrew ; do
+            if test -d "$_AX_BOOST_BASE_boost_path_tmp/include/boost" && test -r "$_AX_BOOST_BASE_boost_path_tmp/include/boost" ; then
+                for libsubdir in $search_libsubdirs ; do
+                    if ls "$_AX_BOOST_BASE_boost_path_tmp/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
+                done
+                BOOST_LDFLAGS="-L$_AX_BOOST_BASE_boost_path_tmp/$libsubdir"
+                BOOST_CPPFLAGS="-I$_AX_BOOST_BASE_boost_path_tmp/include"
+                break;
+            fi
+        done
+     ;;
+esac
+fi
+
+            if test "x$_AX_BOOST_BASE_boost_lib_path" != "x"
+then :
+  BOOST_LDFLAGS="-L$_AX_BOOST_BASE_boost_lib_path"
+fi
+
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for boostlib >= 1.70 ($WANT_BOOST_VERSION)" >&5
+printf %s "checking for boostlib >= 1.70 ($WANT_BOOST_VERSION)... " >&6; }
+    CPPFLAGS_SAVED="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
+    export CPPFLAGS
+
+    LDFLAGS_SAVED="$LDFLAGS"
+    LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
+    export LDFLAGS
+
+
+    ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <boost/version.hpp>
+
+int
+main (void)
+{
+
+(void) ((void)sizeof(char[1 - 2*!!((BOOST_VERSION) < ($WANT_BOOST_VERSION))]));
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+    succeeded=yes
+    found_system=yes
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+    ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+
+
+            if test "x$succeeded" != "xyes" ; then
+        CPPFLAGS="$CPPFLAGS_SAVED"
+        LDFLAGS="$LDFLAGS_SAVED"
+        BOOST_CPPFLAGS=
+        if test -z "$_AX_BOOST_BASE_boost_lib_path" ; then
+            BOOST_LDFLAGS=
+        fi
+        _version=0
+        if test -n "$_AX_BOOST_BASE_boost_path" ; then
+            if test -d "$_AX_BOOST_BASE_boost_path" && test -r "$_AX_BOOST_BASE_boost_path"; then
+                for i in `ls -d $_AX_BOOST_BASE_boost_path/include/boost-* 2>/dev/null`; do
+                    _version_tmp=`echo $i | sed "s#$_AX_BOOST_BASE_boost_path##" | sed 's/\/include\/boost-//' | sed 's/_/./'`
+                    V_CHECK=`expr $_version_tmp \> $_version`
+                    if test "x$V_CHECK" = "x1" ; then
+                        _version=$_version_tmp
+                    fi
+                    VERSION_UNDERSCORE=`echo $_version | sed 's/\./_/'`
+                    BOOST_CPPFLAGS="-I$_AX_BOOST_BASE_boost_path/include/boost-$VERSION_UNDERSCORE"
+                done
+                                if test -z "$BOOST_CPPFLAGS"; then
+                    if test -d "$_AX_BOOST_BASE_boost_path/boost" && test -r "$_AX_BOOST_BASE_boost_path/boost"; then
+                        BOOST_CPPFLAGS="-I$_AX_BOOST_BASE_boost_path"
+                    fi
+                fi
+                                                if test -n "$BOOST_CPPFLAGS" && test -z "$BOOST_LDFLAGS"; then
+                    for libsubdir in $libsubdirs ; do
+                        if ls "$_AX_BOOST_BASE_boost_path/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
+                    done
+                    BOOST_LDFLAGS="-L$_AX_BOOST_BASE_boost_path/$libsubdir"
+                fi
+            fi
+        else
+            if test "x$cross_compiling" != "xyes" ; then
+                for _AX_BOOST_BASE_boost_path in /usr /usr/local /opt /opt/local /opt/homebrew ; do
+                    if test -d "$_AX_BOOST_BASE_boost_path" && test -r "$_AX_BOOST_BASE_boost_path" ; then
+                        for i in `ls -d $_AX_BOOST_BASE_boost_path/include/boost-* 2>/dev/null`; do
+                            _version_tmp=`echo $i | sed "s#$_AX_BOOST_BASE_boost_path##" | sed 's/\/include\/boost-//' | sed 's/_/./'`
+                            V_CHECK=`expr $_version_tmp \> $_version`
+                            if test "x$V_CHECK" = "x1" ; then
+                                _version=$_version_tmp
+                                best_path=$_AX_BOOST_BASE_boost_path
+                            fi
+                        done
+                    fi
+                done
+
+                VERSION_UNDERSCORE=`echo $_version | sed 's/\./_/'`
+                BOOST_CPPFLAGS="-I$best_path/include/boost-$VERSION_UNDERSCORE"
+                if test -z "$_AX_BOOST_BASE_boost_lib_path" ; then
+                    for libsubdir in $libsubdirs ; do
+                        if ls "$best_path/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
+                    done
+                    BOOST_LDFLAGS="-L$best_path/$libsubdir"
+                fi
+            fi
+
+            if test -n "$BOOST_ROOT" ; then
+                for libsubdir in $libsubdirs ; do
+                    if ls "$BOOST_ROOT/stage/$libsubdir/libboost_"* >/dev/null 2>&1 ; then break; fi
+                done
+                if test -d "$BOOST_ROOT" && test -r "$BOOST_ROOT" && test -d "$BOOST_ROOT/stage/$libsubdir" && test -r "$BOOST_ROOT/stage/$libsubdir"; then
+                    version_dir=`expr //$BOOST_ROOT : '.*/\(.*\)'`
+                    stage_version=`echo $version_dir | sed 's/boost_//' | sed 's/_/./g'`
+                        stage_version_shorten=`expr $stage_version : '\([0-9]*\.[0-9]*\)'`
+                    V_CHECK=`expr $stage_version_shorten \>\= $_version`
+                    if test "x$V_CHECK" = "x1" && test -z "$_AX_BOOST_BASE_boost_lib_path" ; then
+                        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: We will use a staged boost library from $BOOST_ROOT" >&5
+printf '%s\n' "$as_me: We will use a staged boost library from $BOOST_ROOT" >&6;}
+                        BOOST_CPPFLAGS="-I$BOOST_ROOT"
+                        BOOST_LDFLAGS="-L$BOOST_ROOT/stage/$libsubdir"
+                    fi
+                fi
+            fi
+        fi
+
+        CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
+        export CPPFLAGS
+        LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
+        export LDFLAGS
+
+        ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <boost/version.hpp>
+
+int
+main (void)
+{
+
+(void) ((void)sizeof(char[1 - 2*!!((BOOST_VERSION) < ($WANT_BOOST_VERSION))]));
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+        succeeded=yes
+        found_system=yes
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+        ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+    fi
+
+    if test "x$succeeded" != "xyes" ; then
+        if test "x$_version" = "x0" ; then
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: We could not detect the boost libraries (version 1.70 or higher). If you have a staged boost library (still not installed) please specify \$BOOST_ROOT in your environment and do not give a PATH to --with-boost option.  If you are sure you have boost installed, then check your version number looking in <boost/version.hpp>. See http://randspringer.de/boost for more documentation." >&5
+printf '%s\n' "$as_me: We could not detect the boost libraries (version 1.70 or higher). If you have a staged boost library (still not installed) please specify \$BOOST_ROOT in your environment and do not give a PATH to --with-boost option.  If you are sure you have boost installed, then check your version number looking in <boost/version.hpp>. See http://randspringer.de/boost for more documentation." >&6;}
+        else
+            { printf '%s\n' "$as_me:${as_lineno-$LINENO}: Your boost libraries seems to old (version $_version)." >&5
+printf '%s\n' "$as_me: Your boost libraries seems to old (version $_version)." >&6;}
+        fi
+        BOOST_LDFLAGS=""
+        BOOST_CPPFLAGS=""
+        # execute ACTION-IF-NOT-FOUND (if present):
+
+    as_fn_error $? "
+        Nisse requires boost CoRoutine2
+        The minimum version we support is via boost 1.70 please upgrade your boost libraries to this (or later).
+    " "$LINENO" 5
+
+    else
+
+printf '%s\n' "#define HAVE_BOOST /**/" >>confdefs.h
+
+        # execute ACTION-IF-FOUND (if present):
+        :
+    fi
+
+    CPPFLAGS="$CPPFLAGS_SAVED"
+    LDFLAGS="$LDFLAGS_SAVED"
+
+
+fi
+
+
+
+    BOOST_ROOT_DIR=${_AX_BOOST_BASE_boost_path}
+
+
+
+
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: UNAME: ${UNAME}" >&5
+printf '%s\n' "$as_me: UNAME: ${UNAME}" >&6;}
+    if test "x${UNAME}" = "xMSYS_NT" || test "x${UNAME}" = "xMINGW64_NT"
+then :
+  boostExt=-mt
+else case e in #(
+  e) boostExt=
+     ;;
+esac
+fi
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: boostExt: ${boostExt}" >&5
+printf '%s\n' "$as_me: boostExt: ${boostExt}" >&6;}
+
+
+
+# Check whether --with-boost-coroutine-root was given.
+if test ${with_boost_coroutine_root+y}
+then :
+  withval=$with_boost_coroutine_root;
+fi
+
+
+    if test "xBoostCoRoutine" != "x"
+then :
+
+
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
+
+        grep -q 'BoostCoRoutine_ROOT_DIR=@BoostCoRoutine_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting BoostCoRoutine_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        BoostCoRoutine_ROOT_DIR=@BoostCoRoutine_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
+
+        grep -q 'BoostCoRoutine_ROOT_LIB=@BoostCoRoutine_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting BoostCoRoutine_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        BoostCoRoutine_ROOT_LIB=@BoostCoRoutine_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+    if [ "x" == "x13" ]; then
+        grep -q 'BoostCoRoutineHeaderOnly_ROOT_DIR=@BoostCoRoutineHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting BoostCoRoutineHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        BoostCoRoutineHeaderOnly_ROOT_DIR=@BoostCoRoutineHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
+
+    LIBRARY_DIR="-L ${with_boost_coroutine_root}/lib"
+    if test "x${with_boost_coroutine_root}" == "x"
+then :
+  LIBRARY_DIR="-L ${DefaultLinkDir}/lib"
+
+fi
+
+    if test "x${boost_coroutine_header_only_defined}" == "x"
+then :
+
+            ORIG_LDFLAGS="${LDFLAGS}"
+            LDFLAGS="$LDFLAGS ${LIBRARY_DIR}"
+
+            echo "Building: NotThor"
+            echo "Checking for libboost_coroutine${boostExt}"
+            if test "x$BUILDING_NotThor" == "x1"
+then :
+
+
+    if test "x${with_boost_coroutine_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_BoostCoRoutine 1" >>confdefs.h
+
+            BoostCoRoutine_ROOT_DIR=${with_boost_coroutine_root}
+
+            subconfigure="${subconfigure} --with-boost-coroutine-root=${with_boost_coroutine_root}"
+
+
+fi
+    echo "Setting: BoostCoRoutine_ROOT_LIB TO boost_coroutine${boostExt} boost_context${boostExt}"
+    BoostCoRoutine_ROOT_LIB="boost_coroutine${boostExt} boost_context${boostExt}"
+
+
+
+else case e in #(
+  e)
+                    as_ac_Lib=`printf '%s\n' "ac_cv_lib_boost_coroutine${boostExt}""__ZN5boost10coroutines18coroutine_categoryEv" | sed "$as_sed_sh"`
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for _ZN5boost10coroutines18coroutine_categoryEv in -lboost_coroutine${boostExt}" >&5
+printf %s "checking for _ZN5boost10coroutines18coroutine_categoryEv in -lboost_coroutine${boostExt}... " >&6; }
+if eval test \${$as_ac_Lib+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_check_lib_save_LIBS=$LIBS
+LIBS="-lboost_coroutine${boostExt}  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+namespace conftest {
+  extern "C" int _ZN5boost10coroutines18coroutine_categoryEv ();
+}
+int
+main (void)
+{
+return conftest::_ZN5boost10coroutines18coroutine_categoryEv ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"
+then :
+  eval "$as_ac_Lib=yes"
+else case e in #(
+  e) eval "$as_ac_Lib=no" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS ;;
+esac
+fi
+eval ac_res=\$$as_ac_Lib
+	       { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+printf '%s\n' "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_Lib"\" = x"yes"
+then :
+
+
+    if test "x${with_boost_coroutine_root}" != "x"
+then :
+
+
+printf '%s\n' "#define HAVE_BoostCoRoutine 1" >>confdefs.h
+
+            BoostCoRoutine_ROOT_DIR=${with_boost_coroutine_root}
+
+            subconfigure="${subconfigure} --with-boost-coroutine-root=${with_boost_coroutine_root}"
+
+
+fi
+    echo "Setting: BoostCoRoutine_ROOT_LIB TO boost_coroutine${boostExt} boost_context${boostExt}"
+    BoostCoRoutine_ROOT_LIB="boost_coroutine${boostExt} boost_context${boostExt}"
+
+
+
+else case e in #(
+  e)
+                            echo "FAIL: Using: >${with_boost_coroutine_root}<"
+                            as_fn_error $? "
+Error: Could not find boost_coroutine
+
+You can solve this by installing the boost libraries
+
+
+
+    " "$LINENO" 5
+                            echo "FAIL DONE"
+
+                     ;;
+esac
+fi
+
+
+             ;;
+esac
+fi
+            echo "Checking DONE"
+
+            LDFLAGS="${ORIG_LDFLAGS}"
+
+
+fi
+
+
+
+
+
+case `pwd` in
+  *\ * | *\	*)
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
+printf '%s\n' "$as_me: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&2;} ;;
+esac
+
+
+
+macro_version='2.5.4'
+macro_revision='2.5.4'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ltmain=$ac_aux_dir/ltmain.sh
 
 # Backslashify metacharacters that are still active within
 # double-quoted strings.
