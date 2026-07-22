@@ -291,7 +291,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
     // But we check the type of each member on input. This is not a JsonRPC request so we get a parse error.
     // When trying to read the first command.
     // Because we have a parse errors (this is bad JSON so we have to abort any further reading.
-    EXPECT_EQ("Id: 1\r\n"
+    EXPECT_EQ("id: 1\r\n"
               "data: " R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})" "\r\n"
               "\r\n"
                 , result.str());
@@ -306,25 +306,25 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests2)
                                     R"({"jsonrpc": "2.0", "method": "subtract", "params": [42,23], "id": "2"},)"
                                     R"({"foo": "boo"},)"
                                     R"({"jsonrpc": "2.0", "method": "foo.get", "params": {"name": "myself"}, "id": "5"},)"
-                                    R"({"jsonrpc": "2.0", "method": "get_data", "id": "9"} )"
+                                    R"({"jsonrpc": "2.0", "method": "get_data", "id": "9"})"
                                  R"(])"};
     std::ostringstream   result;
 
     sendToMCP(command, result);
 
-    EXPECT_EQ("Id: 1\r\n"
-              "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"},)" "\r\n"
+    EXPECT_EQ("id: 1\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"})" "\r\n"
               "\r\n"
-              "Id: 2\r\n"
-              "data: " R"({"jsonrpc":"2.0","result":19,"id":"2"},)" "\r\n"
+              "id: 2\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":19,"id":"2"})" "\r\n"
               "\r\n"
-              "Id: 3\r\n"
-              "data: " R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null},)" "\r\n"
+              "id: 3\r\n"
+              "data: " R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})" "\r\n"
               "\r\n"
-              "Id: 4\r\n"
-              "data: " R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"5"},)" "\r\n"
+              "id: 4\r\n"
+              "data: " R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"5"})" "\r\n"
               "\r\n"
-              "Id: 5\r\n"
+              "id: 5\r\n"
               "data: " R"({"jsonrpc":"2.0","result":["hello","5"],"id":"9"})" "\r\n"
               "\r\n"
                 , result.str());
@@ -345,13 +345,13 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
 
     sendToMCP(command, result);
 
-    EXPECT_EQ("Id: 1\r\n"
-              "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"},)" "\r\n"
+    EXPECT_EQ("id: 1\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"})" "\r\n"
               "\r\n"
-              "Id: 2\r\n"
-              "data: " R"({"jsonrpc":"2.0","result":19,"id":"2"},)" "\r\n"
+              "id: 2\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":19,"id":"2"})" "\r\n"
               "\r\n"
-              "Id: 3\r\n"
+              "id: 3\r\n"
               "data: " R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})" "\r\n"
               "\r\n"
                 , result.str());

@@ -14,18 +14,38 @@ namespace ThorsAnvil::Nisse::MCP
 {
     class ServerContext: public Context
     {
+        int     id;
+        bool    termNeeded;
         public:
             ServerContext(std::istream& input, std::ostream& output)
-                : Context(input, output)
+                : Context{input, output}
+                , id{1}
+                , termNeeded{false}
             {}
             ~ServerContext()
-            {}
+            {
+                termPreviousItem();
+            }
+            void termPreviousItem()
+            {
+                if (termNeeded) {
+                    output << "\r\n\r\n";
+                    termNeeded = false;
+                }
+            }
 
             virtual void stop() const override
             {}
 
             virtual std::ostream& addItem() override
             {
+                termPreviousItem();
+                if (stream) {
+                    output << "id: " << id << "\r\n"
+                           << "data: ";
+                    ++id;
+                    termNeeded = true;
+                }
                 return output;
             }
     };
