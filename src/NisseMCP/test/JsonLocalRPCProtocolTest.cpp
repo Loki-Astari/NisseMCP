@@ -19,16 +19,38 @@ struct SubtractParam
     int     subtrahend;
 };
 
-ThorsAnvil_MakeTrait(SubtractParam, minuend, subtrahend);
-
 using namespace ThorsAnvil::Nisse::MCP;
 
-TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters1)
+struct LocalTest: public Local
+{
+    std::size_t     size = 0;
+    bool            used = false;
+    public:
+        LocalTest(MCPCoreConfig const& config)
+            : Local(config)
+        {
+            addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+            addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
+            addExecutor("foobar",       [&](Context& context){used = true;context.addItem(1);});
+
+            addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+            addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
+            addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
+            addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+            addExecutor("note",         [](Context& context)->int {throw std::runtime_error("Hi");});
+            addExecutor("Hi",           [](Context& context, std::vector<int> const&){context.addItem("Hi");});
+            addExecutor("throw",        [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
+        }
+        std::size_t getSize() const {return size;}
+        bool        isUsed()  const {return used;}
+};
+
+ThorsAnvil_MakeTrait(SubtractParam, minuend, subtrahend);
+
+TEST(JsonLocalRPCProtocolTest, RPC_CallWithPositionalParameters1)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1})"};
     std::ostringstream   result;
@@ -38,12 +60,10 @@ TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters1)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":1})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_UsingAStringID)
+TEST(JsonLocalRPCProtocolTest, RPC_UsingAStringID)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": "long-string-that-forms-id"})"};
     std::ostringstream   result;
@@ -53,12 +73,10 @@ TEST(JsonRCPProtocolTest, RPC_UsingAStringID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":"long-string-that-forms-id"})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_UsingAStructureID)
+TEST(JsonLocalRPCProtocolTest, RPC_UsingAStructureID)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": {"name": "long-string-that-forms-id"}})"};
     std::ostringstream   result;
@@ -68,12 +86,10 @@ TEST(JsonRCPProtocolTest, RPC_UsingAStructureID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_UsingAnArrayID)
+TEST(JsonLocalRPCProtocolTest, RPC_UsingAnArrayID)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": ["name", "long-string-that-forms-id"]})"};
     std::ostringstream   result;
@@ -83,12 +99,10 @@ TEST(JsonRCPProtocolTest, RPC_UsingAnArrayID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_UsingABoolID)
+TEST(JsonLocalRPCProtocolTest, RPC_UsingABoolID)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": true})"};
     std::ostringstream   result;
@@ -98,12 +112,10 @@ TEST(JsonRCPProtocolTest, RPC_UsingABoolID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_UsingANullID)
+TEST(JsonLocalRPCProtocolTest, RPC_UsingANullID)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": null})"};
     std::ostringstream   result;
@@ -113,12 +125,10 @@ TEST(JsonRCPProtocolTest, RPC_UsingANullID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_UsingAFloatID)
+TEST(JsonLocalRPCProtocolTest, RPC_UsingAFloatID)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 22.234})"};
     std::ostringstream   result;
@@ -128,12 +138,10 @@ TEST(JsonRCPProtocolTest, RPC_UsingAFloatID)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters2)
+TEST(JsonLocalRPCProtocolTest, RPC_CallWithPositionalParameters2)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": 2})"};
     std::ostringstream   result;
@@ -143,12 +151,10 @@ TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters2)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":-19,"id":2})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters1)
+TEST(JsonLocalRPCProtocolTest, RPC_CallWithNamedParameters1)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3})"};
     std::ostringstream   result;
@@ -158,12 +164,10 @@ TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters1)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":3})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters2)
+TEST(JsonLocalRPCProtocolTest, RPC_CallWithNamedParameters2)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"minuend": 42, "subtrahend": 23}, "id": 4})"};
     std::ostringstream   result;
@@ -173,14 +177,10 @@ TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters2)
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":4})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_Notification1)
+TEST(JsonLocalRPCProtocolTest, RPC_Notification1)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    std::size_t                             size = 0;
-
-    local.addExecutor("update", [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]})"};
     std::ostringstream   result;
@@ -188,17 +188,13 @@ TEST(JsonRCPProtocolTest, RPC_Notification1)
     local.run(command, result);
 
     EXPECT_EQ(R"()", result.str());
-    EXPECT_EQ(5, size);
+    EXPECT_EQ(5, local.getSize());
 }
 
-TEST(JsonRCPProtocolTest, RPC_Notification2)
+TEST(JsonLocalRPCProtocolTest, RPC_Notification2)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    bool                                    used = false;
-
-    local.addExecutor("foobar", [&](Context& context){used = true;context.addItem(1);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar"})"};
     std::ostringstream   result;
@@ -206,15 +202,15 @@ TEST(JsonRCPProtocolTest, RPC_Notification2)
     local.run(command, result);
 
     EXPECT_EQ(R"()", result.str());
-    EXPECT_TRUE(used);
+    EXPECT_TRUE(local.isUsed());
 }
 
-TEST(JsonRCPProtocolTest, RPC_NonExistentMethod)
+TEST(JsonLocalRPCProtocolTest, RPC_NonExistentMethod)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
-    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar", "id": "1"})"};
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobarbaz", "id": "1"})"};
     std::ostringstream   result;
 
     local.run(command, result);
@@ -222,12 +218,10 @@ TEST(JsonRCPProtocolTest, RPC_NonExistentMethod)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidJson)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidJson)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar, "params": "bar", "baz])"};
                                                                                         //     ^^^^^
@@ -240,12 +234,10 @@ TEST(JsonRCPProtocolTest, RPC_InvalidJson)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidRequest1)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequest1)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": 1, "params": "bar"})"};
                                                             //   ^ Invalid Type: Should be string.
@@ -257,12 +249,12 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequest1)
     // EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidRequest2)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequest2)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
-    local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
+    // local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
 
     std::istringstream   command{R"({"jsonrpc": "2.1", "method": "name", "params": "bar"})"};
                                                             //   ^ Invalid Type: Should be string.
@@ -273,10 +265,10 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequest2)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_EmptyBatch)
+TEST(JsonLocalRPCProtocolTest, RPC_EmptyBatch)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
     std::istringstream   command{R"([])"};
     std::ostringstream   result;
@@ -286,10 +278,10 @@ TEST(JsonRCPProtocolTest, RPC_EmptyBatch)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidEmptyBatch)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidEmptyBatch)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
     std::istringstream   command{R"([)"};
     std::ostringstream   result;
@@ -299,10 +291,10 @@ TEST(JsonRCPProtocolTest, RPC_InvalidEmptyBatch)
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidRequests1)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequests1)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
     std::istringstream   command{R"([1,2,3])"};
     std::ostringstream   result;
@@ -327,15 +319,11 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequests1)
                 , result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequests2)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
-    local.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-    local.addExecutor("subtract",     [](Context& context, std::vector<int> const& args){context.addItem(args[0] - args[1]);});
-    local.addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
-    local.addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
 
     std::istringstream   command{R"([)"
                                     R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},)"
@@ -359,15 +347,10 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
                 , result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_InvalidRequestsBADJSONInArray)
+TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-    local.addExecutor("subtract",     [](Context& context, std::vector<int> const& args){context.addItem(args[0] - args[1]);});
-    local.addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
-    local.addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"([)"
                                     R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},)"
@@ -389,13 +372,10 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequestsBADJSONInArray)
                 , result.str());
 }
 
-TEST(JsonRCPProtocolTest, RPC_BatchNotification)
+TEST(JsonLocalRPCProtocolTest, RPC_BatchNotification)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-    local.addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"([)"
                                     R"({"jsonrpc": "2.0", "method": "notify_sum", "params": [1,2,4]},)"
@@ -408,14 +388,12 @@ TEST(JsonRCPProtocolTest, RPC_BatchNotification)
     EXPECT_EQ("", result.str());
 }
 
-TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor1)
+TEST(JsonLocalRPCProtocolTest, CatchExceptionsOutOfExecutor1)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
-    local.addExecutor("sum",   [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
-
-    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": 5})"};
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "throw", "params": [1,2,4], "id": 5})"};
     std::ostringstream   result;
 
     local.run(command, result);
@@ -424,12 +402,10 @@ TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor1)
             result.str());
 }
 
-TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor2)
+TEST(JsonLocalRPCProtocolTest, CatchExceptionsOutOfExecutor2)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("note",   [](Context& context)->int {throw std::runtime_error("Hi");});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "note", "id": 5})"};
                                                                                 // ^^ Array of string not integer.
@@ -441,12 +417,10 @@ TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor2)
             result.str());
 }
 
-TEST(JsonRCPProtocolTest, CheckForInvalidParameters)
+TEST(JsonLocalRPCProtocolTest, CheckForInvalidParameters)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
-
-    local.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+    LocalTest                               local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "sum", "params": ["1","2","4"], "id": 5})"};
                                                                                 // ^^ Array of string not integer.
@@ -458,14 +432,13 @@ TEST(JsonRCPProtocolTest, CheckForInvalidParameters)
             result.str());
 }
 
-TEST(JsonRCPProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
+TEST(JsonLocalRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
 {
     ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ThorsAnvil::Nisse::MCP::Local           local{config};
+    LocalTest                               local{config};
 
-    local.addExecutor("note",   [](Context& context, std::vector<int> const&){context.addItem("Hi");});
 
-    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "note", "params": 1, "id": 5})"};
+    std::istringstream   command{R"({"jsonrpc": "2.0", "method": "Hi", "params": 1, "id": 5})"};
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
 

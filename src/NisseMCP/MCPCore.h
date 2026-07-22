@@ -24,7 +24,8 @@ namespace ThorsAnvil::Nisse::MCP
 
 struct MCPCoreConfig
 {
-    Protocol    minProtocol = Protocol::v2024_11_05;
+    Protocol            minProtocol = Protocol::v2024_11_05;
+    std::string         hostname    = "localhost";
 };
 
 using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;

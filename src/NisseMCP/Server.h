@@ -8,6 +8,7 @@
 #include "CommandInitialize.h"
 
 #include "NisseHTTP/Server.h"
+#include "ThorSerialize/JsonThor.h"
 
 namespace ThorsAnvil::Nisse::MCP
 {
@@ -30,11 +31,14 @@ namespace ThorsAnvil::Nisse::MCP
     };
     class Server: public MCPCore, public ThorsAnvil::Nisse::HTTP::Server
     {
+        ThorsAnvil::Nisse::HTTP::HeaderResponse headers;
         public:
             Server(MCPCoreConfig const& config, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
                 : MCPCore{config}
                 , ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
             {
+
+                headers.add("content-type", "application/json"); // text/event-stream
                 addPath(ThorsAnvil::Nisse::HTTP::Method::POST, "/mcp", [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 {
                     ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked), Protocol::v2025_11_25};
