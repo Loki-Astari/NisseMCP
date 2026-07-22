@@ -9,12 +9,24 @@ MCPCore::MCPCore(Protocol protocol)
     addExecutor("notifications/initialized", [&](Context& context){return notifications_Initialized(context);});
 }
 
-void MCPCore::initialize(Context& context, Command::InitializeRequestParams const& param)
+void MCPCore::initialize(Context& context, Command::InitializeRequestParams const& /*param*/)
 {
     using namespace std::string_literals;
-    if (param.protocolVersion != "2025-11-25"s) {
-        context.addItem(Command::InitializeResult{_meta: {}, protocolVersion: "2025-11-25"s, capabilities: {logging: {}, completions: {}, prompts: {}, resources: {}, tools: {}, tasks: {}}, serverInfo: {}, instructions: {}});
-    }
+    context.addItem(Command::InitializeResult{
+                                                ._meta          = {},
+                                                .protocolVersion= "2025-11-25"s,
+                                                .capabilities =
+                                                {
+                                                        .logging        = {},
+                                                        .completions    = {},
+                                                        .prompts        = {},
+                                                        .resources      = {},
+                                                        .tools          = {},
+                                                        .tasks          = {}
+                                                },
+                                                .serverInfo     = {},
+                                                .instructions   = {}
+                                             });
 }
 
 void MCPCore::notifications_Initialized(Context& /*context*/)
