@@ -1,23 +1,14 @@
 #include <gtest/gtest.h>
 
-#include "NisseHTTP/Util.h"
-#include "NisseHTTP/NisseHTTPServer.h"
-#include "NisseHTTP/HTTPHandler.h"
-#include "NisseHTTP/Request.h"
-#include "NisseHTTP/Response.h"
-//#include "NisseHTTP/ClientRequest.h"
+#include "NisseHTTP/Server.h"
 #include "NisseHTTP/ClientHTTP.h"
-//#include "NisseHTTP/ClientResponse.h"
-#include "ThorsSocket/SocketStream.h"
-#include "ThorSerialize/JsonThor.h"
 
-class ServerRunner: public ThorsAnvil::Nisse::HTTP::NisseHTTPServer
+class MCPTestServer: public ThorsAnvil::Nisse::HTTP::Server
 {
     public:
-        ServerRunner()
-            : NisseHTTPServer{1, ThorsAnvil::ThorsSocket::ServerInfo{8080}, ThorsAnvil::ThorsSocket::ServerInfo{8070}}
+        MCPTestServer()
+            : Server{1, ThorsAnvil::ThorsSocket::ServerInfo{8080}, ThorsAnvil::ThorsSocket::ServerInfo{8070}}
         {
-
             addPath(ThorsAnvil::Nisse::HTTP::Method::GET, "/mcp", [](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
             {
                 response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked) << "\"Morning\"";
@@ -26,30 +17,13 @@ class ServerRunner: public ThorsAnvil::Nisse::HTTP::NisseHTTPServer
         }
 };
 
-class LocalServer
-{
-    std::thread     thread;
-    public:
-        LocalServer()
-            : thread{[]()
-              {
-                    ServerRunner                server;
-                    server.run();
-              }}
-        {}
-        ~LocalServer()
-        {
-            ThorsAnvil::Nisse::HTTP::ClientHTTP    client({"127.0.0.1", 8070}, ThorsAnvil::Nisse::HTTP::Version::HTTP1_0);
-            client.get<std::string>({.path = "/?command=stophard"});
-            thread.join();
-        }
-};
+using MCPServerRunner = ThorsAnvil::Nisse::Server::UnitTest::ServerRunner<MCPTestServer>;
 
 // ThorsAnvil::Serialize::PrinterConfig    ServerRunner::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
 
 TEST(HTTPTest, ServerRun)
 {
-    LocalServer     server;
+    MCPServerRunner     server;
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8080}};
     std::string reply = client.get<std::string>({.path = "/mcp"});
