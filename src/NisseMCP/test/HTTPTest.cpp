@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "NisseHTTP/Server.h"
+#include "Server.h"
 #include "NisseHTTP/ClientHTTP.h"
 
-class MCPTestServer: public ThorsAnvil::Nisse::HTTP::Server
+class MCPTestServer: public ThorsAnvil::Nisse::MCP::Server
 {
     public:
         MCPTestServer()
-            : Server{1, ThorsAnvil::ThorsSocket::ServerInfo{8080}, ThorsAnvil::ThorsSocket::ServerInfo{8070}}
+            : ThorsAnvil::Nisse::MCP::Server{ThorsAnvil::Nisse::MCP::MCPCoreConfig{}, 1, ThorsAnvil::ThorsSocket::ServerInfo{8080}, ThorsAnvil::ThorsSocket::ServerInfo{8070}}
         {
             addPath(ThorsAnvil::Nisse::HTTP::Method::GET, "/mcp", [](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
             {

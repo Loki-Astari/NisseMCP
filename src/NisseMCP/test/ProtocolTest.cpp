@@ -25,7 +25,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 TEST(Protocol, protocol_v2024_11_05)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config{Protocol::v2024_11_05};
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config{Protocol::v2024_11_05};
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -40,7 +40,7 @@ TEST(Protocol, protocol_v2024_11_05)
 
 TEST(Protocol, protocol_v2025_03_26)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config{Protocol::v2025_03_26};
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config{Protocol::v2025_03_26};
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -55,7 +55,7 @@ TEST(Protocol, protocol_v2025_03_26)
 
 TEST(Protocol, protocol_v2025_06_18)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config{Protocol::v2025_06_18};
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config{Protocol::v2025_06_18};
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -70,7 +70,7 @@ TEST(Protocol, protocol_v2025_06_18)
 
 TEST(Protocol, protocol_v2025_11_25)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config{Protocol::v2025_11_25};
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config{Protocol::v2025_11_25};
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});

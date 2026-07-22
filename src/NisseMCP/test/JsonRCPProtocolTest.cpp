@@ -25,7 +25,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters1)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -40,7 +40,7 @@ TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters1)
 
 TEST(JsonRCPProtocolTest, RPC_UsingAStringID)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -55,7 +55,7 @@ TEST(JsonRCPProtocolTest, RPC_UsingAStringID)
 
 TEST(JsonRCPProtocolTest, RPC_UsingAStructureID)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -70,7 +70,7 @@ TEST(JsonRCPProtocolTest, RPC_UsingAStructureID)
 
 TEST(JsonRCPProtocolTest, RPC_UsingAnArrayID)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -85,7 +85,7 @@ TEST(JsonRCPProtocolTest, RPC_UsingAnArrayID)
 
 TEST(JsonRCPProtocolTest, RPC_UsingABoolID)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -100,7 +100,7 @@ TEST(JsonRCPProtocolTest, RPC_UsingABoolID)
 
 TEST(JsonRCPProtocolTest, RPC_UsingANullID)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -115,7 +115,7 @@ TEST(JsonRCPProtocolTest, RPC_UsingANullID)
 
 TEST(JsonRCPProtocolTest, RPC_UsingAFloatID)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -130,7 +130,7 @@ TEST(JsonRCPProtocolTest, RPC_UsingAFloatID)
 
 TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters2)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -145,7 +145,7 @@ TEST(JsonRCPProtocolTest, RPC_CallWithPositionalParameters2)
 
 TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters1)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -160,7 +160,7 @@ TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters1)
 
 TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters2)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("subtract", [](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
@@ -175,7 +175,7 @@ TEST(JsonRCPProtocolTest, RPC_CallWithNamedParameters2)
 
 TEST(JsonRCPProtocolTest, RPC_Notification1)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     std::size_t                             size = 0;
@@ -193,7 +193,7 @@ TEST(JsonRCPProtocolTest, RPC_Notification1)
 
 TEST(JsonRCPProtocolTest, RPC_Notification2)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     bool                                    used = false;
@@ -211,7 +211,7 @@ TEST(JsonRCPProtocolTest, RPC_Notification2)
 
 TEST(JsonRCPProtocolTest, RPC_NonExistentMethod)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar", "id": "1"})"};
@@ -224,7 +224,7 @@ TEST(JsonRCPProtocolTest, RPC_NonExistentMethod)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidJson)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
@@ -242,7 +242,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidJson)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidRequest1)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
@@ -259,7 +259,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequest1)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidRequest2)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("foobar", [&](Context& context, std::string const& param){context.addItem(1);});
@@ -275,7 +275,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequest2)
 
 TEST(JsonRCPProtocolTest, RPC_EmptyBatch)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     std::istringstream   command{R"([])"};
@@ -288,7 +288,7 @@ TEST(JsonRCPProtocolTest, RPC_EmptyBatch)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidEmptyBatch)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     std::istringstream   command{R"([)"};
@@ -301,7 +301,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidEmptyBatch)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidRequests1)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     std::istringstream   command{R"([1,2,3])"};
@@ -329,7 +329,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequests1)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
@@ -361,7 +361,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequests2)
 
 TEST(JsonRCPProtocolTest, RPC_InvalidRequestsBADJSONInArray)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
@@ -391,7 +391,7 @@ TEST(JsonRCPProtocolTest, RPC_InvalidRequestsBADJSONInArray)
 
 TEST(JsonRCPProtocolTest, RPC_BatchNotification)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
@@ -410,7 +410,7 @@ TEST(JsonRCPProtocolTest, RPC_BatchNotification)
 
 TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor1)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("sum",   [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
@@ -426,7 +426,7 @@ TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor1)
 
 TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor2)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("note",   [](Context& context)->int {throw std::runtime_error("Hi");});
@@ -443,7 +443,7 @@ TEST(JsonRCPProtocolTest, CatchExceptionsOutOfExecutor2)
 
 TEST(JsonRCPProtocolTest, CheckForInvalidParameters)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
@@ -460,7 +460,7 @@ TEST(JsonRCPProtocolTest, CheckForInvalidParameters)
 
 TEST(JsonRCPProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
 {
-    ThorsAnvil::Nisse::MCP::ServerConfig    config;
+    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
     ThorsAnvil::Nisse::MCP::Local           local{config};
 
     local.addExecutor("note",   [](Context& context, std::vector<int> const&){context.addItem("Hi");});

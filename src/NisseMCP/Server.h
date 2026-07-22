@@ -1,114 +1,49 @@
-#ifndef THORSANVIL_NISSE_MCP_SERVER_H
-#define THORSANVIL_NISSE_MCP_SERVER_H
+#ifndef THORSANVIL_NISSE_MCP_MCPSERVER_H
+#define THORSANVIL_NISSE_MCP_MCPSERVER_H
 
+#include "NisseHTTP/Util.h"
 #include "NisseMCPConfig.h"
-#include "JsonRPC.h"
+#include "MCPCore.h"
 #include "Context.h"
-#include "MetaFunction.h"
-#include "ThorSerialize/JsonThor.h"
-#include "ThorSerialize/Traits.h"
+#include "CommandInitialize.h"
 
-#include <map>
-#include <string>
-#include <string_view>
-#include <iostream>
-#include <functional>
-#include <utility>
-#include <type_traits>
+#include "NisseHTTP/Server.h"
 
 namespace ThorsAnvil::Nisse::MCP
 {
+    class ServerContext: public Context
+    {
+        public:
+            ServerContext(std::istream& input, std::ostream& output, Protocol protocol)
+                : Context(input, output, protocol)
+            {}
+            ~ServerContext()
+            {}
 
-struct ServerConfig
-{
-    Protocol    minProtocol = Protocol::v2024_11_05;
-};
+            virtual void stop() const override
+            {}
 
-using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
-
-class Server
-{
-    static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
-
-
-    ExecuteMap      executeMap;
-    ServerConfig    config;
-
-    protected:
-        ServerConfig const& getConfig() const {return config;}
-
-    public:
-        Server(ServerConfig const& config);
-
-        bool   readOneAction(std::istream& input, Context& context);
-
-#if 0
-        void resource();
-        void tool();
-        void prompt();
-#endif
-
-        template<typename F, typename... Args>
-        static JsonRPC::Response invokeToResponse(F&& f, Args&&... args)
-        {
-            if constexpr (std::is_void_v<std::invoke_result_t<F, Args...>>) {
-                std::forward<F>(f)(std::forward<Args>(args)...);
-                return JsonRPC::Response{};
-            }
-            else {
-                return JsonRPC::Response(std::forward<F>(f)(std::forward<Args>(args)...));
-            }
-        }
-
-        template<typename C, typename P = typename FirstParam<std::remove_reference_t<C>>::Param>
-        requires HadSingleParam<C>
-        void addExecutor(std::string const& name, C&& callable)
-        {
-            executeMap[name] = [executor = std::forward<C>(callable)](Context& context, JsonRPC::Request const& rpc)
+            virtual std::ostream& addItem() override
             {
-                using namespace std::string_view_literals;
-                std::string_view view = rpc.params.has_value() ? rpc.params->getView() : ""sv;
-                P                param;
-                if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
-                    context.error(-32602, "Invalid params");
-                    context.stop();
-                    return;
-                }
-
-                try
-                {
-                    executor(context, param);
-                }
-                catch (...)
-                {
-                    context.error(-32603, "Internal error");
-                }
-            };
-        }
-        template<typename C>
-        requires std::invocable<C, Context&>
-        void addExecutor(std::string const& name, C&& f)
-        {
-            executeMap[name] = [executor = std::forward<C>(f)](Context& context, JsonRPC::Request const& rpc)
+                return output;
+            }
+    };
+    class Server: public MCPCore, public ThorsAnvil::Nisse::HTTP::Server
+    {
+        public:
+            Server(MCPCoreConfig const& config, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
+                : MCPCore{config}
+                , ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
             {
-                if (rpc.params.has_value()) {
-                    context.error(-32602, "Invalid params");
-                    context.stop();
-                }
-                try
+                addPath(ThorsAnvil::Nisse::HTTP::Method::POST, "/mcp", [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 {
-                    executor(context);
-                }
-                catch (...)
-                {
-                    context.error(-32603, "Internal error");
-                }
-            };
-        }
-};
+                    ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked), Protocol::v2025_11_25};
+                    handleInputStream(context);
+                    return true;
+                });
+            }
 
+    };
 }
-
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::ServerConfig);
 
 #endif

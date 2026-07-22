@@ -2,7 +2,7 @@
 #define THORSANVIL_NISSE_MCP_MUG_H
 
 #include "NisseMCPConfig.h"
-#include "Server.h"
+#include "MCPCore.h"
 #include "ThorsMug/MugPlugin.h"
 
 namespace ThorsAnvil::Nisse::MCP
@@ -10,12 +10,12 @@ namespace ThorsAnvil::Nisse::MCP
 
 class MugPlugin: public ThorsAnvil::ThorsMug::MugPluginSimple
 {
-    Server              server;
+    MCPCore              server;
 
     // Send request to be handeled by the server.
     void processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
     public:
-        MugPlugin(ServerConfig const& config);
+        MugPlugin(MCPCoreConfig const& config);
 
         // Register handlers with mug server.
         virtual std::vector<ThorsAnvil::ThorsMug::Action> getAction();
@@ -24,10 +24,10 @@ class MugPlugin: public ThorsAnvil::ThorsMug::MugPluginSimple
 }
 
 /*
- * Current NisseMCP Server is a Simple Mug Server.
+ * Current NisseMCP MCPCore is a Simple Mug Server.
  * Thus we simply redefine THORS_ANVIL_NISSE_MCP_SERVER_INIT => THORS_ANVIL_SIMPLE_MUG_SERVER_INIT at this time.
  * Note:
  * This may change. But functionality will be maintained.
  */
-#define THORS_ANVIL_NISSE_MCP_SERVER_INIT(Config, Server)           THORS_ANVIL_SIMPLE_MUG_SERVER_INIT(Config, Server)
+#define THORS_ANVIL_NISSE_MCP_SERVER_INIT(Config, MCPCore)           THORS_ANVIL_SIMPLE_MUG_SERVER_INIT(Config, MCPCore)
 #endif

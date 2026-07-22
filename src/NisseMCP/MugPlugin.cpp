@@ -9,7 +9,7 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-MugPlugin::MugPlugin(ServerConfig const& config)
+MugPlugin::MugPlugin(MCPCoreConfig const& config)
     : server{config}
 {}
 
@@ -44,5 +44,5 @@ void MugPlugin::processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request
 {
     // MIY TODO: Fix Context
     LocalContext        context(request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked), Protocol::v2025_11_25);
-    context.handleInputStream(server);
+    // handleInputStream(context);
 }
