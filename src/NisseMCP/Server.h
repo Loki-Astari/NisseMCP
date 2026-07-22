@@ -15,8 +15,8 @@ namespace ThorsAnvil::Nisse::MCP
     class ServerContext: public Context
     {
         public:
-            ServerContext(std::istream& input, std::ostream& output, Protocol protocol)
-                : Context(input, output, protocol)
+            ServerContext(std::istream& input, std::ostream& output)
+                : Context(input, output)
             {}
             ~ServerContext()
             {}
@@ -30,19 +30,21 @@ namespace ThorsAnvil::Nisse::MCP
             }
     };
     template<typename Core>
-    class Server: public Core, public ThorsAnvil::Nisse::HTTP::Server
+    class Server: public ThorsAnvil::Nisse::HTTP::Server
     {
+        Core&       core;
         ThorsAnvil::Nisse::HTTP::HeaderResponse headers;
         public:
-            Server(std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
+            Server(Core& core, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
                 : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
+                , core{core}
             {
 
                 headers.add("content-type", "application/json"); // text/event-stream
                 addPath(ThorsAnvil::Nisse::HTTP::Method::POST, "/mcp", [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 {
-                    ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked), Protocol::v2025_11_25};
-                    Core::handleInputStream(context);
+                    ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)};
+                    core.handleInputStream(context);
                     return true;
                 });
             }

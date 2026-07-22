@@ -5,9 +5,8 @@ using namespace ThorsAnvil::Nisse::MCP;
 ThorsAnvil::Serialize::PrinterConfig    Context::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
 JsonRPC::OptRequestId                   Context::defaultId;
 
-Context::Context(std::istream& input, std::ostream& output, Protocol protocol)
-    : protocol(protocol)
-    , input(input)
+Context::Context(std::istream& input, std::ostream& output)
+    : input(input)
     , output(output)
     , requestId(defaultId)
     , stream(false)

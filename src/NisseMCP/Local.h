@@ -14,7 +14,7 @@ class LocalContext: public Context
         std::size_t     count;
 
     public:
-        LocalContext(std::istream& input, std::ostream& output, Protocol protocol);
+        LocalContext(std::istream& input, std::ostream& output);
 
         ~LocalContext();
 
@@ -23,16 +23,21 @@ class LocalContext: public Context
 };
 
 template<typename Core>
-class Local: public Core
+class Local
 {
+    Core& core;
     public:
-        void run(Protocol minProtocol, std::istream& input, std::ostream& output)
+        Local(Core& core)
+            : core{core}
+        {}
+
+        void run(std::istream& input, std::ostream& output)
         {
             while (true)
             {
                 ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
-                LocalContext    context(input, output, minProtocol);
-                if (!Core::handleInputStream(context)) {
+                LocalContext    context(input, output);
+                if (!core.handleInputStream(context)) {
                     break;
                 }
             }

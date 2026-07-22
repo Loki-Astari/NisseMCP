@@ -31,12 +31,15 @@ class JsonRPCCore
 
     public:
         static const ThorsAnvil::Serialize::PrinterConfig    outputConfig;
+    public:
+        virtual ~JsonRPCCore() {}
 
         virtual bool handleInputStream(Context& context);
 
     private:
         bool handleInputStreamWithBatch(Context& context);
         bool readOneAction(Context& context);
+        virtual bool supportBatchRequest() const {return true;}
 
         template<typename F, typename... Args>
         static JsonRPC::Response invokeToResponse(F&& f, Args&&... args)

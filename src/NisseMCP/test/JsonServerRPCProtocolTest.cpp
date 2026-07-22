@@ -2,6 +2,7 @@
 
 #include "JsonRPC.h"
 #include "Context.h"
+#include "JsonRPCCore.h"
 #include "NisseHTTP/ClientHTTP.h"
 #include "NisseHTTP/Util.h"
 #include "ThorSerialize/JsonThor.h"
@@ -25,22 +26,24 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 struct ServerTest: public Server<JsonRPCCore>
 {
+    JsonRPCCore     core;
     std::size_t     size = 0;
     bool            used = false;
     public:
         ServerTest()
+            : Server<JsonRPCCore>{core}
         {
-            addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
-            addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
-            addExecutor("foobar",       [&](Context& context){used = true;context.addItem(1);});
+            core.addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+            core.addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
+            core.addExecutor("foobar",       [&](Context& context){used = true;context.addItem(1);});
 
-            addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-            addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
-            addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
-            addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-            addExecutor("note",         [](Context& context)->int {throw std::runtime_error("Hi");});
-            addExecutor("Hi",           [](Context& context, std::vector<int> const&){context.addItem("Hi");});
-            addExecutor("throw",        [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
+            core.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+            core.addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
+            core.addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
+            core.addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+            core.addExecutor("note",         [](Context& context)->int {throw std::runtime_error("Hi");});
+            core.addExecutor("Hi",           [](Context& context, std::vector<int> const&){context.addItem("Hi");});
+            core.addExecutor("throw",        [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
         }
         std::size_t getSize() const {return size;}
         bool        isUsed()  const {return used;}

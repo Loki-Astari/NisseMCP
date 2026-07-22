@@ -4,13 +4,14 @@
 #include "MCPCore.h"
 #include "NisseHTTP/ClientHTTP.h"
 
-using MCPServer = ThorsAnvil::Nisse::MCP::Server<ThorsAnvil::Nisse::MCP::MCPCore>;
+using namespace ThorsAnvil::Nisse::MCP;
+using MCPServer = Server<MCPCore>;
 
 class MCPTestServer: public MCPServer
 {
     public:
-        MCPTestServer()
-            : MCPServer{1, ThorsAnvil::ThorsSocket::ServerInfo{8080}, ThorsAnvil::ThorsSocket::ServerInfo{8070}}
+        MCPTestServer(MCPCore& core)
+            : MCPServer{core, 1, ThorsAnvil::ThorsSocket::ServerInfo{8080}, ThorsAnvil::ThorsSocket::ServerInfo{8070}}
         {
             addPath(ThorsAnvil::Nisse::HTTP::Method::GET, "/mcp", [](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
             {
@@ -24,7 +25,8 @@ using MCPServerRunner = ThorsAnvil::Nisse::Server::UnitTest::ServerRunner<MCPTes
 
 TEST(HTTPTest, ServerRun)
 {
-    MCPServerRunner     server;
+    MCPCore             core{Protocol::v2025_11_25};
+    MCPServerRunner     server{core};
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8080}};
     std::string reply = client.get<std::string>({.path = "/mcp"});

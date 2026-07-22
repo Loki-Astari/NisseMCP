@@ -2,7 +2,8 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-MCPCore::MCPCore()
+MCPCore::MCPCore(Protocol protocol)
+    : protocol{protocol}
 {
     addExecutor("initialize",                [&](Context& context, Command::InitializeRequestParams const& param){return initialize(context, param);});
     addExecutor("notifications/initialized", [&](Context& context){return notifications_Initialized(context);});

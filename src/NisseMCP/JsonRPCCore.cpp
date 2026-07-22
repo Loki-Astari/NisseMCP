@@ -4,7 +4,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 bool JsonRPCCore::handleInputStream(Context& context)
 {
-    if (context.protocol < Protocol::v2025_06_18) {
+    if (supportBatchRequest()) {
         return handleInputStreamWithBatch(context);
     }
     else {

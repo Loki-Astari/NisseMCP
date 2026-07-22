@@ -2,6 +2,7 @@
 
 #include "JsonRPC.h"
 #include "Context.h"
+#include "JsonRPCCore.h"
 #include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
 #include <numeric>
@@ -23,22 +24,24 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 struct LocalTest: public Local<JsonRPCCore>
 {
+    JsonRPCCore     core;
     std::size_t     size = 0;
     bool            used = false;
     public:
         LocalTest()
+            : Local<JsonRPCCore>{core}
         {
-            addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
-            addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
-            addExecutor("foobar",       [&](Context& context){used = true;context.addItem(1);});
+            core.addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
+            core.addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
+            core.addExecutor("foobar",       [&](Context& context){used = true;context.addItem(1);});
 
-            addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-            addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
-            addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
-            addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-            addExecutor("note",         [](Context& context)->int {throw std::runtime_error("Hi");});
-            addExecutor("Hi",           [](Context& context, std::vector<int> const&){context.addItem("Hi");});
-            addExecutor("throw",        [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
+            core.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+            core.addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
+            core.addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
+            core.addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
+            core.addExecutor("note",         [](Context& context)->int {throw std::runtime_error("Hi");});
+            core.addExecutor("Hi",           [](Context& context, std::vector<int> const&){context.addItem("Hi");});
+            core.addExecutor("throw",        [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
         }
         std::size_t getSize() const {return size;}
         bool        isUsed()  const {return used;}
@@ -52,7 +55,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_CallWithPositionalParameters1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":1})", result.str());
 }
@@ -63,7 +66,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_UsingAStringID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": "long-string-that-forms-id"})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":"long-string-that-forms-id"})", result.str());
 }
@@ -74,7 +77,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_UsingAStructureID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": {"name": "long-string-that-forms-id"}})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -85,7 +88,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_UsingAnArrayID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": ["name", "long-string-that-forms-id"]})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -96,7 +99,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_UsingABoolID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": true})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -107,7 +110,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_UsingANullID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": null})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -118,7 +121,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_UsingAFloatID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 22.234})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -129,7 +132,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_CallWithPositionalParameters2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": 2})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":-19,"id":2})", result.str());
 }
@@ -140,7 +143,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_CallWithNamedParameters1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":3})", result.str());
 }
@@ -151,7 +154,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_CallWithNamedParameters2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"minuend": 42, "subtrahend": 23}, "id": 4})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":4})", result.str());
 }
@@ -162,7 +165,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_Notification1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"()", result.str());
     EXPECT_EQ(5, local.getSize());
@@ -174,7 +177,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_Notification2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar"})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"()", result.str());
     EXPECT_TRUE(local.isUsed());
@@ -186,7 +189,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_NonExistentMethod)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobarbaz", "id": "1"})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"})", result.str());
 }
@@ -200,7 +203,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidJson)
                                                                                         // Bad close ']' not '}'
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -212,7 +215,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequest1)
                                                             //   ^ Invalid Type: Should be string.
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     // This is deteted as PARSE Errors. because the method must be a string.
     // EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
@@ -225,7 +228,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequest2)
                                                             //   ^ Invalid Type: Should be string.
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
 }
@@ -236,7 +239,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_EmptyBatch)
     std::istringstream   command{R"([])"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
 }
@@ -247,7 +250,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidEmptyBatch)
     std::istringstream   command{R"([)"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
 }
@@ -258,7 +261,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequests1)
     std::istringstream   command{R"([1,2,3])"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     /* Specs say this */
 #if 0
@@ -291,7 +294,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequests2)
                                  R"(])"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"([)"
                 R"({"jsonrpc":"2.0","result":7,"id":"1"},)"
@@ -316,7 +319,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
                                  R"(])"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"([)"
                 R"({"jsonrpc":"2.0","result":7,"id":"1"},)"
@@ -335,7 +338,7 @@ TEST(JsonLocalRPCProtocolTest, RPC_BatchNotification)
                                  R"(])"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ("", result.str());
 }
@@ -346,7 +349,7 @@ TEST(JsonLocalRPCProtocolTest, CatchExceptionsOutOfExecutor1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "throw", "params": [1,2,4], "id": 5})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
             result.str());
@@ -358,7 +361,7 @@ TEST(JsonLocalRPCProtocolTest, CatchExceptionsOutOfExecutor2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "note", "id": 5})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
             result.str());
@@ -370,7 +373,7 @@ TEST(JsonLocalRPCProtocolTest, CheckForInvalidParameters)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "sum", "params": ["1","2","4"], "id": 5})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
             result.str());
@@ -382,7 +385,7 @@ TEST(JsonLocalRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZer
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "Hi", "params": 1, "id": 5})"};
     std::ostringstream   result;
 
-    local.run(Protocol::v2024_11_05, command, result);
+    local.run(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
             result.str());

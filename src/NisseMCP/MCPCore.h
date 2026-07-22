@@ -24,10 +24,13 @@ namespace ThorsAnvil::Nisse::MCP
 
 class MCPCore: public JsonRPCCore
 {
+    Protocol protocol;
     public:
-        MCPCore();
+        MCPCore(Protocol protocol);
 
     private:
+        virtual bool supportBatchRequest() const {return protocol < Protocol::v2025_06_18;}
+
         // ****************************
         // Handle Individual Commands.
         // ****************************
