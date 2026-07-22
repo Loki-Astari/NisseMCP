@@ -19,8 +19,6 @@ class MCPTestServer: public ThorsAnvil::Nisse::HTTP::Server
 
 using MCPServerRunner = ThorsAnvil::Nisse::Server::UnitTest::ServerRunner<MCPTestServer>;
 
-// ThorsAnvil::Serialize::PrinterConfig    ServerRunner::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
-
 TEST(HTTPTest, ServerRun)
 {
     MCPServerRunner     server;
