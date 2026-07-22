@@ -9,10 +9,6 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-MugPlugin::MugPlugin(MCPCoreConfig const& config)
-    : server{config}
-{}
-
 std::vector<ThorsAnvil::ThorsMug::Action> MugPlugin::getAction()
 {
     static std::vector<ThorsAnvil::ThorsMug::Action> result

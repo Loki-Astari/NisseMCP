@@ -22,12 +22,21 @@ class LocalContext: public Context
         virtual std::ostream& addItem() override;
 };
 
-class Local: public MCPCore
+template<typename Core>
+class Local: public Core
 {
     public:
-        Local(MCPCoreConfig const& config);
-
-        void run(std::istream& input = std::cin, std::ostream& output = std::cout);
+        void run(Protocol minProtocol, std::istream& input, std::ostream& output)
+        {
+            while (true)
+            {
+                ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
+                LocalContext    context(input, output, minProtocol);
+                if (!Core::handleInputStream(context)) {
+                    break;
+                }
+            }
+        }
 };
 
 }

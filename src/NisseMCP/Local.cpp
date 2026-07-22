@@ -4,22 +4,6 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-Local::Local(MCPCoreConfig const& config)
-    : MCPCore{config}
-{}
-
-void Local::run(std::istream& input, std::ostream& output)
-{
-    while (true)
-    {
-        ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
-        LocalContext    context(input, output, getConfig().minProtocol);
-        if (!handleInputStream(context)) {
-            break;
-        }
-    }
-}
-
 
 LocalContext::LocalContext(std::istream& input, std::ostream& output, Protocol protocol)
     : Context(input, output, protocol)

@@ -23,13 +23,12 @@ struct SubtractParam
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-struct ServerTest: public Server
+struct ServerTest: public Server<JsonRPCCore>
 {
     std::size_t     size = 0;
     bool            used = false;
     public:
-        ServerTest(MCPCoreConfig const& config)
-            : Server(config)
+        ServerTest()
         {
             addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
             addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
@@ -66,9 +65,7 @@ void sendToMCP(std::istream& command, std::ostream& result)
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters1)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1})"};
     std::ostringstream   result;
 
@@ -79,9 +76,7 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters1)
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAStringID)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": "long-string-that-forms-id"})"};
     std::ostringstream   result;
 
@@ -92,9 +87,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAStringID)
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAStructureID)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": {"name": "long-string-that-forms-id"}})"};
     std::ostringstream   result;
 
@@ -105,9 +98,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAStructureID)
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAnArrayID)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": ["name", "long-string-that-forms-id"]})"};
     std::ostringstream   result;
 
@@ -118,9 +109,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAnArrayID)
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingABoolID)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": true})"};
     std::ostringstream   result;
 
@@ -131,9 +120,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingABoolID)
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingANullID)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": null})"};
     std::ostringstream   result;
 
@@ -144,9 +131,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingANullID)
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAFloatID)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 22.234})"};
     std::ostringstream   result;
 
@@ -157,9 +142,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAFloatID)
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters2)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": 2})"};
     std::ostringstream   result;
 
@@ -170,9 +153,7 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters2)
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters1)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3})"};
     std::ostringstream   result;
 
@@ -183,9 +164,7 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters1)
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters2)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"minuend": 42, "subtrahend": 23}, "id": 4})"};
     std::ostringstream   result;
 
@@ -196,9 +175,7 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters2)
 
 TEST(JsonServerRPCProtocolTest, RPC_Notification1)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]})"};
     std::ostringstream   result;
 
@@ -210,9 +187,7 @@ TEST(JsonServerRPCProtocolTest, RPC_Notification1)
 
 TEST(JsonServerRPCProtocolTest, RPC_Notification2)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar"})"};
     std::ostringstream   result;
 
@@ -224,9 +199,7 @@ TEST(JsonServerRPCProtocolTest, RPC_Notification2)
 
 TEST(JsonServerRPCProtocolTest, RPC_NonExistentMethod)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobarbaz", "id": "1"})"};
     std::ostringstream   result;
 
@@ -237,9 +210,7 @@ TEST(JsonServerRPCProtocolTest, RPC_NonExistentMethod)
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidJson)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar, "params": "bar", "baz])"};
                                                                                         //     ^^^^^
                                                                                         // Missing close quote
@@ -253,9 +224,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidJson)
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest1)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": 1, "params": "bar"})"};
                                                             //   ^ Invalid Type: Should be string.
     std::ostringstream   result;
@@ -268,11 +237,8 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest1)
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest2)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.1", "method": "name", "params": "bar"})"};
-
     std::ostringstream   result;
 
     sendToMCP(command, result);
@@ -282,9 +248,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest2)
 
 TEST(JsonServerRPCProtocolTest, RPC_EmptyBatch)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"([])"};
     std::ostringstream   result;
 
@@ -295,9 +259,7 @@ TEST(JsonServerRPCProtocolTest, RPC_EmptyBatch)
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidEmptyBatch)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"([)"};
     std::ostringstream   result;
 
@@ -308,9 +270,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidEmptyBatch)
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"([1,2,3])"};
     std::ostringstream   result;
 
@@ -328,18 +288,15 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
     // But we check the type of each member on input. This is not a JsonRPC request so we get a parse error.
     // When trying to read the first command.
     // Because we have a parse errors (this is bad JSON so we have to abort any further reading.
-    EXPECT_EQ(R"([)"
-                R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})"
-              R"(])"
+    EXPECT_EQ("Id: 1\r\n"
+              "data: " R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})" "\r\n"
+              "\r\n"
                 , result.str());
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests2)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
-
+    ServerTestRunner     local;
     std::istringstream   command{R"([)"
                                     R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},)"
                                     R"({"jsonrpc": "2.0", "method": "notify_hello", "params": [7]},)"
@@ -352,21 +309,27 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests2)
 
     sendToMCP(command, result);
 
-    EXPECT_EQ(R"([)"
-                R"({"jsonrpc":"2.0","result":7,"id":"1"},)"
-                R"({"jsonrpc":"2.0","result":19,"id":"2"},)"
-                R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null},)"
-                R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"5"},)"
-                R"({"jsonrpc":"2.0","result":["hello","5"],"id":"9"})"
-              R"(])"
+    EXPECT_EQ("Id: 1\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"},)" "\r\n"
+              "\r\n"
+              "Id: 2\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":19,"id":"2"},)" "\r\n"
+              "\r\n"
+              "Id: 3\r\n"
+              "data: " R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null},)" "\r\n"
+              "\r\n"
+              "Id: 4\r\n"
+              "data: " R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"5"},)" "\r\n"
+              "\r\n"
+              "Id: 5\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":["hello","5"],"id":"9"})" "\r\n"
+              "\r\n"
                 , result.str());
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"([)"
                                     R"({"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},)"
                                     R"({"jsonrpc": "2.0", "method": "notify_hello", "params": [7]},)"
@@ -379,19 +342,21 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
 
     sendToMCP(command, result);
 
-    EXPECT_EQ(R"([)"
-                R"({"jsonrpc":"2.0","result":7,"id":"1"},)"
-                R"({"jsonrpc":"2.0","result":19,"id":"2"},)"
-                R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})"
-              R"(])"
+    EXPECT_EQ("Id: 1\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"},)" "\r\n"
+              "\r\n"
+              "Id: 2\r\n"
+              "data: " R"({"jsonrpc":"2.0","result":19,"id":"2"},)" "\r\n"
+              "\r\n"
+              "Id: 3\r\n"
+              "data: " R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})" "\r\n"
+              "\r\n"
                 , result.str());
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_BatchNotification)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"([)"
                                     R"({"jsonrpc": "2.0", "method": "notify_sum", "params": [1,2,4]},)"
                                     R"({"jsonrpc": "2.0", "method": "notify_hello", "params": [7]})"
@@ -405,9 +370,7 @@ TEST(JsonServerRPCProtocolTest, RPC_BatchNotification)
 
 TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor1)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "throw", "params": [1,2,4], "id": 5})"};
     std::ostringstream   result;
 
@@ -419,9 +382,7 @@ TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor1)
 
 TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor2)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "note", "id": 5})"};
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
@@ -434,9 +395,7 @@ TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor2)
 
 TEST(JsonServerRPCProtocolTest, CheckForInvalidParameters)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "sum", "params": ["1","2","4"], "id": 5})"};
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
@@ -449,10 +408,7 @@ TEST(JsonServerRPCProtocolTest, CheckForInvalidParameters)
 
 TEST(JsonServerRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
 {
-    ThorsAnvil::Nisse::MCP::MCPCoreConfig   config;
-    ServerTestRunner                        local{config};
-
-
+    ServerTestRunner     local;
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "Hi", "params": 1, "id": 5})"};
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
