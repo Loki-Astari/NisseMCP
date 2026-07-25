@@ -37,22 +37,15 @@ TEST(HTTPTest, ServerRun)
     });
     client.processResp([](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
+        using namespace std::string_view_literals;
+        EXPECT_EQ(resp.getStatus(), 200);
+        EXPECT_EQ(resp.getMessage(), "OK");
+        ASSERT_TRUE(resp.getHeader().hasHeader("transfer-encoding"sv));
+        EXPECT_EQ(resp.getHeader().getHeader("transfer-encoding")[0], "chunked");
         std::cerr << "Status:  " << resp.getStatus() << "\n"
                   << "Message: " << resp.getMessage() << "\n"
                   << "Version: " << resp.getVersion() << "\n"
                   << "Header:  " << resp.getHeader() << "\n"
                   << "Body:   >" << resp.body().rdbuf() << "<\n";
     });
-
-
-#if 0
-                EXPECT_EQ(resp.getStatus(), 200);
-                EXPECT_EQ(resp.getMessage(), "OK");
-                ASSERT_TRUE(resp.getHeader().hasHeader("transfer-encoding"sv));
-                EXPECT_EQ(resp.getHeader().getHeader("transfer-encoding")[0], "chunked");
-    using namespace std::string_literals;
-    std::string line = runner.sendMessage("A message"s);
-    std::cerr << "Reply:<\n" << line << "\n=======\n";
-    EXPECT_EQ("Morning", line);
-#endif
 }
