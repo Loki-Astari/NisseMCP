@@ -1,14 +1,18 @@
 #ifndef THORSANVIL_NISSE_MCP_MCPSERVER_H
 #define THORSANVIL_NISSE_MCP_MCPSERVER_H
 
-#include "NisseHTTP/Util.h"
 #include "NisseMCPConfig.h"
+
+#include "JsonRPC.h"
 #include "MCPCore.h"
 #include "Context.h"
 #include "CommandInitialize.h"
 
+#include "NisseHTTP/Util.h"
 #include "NisseHTTP/Server.h"
 #include "ThorSerialize/JsonThor.h"
+
+#include <string>
 
 namespace ThorsAnvil::Nisse::MCP
 {
@@ -49,24 +53,36 @@ namespace ThorsAnvil::Nisse::MCP
                 return output;
             }
     };
-    template<typename Core>
+    template<typename Core, typename RequestValidator = typename Core::DefaultValidator>
     class Server: public ThorsAnvil::Nisse::HTTP::Server
     {
-        Core&       core;
+        Core&               core;
+        RequestValidator    validator;
+        std::string         allowedOrigin;
+
         ThorsAnvil::Nisse::HTTP::HeaderResponse headers;
         public:
-            Server(Core& core, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
+            Server(std::string_view allowedOrigin, Core& core, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
                 : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
                 , core{core}
+                , allowedOrigin{allowedOrigin}
             {
-
                 headers.add("content-type", "application/json"); // text/event-stream
                 addPath(ThorsAnvil::Nisse::HTTP::Method::POST, "/mcp", [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 {
-                    ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)};
-                    core.handleInputStream(context);
+                    handleRequest(request, response);
                     return true;
                 });
+            }
+
+            void handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
+            {
+                if (!validator.validateRequest(request, response, allowedOrigin)) {
+                    // Validation has already set the response code and sent appropriate output to the stream;
+                    return;
+                }
+                ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)};
+                response.setStatus(core.handleInputStream(context) ? 202 : 404);
             }
 
     };

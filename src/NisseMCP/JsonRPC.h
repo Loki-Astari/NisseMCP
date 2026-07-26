@@ -99,11 +99,44 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     struct Error
     {
         int                 code;
-        std::string_view    message;
+        std::string         message;
         OptData             data;
     };
     using OptError = std::optional<Error>;
 
+    // We can not 'import' an std::any. So we must know the expected result on the client side.
+    struct ClientResponse
+    {
+        std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+        // OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+        OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+        OptResponseId       id;
+
+        public:
+            ClientResponse(void)
+                : jsonrpc{"2.0"}
+                , id{static_cast<char*>(nullptr)}
+            {}
+            ClientResponse(OptRequestId const& requestId)
+                : jsonrpc{"2.0"}
+                , id{static_cast<char*>(nullptr)}
+            {
+                if (requestId.has_value()) {
+                    id = makeId(requestId.value());
+                }
+            }
+            ClientResponse(int code, std::string_view message, OptRequestId const& requestId)
+                : jsonrpc{"2.0"}
+                , error{Error{code, {std::begin(message), std::end(message)}, {}}}
+                , id{static_cast<char*>(nullptr)}
+            {
+                if (requestId.has_value()) {
+                    id = makeId(requestId.value());
+                }
+            }
+    };
+
+    // We can build and serialize a normal response object on the server as we know the type as we generate the output.
     struct Response
     {
         std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
@@ -129,7 +162,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
             }
             Response(int code, std::string_view message, OptRequestId const& requestId)
                 : jsonrpc{"2.0"}
-                , error{Error{code, message, {}}}
+                , error{Error{code, {std::begin(message), std::end(message)}, {}}}
                 , id{static_cast<char*>(nullptr)}
             {
                 if (requestId.has_value()) {
@@ -142,6 +175,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, params, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse, jsonrpc, error, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response, jsonrpc, result, error, id);
 
 #endif

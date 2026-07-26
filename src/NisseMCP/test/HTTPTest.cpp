@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "Context.h"
+#include "JsonRPC.h"
 #include "NisseHTTP/Util.h"
 #include "Server.h"
 #include "MCPCore.h"
@@ -16,36 +17,117 @@ struct MCPServerTest: public Server<MCPCore>
     MCPCore         core;
     public:
         MCPServerTest(Protocol protocol = Protocol::v2025_11_25)
-            : Server<MCPCore>{core}
+            : Server<MCPCore>{"https://thors-anvil.com", core}
             , core{protocol}
         {}
 };
 
 using MCPServerRunner = ThorsAnvil::Nisse::Server::UnitTest::ServerRunner<MCPServerTest>;
 
-TEST(HTTPTest, ServerRun)
+TEST(HTTPTest, AcceptValidRequest)
 {
-    MCPServerRunner     server;
+    MCPServerRunner                         server;
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
 
-    ThorsAnvil::Nisse::HTTP::ClientHTTP client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
-    Command::InitializeRequest   request{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}};
-    // Command::InitializeResult    reply = client.post<Command::InitializeResult>({.path = "/mcp"}, request);
-    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp"}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
+    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(request, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
         return true;
     });
-    client.processResp([](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    bool responseProcessed = false;
+    client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        using namespace std::string_view_literals;
-        EXPECT_EQ(resp.getStatus(), 200);
-        EXPECT_EQ(resp.getMessage(), "OK");
-        ASSERT_TRUE(resp.getHeader().hasHeader("transfer-encoding"sv));
-        EXPECT_EQ(resp.getHeader().getHeader("transfer-encoding")[0], "chunked");
-        std::cerr << "Status:  " << resp.getStatus() << "\n"
-                  << "Message: " << resp.getMessage() << "\n"
-                  << "Version: " << resp.getVersion() << "\n"
-                  << "Header:  " << resp.getHeader() << "\n"
-                  << "Body:   >" << resp.body().rdbuf() << "<\n";
+        responseProcessed = true;
+        ASSERT_EQ(202, resp.getStatus());
     });
+    EXPECT_TRUE(responseProcessed);
 }
+TEST(HTTPTest, NoOriginProvided)
+{
+    MCPServerRunner                     server;
+    ThorsAnvil::Nisse::HTTP::ClientHTTP client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
+
+    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
+    {
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        return true;
+    });
+    bool responseProcessed = false;
+    client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        responseProcessed = true;
+        ASSERT_EQ(403, resp.getStatus());
+        ASSERT_EQ("Forbidden", resp.getMessage());
+
+        JsonRPC::ClientResponse errorValue;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
+
+        ASSERT_TRUE(errorValue.error.has_value());
+        EXPECT_EQ(10, errorValue.error.value().code);
+    });
+    EXPECT_TRUE(responseProcessed);
+}
+
+TEST(HTTPTest, NotAcceptJson)
+{
+    MCPServerRunner                         server;
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "text/event-stream");
+
+    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
+    {
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        return true;
+    });
+    bool responseProcessed = false;
+    client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        responseProcessed = true;
+        ASSERT_EQ(404, resp.getStatus());
+
+        JsonRPC::ClientResponse errorValue;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
+
+        ASSERT_TRUE(errorValue.error.has_value());
+        EXPECT_EQ(11, errorValue.error.value().code);
+    });
+    EXPECT_TRUE(responseProcessed);
+}
+
+TEST(HTTPTest, NotAcceptStream)
+{
+    MCPServerRunner                         server;
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "text/event-stream");
+
+    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
+    {
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        return true;
+    });
+    bool responseProcessed = false;
+    client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        responseProcessed = true;
+        ASSERT_EQ(404, resp.getStatus());
+
+        JsonRPC::ClientResponse errorValue;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
+
+        ASSERT_TRUE(errorValue.error.has_value());
+        EXPECT_EQ(11, errorValue.error.value().code);
+    });
+    EXPECT_TRUE(responseProcessed);
+}
+

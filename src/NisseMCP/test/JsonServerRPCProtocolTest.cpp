@@ -31,7 +31,7 @@ struct ServerTest: public Server<JsonRPCCore>
     bool            used = false;
     public:
         ServerTest()
-            : Server<JsonRPCCore>{core}
+            : Server<JsonRPCCore>{"https://thors-anvil.com", core}
         {
             core.addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
             core.addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});

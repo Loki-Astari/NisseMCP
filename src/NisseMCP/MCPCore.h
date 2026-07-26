@@ -22,10 +22,18 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
+class MCPCoreRequestValidtor
+{
+    public:
+        bool validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response&  response, std::string_view origin);
+};
+
 class MCPCore: public JsonRPCCore
 {
     Protocol protocol;
     public:
+        using DefaultValidator = MCPCoreRequestValidtor;
+
         MCPCore(Protocol protocol);
 
     private:
