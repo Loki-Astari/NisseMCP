@@ -22,6 +22,8 @@ namespace ThorsAnvil::Nisse::MCP
         bool                                termNeeded;
         ThorsAnvil::Nisse::HTTP::Response&  response;
         std::ostream*                       body;
+        std::map<std::string, std::string>  headers;
+        int                                 status;
         public:
             ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 : Context{request.body()}
@@ -29,6 +31,7 @@ namespace ThorsAnvil::Nisse::MCP
                 , termNeeded{false}
                 , response{response}
                 , body{nullptr}
+                , status{200}
             {}
             ~ServerContext()
             {
@@ -44,6 +47,10 @@ namespace ThorsAnvil::Nisse::MCP
             std::ostream& getBody()
             {
                 if (body == nullptr) {
+                    response.setStatus(status);
+                    for (auto const& header: headers) {
+                        response.addHeader(header.first, header.second);
+                    }
                     body = &response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
                 }
                 return *body;
@@ -51,13 +58,15 @@ namespace ThorsAnvil::Nisse::MCP
 
             virtual void serverSideStream() override
             {
-                response.setStatus(202);
+                status = 202;
+                headers.insert_or_assign("content-type", "text/event-stream");
                 Context::serverSideStream();
             }
             virtual void error(int code, std::string_view message) override
             {
-                if (body == nullptr) {
-                    response.setStatus(404);
+                if (body == nullptr && !stream) {
+                    status = 404;
+                    headers.insert_or_assign("content-type", "application/json");
                     getBody();
                 }
                 Context::error(code, message);
@@ -68,14 +77,15 @@ namespace ThorsAnvil::Nisse::MCP
             virtual void addNote() override
             {
                 if (body == nullptr) {
-                    response.setStatus(202);
+                    status = 202;
                     getBody();
                 }
             }
             virtual std::ostream& addItem() override
             {
-                if (body == nullptr) {
-                    response.setStatus(202);
+                if (body == nullptr && !stream) {
+                    status = 202;
+                    headers.insert_or_assign("content-type", "application/json");
                 }
                 termPreviousItem();
                 if (stream) {

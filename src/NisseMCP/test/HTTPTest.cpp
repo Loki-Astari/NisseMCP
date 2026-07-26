@@ -43,6 +43,10 @@ TEST(HTTPTest, AcceptValidRequest)
     {
         responseProcessed = true;
         ASSERT_EQ(202, resp.getStatus());
+
+        auto const& ctype = resp.getHeader().getHeader("content-type");
+        ASSERT_EQ(1, ctype.size());
+        EXPECT_EQ("application/json", ctype[0]);
     });
     EXPECT_TRUE(responseProcessed);
 }
@@ -64,6 +68,10 @@ TEST(HTTPTest, AcceptValidRequestSingleAccept)
     {
         responseProcessed = true;
         ASSERT_EQ(202, resp.getStatus());
+
+        auto const& ctype = resp.getHeader().getHeader("content-type");
+        ASSERT_EQ(1, ctype.size());
+        EXPECT_EQ("application/json", ctype[0]);
     });
     EXPECT_TRUE(responseProcessed);
 }
@@ -92,6 +100,10 @@ TEST(HTTPTest, NoOriginProvided)
 
         ASSERT_TRUE(errorValue.error.has_value());
         EXPECT_EQ(10, errorValue.error.value().code);
+
+        auto const& ctype = resp.getHeader().getHeader("content-type");
+        ASSERT_EQ(1, ctype.size());
+        EXPECT_EQ("application/json", ctype[0]);
     });
     EXPECT_TRUE(responseProcessed);
 }
@@ -120,6 +132,10 @@ TEST(HTTPTest, NotAcceptJson)
 
         ASSERT_TRUE(errorValue.error.has_value());
         EXPECT_EQ(11, errorValue.error.value().code);
+
+        auto const& ctype = resp.getHeader().getHeader("content-type");
+        ASSERT_EQ(1, ctype.size());
+        EXPECT_EQ("application/json", ctype[0]);
     });
     EXPECT_TRUE(responseProcessed);
 }
@@ -148,6 +164,10 @@ TEST(HTTPTest, NotAcceptStream)
 
         ASSERT_TRUE(errorValue.error.has_value());
         EXPECT_EQ(11, errorValue.error.value().code);
+
+        auto const& ctype = resp.getHeader().getHeader("content-type");
+        ASSERT_EQ(1, ctype.size());
+        EXPECT_EQ("application/json", ctype[0]);
     });
     EXPECT_TRUE(responseProcessed);
 }

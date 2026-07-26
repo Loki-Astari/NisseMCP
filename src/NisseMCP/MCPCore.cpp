@@ -9,8 +9,10 @@ bool MCPCoreRequestValidtor::validateRequest(ThorsAnvil::Nisse::HTTP::Request co
     auto const& origin = request.headers().getHeader("origin");
 
     if (origin.size() != 1 || origin[0] != originAllowed) {
-        response.setStatus(403);
-        response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked) << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{10, "Invalid Origin. Request forbidden", {}});
+        response.setStatus(403)
+                .addHeader("content-type", "application/json")
+                .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{10, "Invalid Origin. Request forbidden", {}});
         return false;
     }
 
@@ -26,8 +28,10 @@ bool MCPCoreRequestValidtor::validateRequest(ThorsAnvil::Nisse::HTTP::Request co
         }
     }
     if (!acceptJson || !acceptStream) {
-        response.setStatus(404);
-        response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked) << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{11, "Invalid Accept: Requires 'application/json' and 'text/event-stream'", {}});
+        response.setStatus(404)
+                .addHeader("content-type", "application/json")
+                .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{11, "Invalid Accept: Requires 'application/json' and 'text/event-stream'", {}});
         return false;
     }
     return true;
