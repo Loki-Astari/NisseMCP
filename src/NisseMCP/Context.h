@@ -28,6 +28,7 @@ namespace ThorsAnvil::Nisse::MCP
 
             virtual void stop() const = 0;
             virtual std::ostream& addItem() = 0;
+            virtual void addNote() {}
             virtual void serverSideStream();
             virtual void error(int code, std::string_view message)
             {
@@ -40,6 +41,9 @@ namespace ThorsAnvil::Nisse::MCP
             {
                 if (requestId.has_value()) {
                     addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, requestId}, outputConfig);
+                }
+                else {
+                    addNote();
                 }
             }
     };

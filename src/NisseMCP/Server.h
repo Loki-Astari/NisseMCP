@@ -65,6 +65,13 @@ namespace ThorsAnvil::Nisse::MCP
             virtual void stop() const override
             {}
 
+            virtual void addNote() override
+            {
+                if (body == nullptr) {
+                    response.setStatus(202);
+                    getBody();
+                }
+            }
             virtual std::ostream& addItem() override
             {
                 if (body == nullptr) {
@@ -87,14 +94,12 @@ namespace ThorsAnvil::Nisse::MCP
         RequestValidator    validator;
         std::string         allowedOrigin;
 
-        ThorsAnvil::Nisse::HTTP::HeaderResponse headers;
         public:
             Server(std::string_view allowedOrigin, Core& core, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
                 : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
                 , core{core}
                 , allowedOrigin{allowedOrigin}
             {
-                headers.add("content-type", "application/json"); // text/event-stream
                 addPath(ThorsAnvil::Nisse::HTTP::Method::POST, "/mcp", [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 {
                     handleRequest(request, response);
@@ -109,7 +114,7 @@ namespace ThorsAnvil::Nisse::MCP
                     return;
                 }
                 ServerContext     context{request, response};
-                response.setStatus(core.handleInputStream(context) ? 202 : 404);
+                core.handleInputStream(context);
             }
 
     };
