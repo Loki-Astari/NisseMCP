@@ -20,23 +20,21 @@ namespace ThorsAnvil::Nisse::MCP
             static JsonRPC::OptRequestId                   defaultId;
 
             std::istream&           input;
-            std::ostream&           output;
             JsonRPC::OptRequestId   requestId;
             bool                    stream;
 
-            Context(std::istream& input, std::ostream& output);
+            Context(std::istream& input);
             virtual ~Context();
 
             virtual void stop() const = 0;
             virtual std::ostream& addItem() = 0;
-
-            void serverSideStream();
-            void setId(JsonRPC::OptRequestId const& id);
-            void error(int code, std::string_view message)
+            virtual void serverSideStream();
+            virtual void error(int code, std::string_view message)
             {
                 addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, requestId}, outputConfig);
             }
 
+            void setId(JsonRPC::OptRequestId const& id);
             template<typename T>
             void  addItem(T const& value)
             {

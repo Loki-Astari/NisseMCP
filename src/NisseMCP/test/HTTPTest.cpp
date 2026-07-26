@@ -46,6 +46,27 @@ TEST(HTTPTest, AcceptValidRequest)
     });
     EXPECT_TRUE(responseProcessed);
 }
+TEST(HTTPTest, AcceptValidRequestSingleAccept)
+{
+    MCPServerRunner                         server;
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json,text/event-stream");
+
+    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
+    {
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        return true;
+    });
+    bool responseProcessed = false;
+    client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        responseProcessed = true;
+        ASSERT_EQ(202, resp.getStatus());
+    });
+    EXPECT_TRUE(responseProcessed);
+}
 TEST(HTTPTest, NoOriginProvided)
 {
     MCPServerRunner                     server;

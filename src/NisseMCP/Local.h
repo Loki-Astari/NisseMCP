@@ -12,6 +12,7 @@ class LocalContext: public Context
 {
     private:
         std::size_t     count;
+        std::ostream&   output;
 
     public:
         LocalContext(std::istream& input, std::ostream& output);

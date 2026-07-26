@@ -18,13 +18,17 @@ namespace ThorsAnvil::Nisse::MCP
 {
     class ServerContext: public Context
     {
-        int     id;
-        bool    termNeeded;
+        int                                 id;
+        bool                                termNeeded;
+        ThorsAnvil::Nisse::HTTP::Response&  response;
+        std::ostream*                       body;
         public:
-            ServerContext(std::istream& input, std::ostream& output)
-                : Context{input, output}
+            ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
+                : Context{request.body()}
                 , id{1}
                 , termNeeded{false}
+                , response{response}
+                , body{nullptr}
             {}
             ~ServerContext()
             {
@@ -33,24 +37,47 @@ namespace ThorsAnvil::Nisse::MCP
             void termPreviousItem()
             {
                 if (termNeeded) {
-                    output << "\r\n\r\n";
+                    getBody() << "\r\n\r\n";
                     termNeeded = false;
                 }
             }
+            std::ostream& getBody()
+            {
+                if (body == nullptr) {
+                    body = &response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
+                }
+                return *body;
+            }
 
+            virtual void serverSideStream() override
+            {
+                response.setStatus(202);
+                Context::serverSideStream();
+            }
+            virtual void error(int code, std::string_view message) override
+            {
+                if (body == nullptr) {
+                    response.setStatus(404);
+                    getBody();
+                }
+                Context::error(code, message);
+            }
             virtual void stop() const override
             {}
 
             virtual std::ostream& addItem() override
             {
+                if (body == nullptr) {
+                    response.setStatus(202);
+                }
                 termPreviousItem();
                 if (stream) {
-                    output << "id: " << id << "\r\n"
+                    getBody() << "id: " << id << "\r\n"
                            << "data: ";
                     ++id;
                     termNeeded = true;
                 }
-                return output;
+                return getBody();
             }
     };
     template<typename Core, typename RequestValidator = typename Core::DefaultValidator>
@@ -81,7 +108,7 @@ namespace ThorsAnvil::Nisse::MCP
                     // Validation has already set the response code and sent appropriate output to the stream;
                     return;
                 }
-                ServerContext     context{request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)};
+                ServerContext     context{request, response};
                 response.setStatus(core.handleInputStream(context) ? 202 : 404);
             }
 
