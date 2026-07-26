@@ -70,6 +70,9 @@ int sendToMCP(std::istream& command, std::ostream& result, std::string_view type
             ASSERT_EQ(1, ctype.size());
             EXPECT_EQ(type, ctype[0]);
         }
+        else {
+            ASSERT_EQ(0, ctype.size());
+        }
     });
     return httpResult;
 }
@@ -107,7 +110,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAStructureID)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAnArrayID)
@@ -119,7 +122,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAnArrayID)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingABoolID)
@@ -131,7 +134,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingABoolID)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingANullID)
@@ -143,7 +146,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingANullID)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAFloatID)
@@ -155,7 +158,7 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAFloatID)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters2)
@@ -229,7 +232,7 @@ TEST(JsonServerRPCProtocolTest, RPC_NonExistentMethod)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidJson)
@@ -244,7 +247,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidJson)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest1)
@@ -258,7 +261,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest1)
 
     // This is deteted as PARSE Errors. because the method must be a string.
     // EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest2)
@@ -270,7 +273,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest2)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_EmptyBatch)
@@ -282,7 +285,7 @@ TEST(JsonServerRPCProtocolTest, RPC_EmptyBatch)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidEmptyBatch)
@@ -294,7 +297,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidEmptyBatch)
     int httpResult = sendToMCP(command, result, "application/json");
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
@@ -411,7 +414,7 @@ TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor1)
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
             result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor2)
@@ -425,7 +428,7 @@ TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor2)
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
             result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, CheckForInvalidParameters)
@@ -439,7 +442,7 @@ TEST(JsonServerRPCProtocolTest, CheckForInvalidParameters)
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
             result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }
 
 TEST(JsonServerRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
@@ -453,5 +456,5 @@ TEST(JsonServerRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZe
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
             result.str());
-    EXPECT_EQ(httpResult, 404);
+    EXPECT_EQ(httpResult, 400);
 }

@@ -35,7 +35,12 @@ namespace ThorsAnvil::Nisse::MCP
             {}
             ~ServerContext()
             {
-                termPreviousItem();
+                if (termNeeded) {
+                    termPreviousItem();
+                }
+                else if (body == nullptr) {
+                    response.setStatus(status);
+                }
             }
             void termPreviousItem()
             {
@@ -65,7 +70,7 @@ namespace ThorsAnvil::Nisse::MCP
             virtual void error(int code, std::string_view message) override
             {
                 if (body == nullptr && !stream) {
-                    status = 404;
+                    status = 400;
                     headers.insert_or_assign("content-type", "application/json");
                     getBody();
                 }
@@ -78,7 +83,6 @@ namespace ThorsAnvil::Nisse::MCP
             {
                 if (body == nullptr) {
                     status = 202;
-                    getBody();
                 }
             }
             virtual std::ostream& addItem() override
