@@ -53,9 +53,10 @@ using ServerTestRunner = ThorsAnvil::Nisse::Server::UnitTest::ServerRunner<Serve
 
 ThorsAnvil_MakeTrait(SubtractParam, minuend, subtrahend);
 
-void sendToMCP(std::istream& command, std::ostream& result)
+int sendToMCP(std::istream& command, std::ostream& result)
 {
     ThorsAnvil::Nisse::HTTP::ClientHTTP  client({"localhost", 8070});
+    int httpResult = 0;
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp"}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& action)
     {
         action << command.rdbuf();
@@ -63,7 +64,9 @@ void sendToMCP(std::istream& command, std::ostream& result)
     client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         result << resp.body().rdbuf();
+        httpResult = resp.getStatus();
     });
+    return httpResult;
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters1)
@@ -72,9 +75,10 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":1})", result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAStringID)
@@ -83,9 +87,10 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAStringID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": "long-string-that-forms-id"})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":"long-string-that-forms-id"})", result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAStructureID)
@@ -94,9 +99,10 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAStructureID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": {"name": "long-string-that-forms-id"}})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAnArrayID)
@@ -105,9 +111,10 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAnArrayID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": ["name", "long-string-that-forms-id"]})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingABoolID)
@@ -116,9 +123,10 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingABoolID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": true})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingANullID)
@@ -127,9 +135,10 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingANullID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": null})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_UsingAFloatID)
@@ -138,9 +147,10 @@ TEST(JsonServerRPCProtocolTest, RPC_UsingAFloatID)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 22.234})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters2)
@@ -149,9 +159,10 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithPositionalParameters2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": 2})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":-19,"id":2})", result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters1)
@@ -160,9 +171,10 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":3})", result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters2)
@@ -171,9 +183,10 @@ TEST(JsonServerRPCProtocolTest, RPC_CallWithNamedParameters2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "subtract", "params": {"minuend": 42, "subtrahend": 23}, "id": 4})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","result":19,"id":4})", result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_Notification1)
@@ -182,10 +195,11 @@ TEST(JsonServerRPCProtocolTest, RPC_Notification1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"()", result.str());
     EXPECT_EQ(5, local.callServer<int>([](ServerTest& server){return server.getSize();}));
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_Notification2)
@@ -194,10 +208,11 @@ TEST(JsonServerRPCProtocolTest, RPC_Notification2)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobar"})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"()", result.str());
     EXPECT_TRUE(local.callServer<int>([](ServerTest& server){return server.isUsed();}));
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_NonExistentMethod)
@@ -206,9 +221,10 @@ TEST(JsonServerRPCProtocolTest, RPC_NonExistentMethod)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "foobarbaz", "id": "1"})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidJson)
@@ -220,9 +236,10 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidJson)
                                                                                         // Bad close ']' not '}'
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest1)
@@ -232,10 +249,11 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest1)
                                                             //   ^ Invalid Type: Should be string.
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     // This is deteted as PARSE Errors. because the method must be a string.
     // EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest2)
@@ -244,9 +262,10 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequest2)
     std::istringstream   command{R"({"jsonrpc": "2.1", "method": "name", "params": "bar"})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_EmptyBatch)
@@ -255,9 +274,10 @@ TEST(JsonServerRPCProtocolTest, RPC_EmptyBatch)
     std::istringstream   command{R"([])"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidEmptyBatch)
@@ -266,9 +286,10 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidEmptyBatch)
     std::istringstream   command{R"([)"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})", result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
@@ -277,7 +298,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
     std::istringstream   command{R"([1,2,3])"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     /* Specs say this */
 #if 0
@@ -295,6 +316,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests1)
               "data: " R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})" "\r\n"
               "\r\n"
                 , result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests2)
@@ -310,7 +332,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests2)
                                  R"(])"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ("id: 1\r\n"
               "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"})" "\r\n"
@@ -328,6 +350,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequests2)
               "data: " R"({"jsonrpc":"2.0","result":["hello","5"],"id":"9"})" "\r\n"
               "\r\n"
                 , result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
@@ -343,7 +366,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
                                  R"(])"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ("id: 1\r\n"
               "data: " R"({"jsonrpc":"2.0","result":7,"id":"1"})" "\r\n"
@@ -355,6 +378,7 @@ TEST(JsonServerRPCProtocolTest, RPC_InvalidRequestsBADJSONInArray)
               "data: " R"({"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null})" "\r\n"
               "\r\n"
                 , result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, RPC_BatchNotification)
@@ -366,9 +390,10 @@ TEST(JsonServerRPCProtocolTest, RPC_BatchNotification)
                                  R"(])"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ("", result.str());
+    EXPECT_EQ(httpResult, 202);
 }
 
 TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor1)
@@ -377,10 +402,11 @@ TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor1)
     std::istringstream   command{R"({"jsonrpc": "2.0", "method": "throw", "params": [1,2,4], "id": 5})"};
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
             result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor2)
@@ -390,10 +416,11 @@ TEST(JsonServerRPCProtocolTest, CatchExceptionsOutOfExecutor2)
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":5})",
             result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, CheckForInvalidParameters)
@@ -403,10 +430,11 @@ TEST(JsonServerRPCProtocolTest, CheckForInvalidParameters)
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
             result.str());
+    EXPECT_EQ(httpResult, 404);
 }
 
 TEST(JsonServerRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZero)
@@ -416,8 +444,9 @@ TEST(JsonServerRPCProtocolTest, CheckForInvalidParametersPassedToFuncThatTakesZe
                                                                                 // ^^ Array of string not integer.
     std::ostringstream   result;
 
-    sendToMCP(command, result);
+    int httpResult = sendToMCP(command, result);
 
     EXPECT_EQ(R"({"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"},"id":5})",
             result.str());
+    EXPECT_EQ(httpResult, 404);
 }
