@@ -18,14 +18,12 @@ namespace ThorsAnvil::Nisse::MCP
 {
     class ServerContext: public Context
     {
-        int                                 id;
         ThorsAnvil::Nisse::HTTP::Response&  response;
         std::ostream*                       body;
         int                                 status;
         public:
             ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 : Context{request.body()}
-                , id{1}
                 , response{response}
                 , body{nullptr}
                 , status{200}
@@ -83,9 +81,8 @@ namespace ThorsAnvil::Nisse::MCP
                 }
                 termPreviousItem();
                 if (stream) {
-                    getBody() << "id: " << id << "\r\n"
-                           << "data: ";
-                    ++id;
+                    getBody() << "id: " << (count + 1) << "\r\n"
+                              << "data: ";
                 }
                 return getBody();
             }
