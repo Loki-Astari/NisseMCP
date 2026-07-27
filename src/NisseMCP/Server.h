@@ -22,59 +22,15 @@ namespace ThorsAnvil::Nisse::MCP
         std::ostream*                       body;
         int                                 status;
         public:
-            ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-                : Context{request.body()}
-                , response{response}
-                , body{nullptr}
-                , status{200}
-            {}
-            ~ServerContext()
-            {
-                if (stream && count > 0) {
-                    (*body) << "\r\n\r\n";
-                }
-                else if (body == nullptr) {
-                    response.setStatus(status);
-                }
-            }
-            virtual void serverSideStream() override
-            {
-                status = 202;
-                Context::serverSideStream();
-            }
-            virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override
-            {
-                if (!stream) {
-                    status = 400;
-                }
-                Context::error(id, code, message);
-            }
+            ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
+            ~ServerContext();
 
-            virtual void addNote() override
-            {
-                if (body == nullptr) {
-                    status = 202;
-                }
-            }
-            virtual std::ostream& addItem() override
-            {
-                if (!stream && status == 200) {
-                    status = 202;
-                }
-                if (body == nullptr) {
-                    std::ostream& s = response.setStatus(status)
-                                              .addHeader("content-type", stream ? "text/event-stream" : "application/json")
-                                              .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
-                    body = &s;
-                }
-                if (stream) {
-                    (*body) << ((count > 0) ? "\r\n\r\n" : "")
-                            << "id: " << (count + 1) << "\r\n"
-                            << "data: ";
-                }
-                return (*body);
-            }
+            virtual void serverSideStream() override;
+            virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override;
+            virtual void addNote() override;
+            virtual std::ostream& addItem() override;
     };
+
     template<typename Core, typename RequestValidator = typename Core::DefaultValidator>
     class Server: public ThorsAnvil::Nisse::HTTP::Server
     {

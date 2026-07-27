@@ -17,3 +17,12 @@ void Context::serverSideStream()
 {
     stream = true;
 }
+
+void Context::error(JsonRPC::OptRequestId id, int code, std::string_view message)
+{
+    addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, id}, outputConfig);
+    ++count;
+}
+
+void Context::addNote()
+{}
