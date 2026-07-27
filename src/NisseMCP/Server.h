@@ -37,17 +37,6 @@ namespace ThorsAnvil::Nisse::MCP
                     response.setStatus(status);
                 }
             }
-            std::ostream& getBody()
-            {
-                if (body == nullptr) {
-                    std::ostream& s = response.setStatus(status)
-                                              .addHeader("content-type", stream ? "text/event-stream" : "application/json")
-                                              .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
-                    body = &s;
-                }
-                return *body;
-            }
-
             virtual void serverSideStream() override
             {
                 status = 202;
@@ -55,9 +44,8 @@ namespace ThorsAnvil::Nisse::MCP
             }
             virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override
             {
-                if (body == nullptr && !stream) {
+                if (!stream) {
                     status = 400;
-                    getBody();
                 }
                 Context::error(id, code, message);
             }
@@ -70,17 +58,21 @@ namespace ThorsAnvil::Nisse::MCP
             }
             virtual std::ostream& addItem() override
             {
-                if (body == nullptr && !stream) {
+                if (!stream && status == 200) {
                     status = 202;
                 }
-                if (stream && count > 0) {
-                    (*body) << "\r\n\r\n";
+                if (body == nullptr) {
+                    std::ostream& s = response.setStatus(status)
+                                              .addHeader("content-type", stream ? "text/event-stream" : "application/json")
+                                              .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
+                    body = &s;
                 }
                 if (stream) {
-                    getBody() << "id: " << (count + 1) << "\r\n"
-                              << "data: ";
+                    (*body) << ((count > 0) ? "\r\n\r\n" : "")
+                            << "id: " << (count + 1) << "\r\n"
+                            << "data: ";
                 }
-                return getBody();
+                return (*body);
             }
     };
     template<typename Core, typename RequestValidator = typename Core::DefaultValidator>
