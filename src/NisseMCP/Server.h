@@ -21,7 +21,6 @@ namespace ThorsAnvil::Nisse::MCP
         int                                 id;
         ThorsAnvil::Nisse::HTTP::Response&  response;
         std::ostream*                       body;
-        std::map<std::string, std::string>  headers;
         int                                 status;
         public:
             ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
@@ -49,11 +48,10 @@ namespace ThorsAnvil::Nisse::MCP
             std::ostream& getBody()
             {
                 if (body == nullptr) {
-                    response.setStatus(status);
-                    for (auto const& header: headers) {
-                        response.addHeader(header.first, header.second);
-                    }
-                    body = &response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
+                    std::ostream& s = response.setStatus(status)
+                                              .addHeader("content-type", stream ? "text/event-stream" : "application/json")
+                                              .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
+                    body = &s;
                 }
                 return *body;
             }
@@ -61,14 +59,12 @@ namespace ThorsAnvil::Nisse::MCP
             virtual void serverSideStream() override
             {
                 status = 202;
-                headers.insert_or_assign("content-type", "text/event-stream");
                 Context::serverSideStream();
             }
             virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override
             {
                 if (body == nullptr && !stream) {
                     status = 400;
-                    headers.insert_or_assign("content-type", "application/json");
                     getBody();
                 }
                 Context::error(id, code, message);
@@ -84,7 +80,6 @@ namespace ThorsAnvil::Nisse::MCP
             {
                 if (body == nullptr && !stream) {
                     status = 202;
-                    headers.insert_or_assign("content-type", "application/json");
                 }
                 termPreviousItem();
                 if (stream) {
