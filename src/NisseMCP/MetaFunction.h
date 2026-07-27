@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
+
 #include <functional>
 #include <type_traits>
 

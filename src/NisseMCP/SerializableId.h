@@ -2,8 +2,8 @@
 #define THORSANVIL_NISSE_MCP_SERIALIZABLE_ID
 
 #include "NisseMCPConfig.h"
-#include <ThorsLogging/ThorsLogging.h>
 
+#include <ThorsLogging/ThorsLogging.h>
 #include <ThorSerialize/Traits.h>
 #include <ThorSerialize/SerUtil.h>
 

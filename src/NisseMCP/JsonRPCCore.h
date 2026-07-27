@@ -5,7 +5,6 @@
 #include "JsonRPC.h"
 #include "Context.h"
 #include "MetaFunction.h"
-
 #include "CommandInitialize.h"
 
 #include "NisseHTTP/Request.h"

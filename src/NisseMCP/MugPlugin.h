@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "MCPCore.h"
+
 #include "ThorsMug/MugPlugin.h"
 
 namespace ThorsAnvil::Nisse::MCP

@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
+
 #include <ThorSerialize/JsonThor.h>
 
 #include <iostream>

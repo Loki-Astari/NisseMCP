@@ -5,7 +5,6 @@
 #include "JsonRPCCore.h"
 #include "Context.h"
 #include "MetaFunction.h"
-
 #include "CommandInitialize.h"
 
 #include "ThorSerialize/JsonThor.h"
