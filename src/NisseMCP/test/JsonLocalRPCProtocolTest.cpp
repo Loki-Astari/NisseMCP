@@ -31,17 +31,17 @@ struct LocalTest: public Local<JsonRPCCore>
         LocalTest()
             : Local<JsonRPCCore>{core}
         {
-            core.addExecutor("subtract",     [&](Context& context, SubtractParam const& param){context.addItem(param.minuend - param.subtrahend);});
-            core.addExecutor("update",       [&](Context& context, std::vector<int> const& param){size = param.size();context.addItem(1);});
-            core.addExecutor("foobar",       [&](Context& context){used = true;context.addItem(1);});
+            core.addExecutor("subtract",     [&](Context& context, JsonRPC::OptRequestId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
+            core.addExecutor("update",       [&](Context& context, JsonRPC::OptRequestId id, std::vector<int> const& param){size = param.size();context.addItem(id, 1);});
+            core.addExecutor("foobar",       [&](Context& context, JsonRPC::OptRequestId id){used = true;context.addItem(id, 1);});
 
-            core.addExecutor("sum",          [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-            core.addExecutor("notify_hello", [](Context& context, std::vector<int> const& /*a*/){context.addItem(1);});
-            core.addExecutor("get_data",     [](Context& context){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(result);});
-            core.addExecutor("notify_sum",   [](Context& context, std::vector<int> const& args){context.addItem(std::accumulate(std::begin(args), std::end(args), 0));});
-            core.addExecutor("note",         [](Context& context)->int {throw std::runtime_error("Hi");});
-            core.addExecutor("Hi",           [](Context& context, std::vector<int> const&){context.addItem("Hi");});
-            core.addExecutor("throw",        [](Context& context, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
+            core.addExecutor("sum",          [](Context& context, JsonRPC::OptRequestId id, std::vector<int> const& args){context.addItem(id, std::accumulate(std::begin(args), std::end(args), 0));});
+            core.addExecutor("notify_hello", [](Context& context, JsonRPC::OptRequestId id, std::vector<int> const& /*a*/){context.addItem(id, 1);});
+            core.addExecutor("get_data",     [](Context& context, JsonRPC::OptRequestId id){std::vector<std::string> result; result.emplace_back("hello"); result.emplace_back("5"); context.addItem(id, result);});
+            core.addExecutor("notify_sum",   [](Context& context, JsonRPC::OptRequestId id, std::vector<int> const& args){context.addItem(id, std::accumulate(std::begin(args), std::end(args), 0));});
+            core.addExecutor("note",         [](Context& context, JsonRPC::OptRequestId id)->int {throw std::runtime_error("Hi");});
+            core.addExecutor("Hi",           [](Context& context, JsonRPC::OptRequestId id, std::vector<int> const&){context.addItem(id, "Hi");});
+            core.addExecutor("throw",        [](Context& context, JsonRPC::OptRequestId id, std::vector<int> const& args)->int {throw std::runtime_error("Checking");});
         }
         std::size_t getSize() const {return size;}
         bool        isUsed()  const {return used;}

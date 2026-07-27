@@ -2,6 +2,7 @@
 #define THORSANVIL_NISSE_MCP_METAFUNCTION_H
 
 #include "NisseMCPConfig.h"
+#include "JsonRPC.h"
 #include <functional>
 #include <type_traits>
 
@@ -18,12 +19,12 @@ template<typename F>
 struct ParamOfSignature
 {};
 template<typename R, typename C, typename P>
-struct ParamOfSignature<R(C::*)(Context&, P const&) const>
+struct ParamOfSignature<R(C::*)(Context&, JsonRPC::OptRequestId, P const&) const>
 {
     using Param = P;
 };
 template<typename R, typename C, typename P>
-struct ParamOfSignature<R(C::*)(Context&, P const&)>
+struct ParamOfSignature<R(C::*)(Context&, JsonRPC::OptRequestId, P const&)>
 {
     using Param = P;
 };
@@ -37,13 +38,13 @@ struct FirstParam : ParamOfSignature<decltype(&std::remove_reference_t<T>::opera
 
 // Raw function type.
 template<typename R, typename P>
-struct FirstParam<R(Context&, P const&)>
+struct FirstParam<R(Context&, JsonRPC::OptRequestId, P const&)>
 {
     using Param = P;
 };
 // std::function.
 template<typename R, typename P>
-struct FirstParam<std::function<R(Context&, P const&)>>
+struct FirstParam<std::function<R(Context&, JsonRPC::OptRequestId, P const&)>>
 {
     using Param = P;
 };

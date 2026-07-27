@@ -17,10 +17,8 @@ namespace ThorsAnvil::Nisse::MCP
     struct Context
     {
             static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
-            static JsonRPC::OptRequestId                   defaultId;
 
             std::istream&           input;
-            JsonRPC::OptRequestId   requestId;
             bool                    stream;
 
             Context(std::istream& input);
@@ -30,17 +28,16 @@ namespace ThorsAnvil::Nisse::MCP
             virtual std::ostream& addItem() = 0;
             virtual void addNote() {}
             virtual void serverSideStream();
-            virtual void error(int code, std::string_view message)
+            virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message)
             {
-                addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, requestId}, outputConfig);
+                addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, id}, outputConfig);
             }
 
-            void setId(JsonRPC::OptRequestId const& id);
             template<typename T>
-            void  addItem(T const& value)
+            void  addItem(JsonRPC::OptRequestId id, T const& value)
             {
-                if (requestId.has_value()) {
-                    addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, requestId}, outputConfig);
+                if (id.has_value()) {
+                    addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, id}, outputConfig);
                 }
                 else {
                     addNote();

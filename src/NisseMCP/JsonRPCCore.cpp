@@ -24,18 +24,17 @@ bool JsonRPCCore::readOneAction(Context& context)
 {
     JsonRPC::Request    rpc;
     if (!(context.input >> ThorsAnvil::Serialize::jsonImporter(rpc))) {
-        context.error(-32700, "Parse error");
+        context.error({}, -32700, "Parse error");
         return false;
     }
-    context.setId(rpc.id);
     if (rpc.jsonrpc != "2.0") {
-        context.error(-32600, "Invalid Request");
+        context.error(rpc.id, -32600, "Invalid Request");
         return true;
     }
 
     auto find = executeMap.find(rpc.method);
     if (find == std::end(executeMap)) {
-        context.error(-32601, "Method not found");
+        context.error(rpc.id, -32601, "Method not found");
         return true;
     }
 
@@ -63,13 +62,13 @@ bool JsonRPCCore::handleInputStreamWithBatch(Context& context)
 
         if (!(context.input >> nextChar)) {
             // If input fails then this is a parser error.
-            context.error(-32700, "Parse error");
+            context.error({}, -32700, "Parse error");
             context.stop();
             return false;
         }
         if (nextChar == ']') {
             // If this is an empty array then it is an invalid request.
-            context.error(-32600, "Invalid Request");
+            context.error({}, -32600, "Invalid Request");
             context.stop();
             return false;
         }
@@ -85,9 +84,8 @@ bool JsonRPCCore::handleInputStreamWithBatch(Context& context)
                 //           Other types of error allow us to continue.
                 return false;
             }
-            context.setId({});
             if (!(context.input >> nextChar && (nextChar == ',' || nextChar == ']'))) {
-                context.error(-32700, "Parse error");
+                context.error({}, -32700, "Parse error");
                 context.stop();
                 return false;
             }

@@ -40,14 +40,14 @@ bool MCPCoreRequestValidtor::validateRequest(ThorsAnvil::Nisse::HTTP::Request co
 MCPCore::MCPCore(Protocol protocol)
     : protocol{protocol}
 {
-    addExecutor("initialize",                [&](Context& context, Command::InitializeRequestParams const& param){return initialize(context, param);});
-    addExecutor("notifications/initialized", [&](Context& context){return notifications_Initialized(context);});
+    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){return initialize(context, id, param);});
+    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/){return notifications_Initialized(context);});
 }
 
-void MCPCore::initialize(Context& context, Command::InitializeRequestParams const& /*param*/)
+void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& /*param*/)
 {
     using namespace std::string_literals;
-    context.addItem(Command::InitializeResult{
+    context.addItem(id, Command::InitializeResult{
                                                 ._meta          = {},
                                                 .protocolVersion= "2025-11-25"s,
                                                 .capabilities =
@@ -61,7 +61,7 @@ void MCPCore::initialize(Context& context, Command::InitializeRequestParams cons
                                                 },
                                                 .serverInfo     = {},
                                                 .instructions   = {}
-                                             });
+                                                 });
 }
 
 void MCPCore::notifications_Initialized(Context& /*context*/)

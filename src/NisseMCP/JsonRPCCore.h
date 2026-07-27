@@ -72,38 +72,38 @@ class JsonRPCCore
                 std::string_view view = rpc.params.has_value() ? rpc.params->getView() : ""sv;
                 P                param;
                 if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
-                    context.error(-32602, "Invalid params");
+                    context.error(rpc.id, -32602, "Invalid params");
                     context.stop();
                     return;
                 }
 
                 try
                 {
-                    executor(context, param);
+                    executor(context, rpc.id, param);
                 }
                 catch (...)
                 {
-                    context.error(-32603, "Internal error");
+                    context.error(rpc.id, -32603, "Internal error");
                 }
             };
         }
         template<typename C>
-        requires std::invocable<C, Context&>
+        requires std::invocable<C, Context&, JsonRPC::OptRequestId>
         void addExecutor(std::string const& name, C&& f)
         {
             executeMap[name] = [executor = std::forward<C>(f)](Context& context, JsonRPC::Request const& rpc)
             {
                 if (rpc.params.has_value()) {
-                    context.error(-32602, "Invalid params");
+                    context.error(rpc.id, -32602, "Invalid params");
                     context.stop();
                 }
                 try
                 {
-                    executor(context);
+                    executor(context, rpc.id);
                 }
                 catch (...)
                 {
-                    context.error(-32603, "Internal error");
+                    context.error(rpc.id, -32603, "Internal error");
                 }
             };
         }

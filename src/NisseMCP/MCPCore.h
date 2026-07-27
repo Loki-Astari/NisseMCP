@@ -43,7 +43,7 @@ class MCPCore: public JsonRPCCore
         // Handle Individual Commands.
         // ****************************
             // Initialization.
-            void initialize(Context& context, Command::InitializeRequestParams const& param);
+            void initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param);
             void notifications_Initialized(Context& context);
 #if 0
         void resource();

@@ -67,14 +67,14 @@ namespace ThorsAnvil::Nisse::MCP
                 headers.insert_or_assign("content-type", "text/event-stream");
                 Context::serverSideStream();
             }
-            virtual void error(int code, std::string_view message) override
+            virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override
             {
                 if (body == nullptr && !stream) {
                     status = 400;
                     headers.insert_or_assign("content-type", "application/json");
                     getBody();
                 }
-                Context::error(code, message);
+                Context::error(id, code, message);
             }
             virtual void stop() const override
             {}
