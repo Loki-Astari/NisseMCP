@@ -59,7 +59,7 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
         public:
             template<typename T>
             Result(T&& v)
-                : value(std::forward<T>(v))
+                : value{std::forward<T>(v)}
                 , outputer([](ThorsAnvil::Serialize::Serializer& parent, ThorsAnvil::Serialize::PrinterInterface& printer, std::any const& val)
                   {
                         using Base = std::decay_t<T>;

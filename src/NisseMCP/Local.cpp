@@ -6,8 +6,8 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 
 LocalContext::LocalContext(std::istream& input, std::ostream& output)
-    : Context(input)
-    , output(output)
+    : Context{input}
+    , output{output}
 {}
 
 LocalContext::~LocalContext()
