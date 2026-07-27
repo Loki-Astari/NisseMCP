@@ -19,7 +19,6 @@ namespace ThorsAnvil::Nisse::MCP
     class ServerContext: public Context
     {
         int                                 id;
-        bool                                termNeeded;
         ThorsAnvil::Nisse::HTTP::Response&  response;
         std::ostream*                       body;
         std::map<std::string, std::string>  headers;
@@ -28,14 +27,13 @@ namespace ThorsAnvil::Nisse::MCP
             ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
                 : Context{request.body()}
                 , id{1}
-                , termNeeded{false}
                 , response{response}
                 , body{nullptr}
                 , status{200}
             {}
             ~ServerContext()
             {
-                if (termNeeded) {
+                if (stream && count > 0) {
                     termPreviousItem();
                 }
                 else if (body == nullptr) {
@@ -44,9 +42,8 @@ namespace ThorsAnvil::Nisse::MCP
             }
             void termPreviousItem()
             {
-                if (termNeeded) {
+                if (stream && count > 0) {
                     getBody() << "\r\n\r\n";
-                    termNeeded = false;
                 }
             }
             std::ostream& getBody()
@@ -94,7 +91,6 @@ namespace ThorsAnvil::Nisse::MCP
                     getBody() << "id: " << id << "\r\n"
                            << "data: ";
                     ++id;
-                    termNeeded = true;
                 }
                 return getBody();
             }
