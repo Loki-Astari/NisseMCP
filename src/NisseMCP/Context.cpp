@@ -6,6 +6,7 @@ ThorsAnvil::Serialize::PrinterConfig    Context::outputConfig{ThorsAnvil::Serial
 
 Context::Context(std::istream& input)
     : input(input)
+    , count{0}
     , stream(false)
 {}
 

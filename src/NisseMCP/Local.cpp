@@ -7,7 +7,6 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 LocalContext::LocalContext(std::istream& input, std::ostream& output)
     : Context(input)
-    , count(0)
     , output(output)
 {}
 
@@ -23,6 +22,5 @@ LocalContext::~LocalContext()
 std::ostream& LocalContext::addItem()
 {
     std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
-    ++count;
     return output << sep;
 }

@@ -19,6 +19,7 @@ namespace ThorsAnvil::Nisse::MCP
             static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
 
             std::istream&           input;
+            std::size_t             count;
             bool                    stream;
 
             Context(std::istream& input);
@@ -30,6 +31,7 @@ namespace ThorsAnvil::Nisse::MCP
             virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message)
             {
                 addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, id}, outputConfig);
+                ++count;
             }
 
             template<typename T>
@@ -37,6 +39,7 @@ namespace ThorsAnvil::Nisse::MCP
             {
                 if (id.has_value()) {
                     addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, id}, outputConfig);
+                    ++count;
                 }
                 else {
                     addNote();
