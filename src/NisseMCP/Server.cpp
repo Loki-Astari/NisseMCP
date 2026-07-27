@@ -35,7 +35,7 @@ void ServerContext::error(JsonRPC::OptRequestId id, int code, std::string_view m
 
 void ServerContext::addNote()
 {
-    if (body == nullptr) {
+    if (!stream) {
         status = 202;
     }
 }
@@ -43,6 +43,8 @@ void ServerContext::addNote()
 std::ostream& ServerContext::addItem()
 {
     if (!stream && status == 200) {
+        // Note: the error() call above will set status = 400 and then call Context:error() which will then call
+        //       addItem() to get a stream. Thus we should not set the status if error has already set the status.
         status = 202;
     }
     if (body == nullptr) {
