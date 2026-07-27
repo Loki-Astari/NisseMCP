@@ -31,16 +31,10 @@ namespace ThorsAnvil::Nisse::MCP
             ~ServerContext()
             {
                 if (stream && count > 0) {
-                    termPreviousItem();
+                    (*body) << "\r\n\r\n";
                 }
                 else if (body == nullptr) {
                     response.setStatus(status);
-                }
-            }
-            void termPreviousItem()
-            {
-                if (stream && count > 0) {
-                    getBody() << "\r\n\r\n";
                 }
             }
             std::ostream& getBody()
@@ -79,7 +73,9 @@ namespace ThorsAnvil::Nisse::MCP
                 if (body == nullptr && !stream) {
                     status = 202;
                 }
-                termPreviousItem();
+                if (stream && count > 0) {
+                    (*body) << "\r\n\r\n";
+                }
                 if (stream) {
                     getBody() << "id: " << (count + 1) << "\r\n"
                               << "data: ";
