@@ -73,7 +73,7 @@ class JsonRPCCore
                 P                param;
                 if (!(view >> ThorsAnvil::Serialize::jsonImporter(param))) {
                     context.error(rpc.id, -32602, "Invalid params");
-                    context.stop();
+                    context.input.setstate(std::ios_base::failbit);
                     return;
                 }
 
@@ -95,7 +95,7 @@ class JsonRPCCore
             {
                 if (rpc.params.has_value()) {
                     context.error(rpc.id, -32602, "Invalid params");
-                    context.stop();
+                    context.input.setstate(std::ios_base::failbit);
                 }
                 try
                 {

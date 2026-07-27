@@ -76,8 +76,6 @@ namespace ThorsAnvil::Nisse::MCP
                 }
                 Context::error(id, code, message);
             }
-            virtual void stop() const override
-            {}
 
             virtual void addNote() override
             {

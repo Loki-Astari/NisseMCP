@@ -19,7 +19,6 @@ class LocalContext: public Context
 
         ~LocalContext();
 
-        virtual void stop() const override;
         virtual std::ostream& addItem() override;
 };
 

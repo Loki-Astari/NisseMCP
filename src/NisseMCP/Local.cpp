@@ -20,11 +20,6 @@ LocalContext::~LocalContext()
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-void LocalContext::stop() const
-{
-    input.setstate(std::ios_base::failbit);
-}
-
 std::ostream& LocalContext::addItem()
 {
     std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";

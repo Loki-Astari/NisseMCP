@@ -63,13 +63,13 @@ bool JsonRPCCore::handleInputStreamWithBatch(Context& context)
         if (!(context.input >> nextChar)) {
             // If input fails then this is a parser error.
             context.error({}, -32700, "Parse error");
-            context.stop();
+            context.input.setstate(std::ios_base::failbit);
             return false;
         }
         if (nextChar == ']') {
             // If this is an empty array then it is an invalid request.
             context.error({}, -32600, "Invalid Request");
-            context.stop();
+            context.input.setstate(std::ios_base::failbit);
             return false;
         }
         // Put back the next char we just stole for empty array checks.
@@ -86,7 +86,7 @@ bool JsonRPCCore::handleInputStreamWithBatch(Context& context)
             }
             if (!(context.input >> nextChar && (nextChar == ',' || nextChar == ']'))) {
                 context.error({}, -32700, "Parse error");
-                context.stop();
+                context.input.setstate(std::ios_base::failbit);
                 return false;
             }
         }

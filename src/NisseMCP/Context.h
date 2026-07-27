@@ -24,7 +24,6 @@ namespace ThorsAnvil::Nisse::MCP
             Context(std::istream& input);
             virtual ~Context();
 
-            virtual void stop() const = 0;
             virtual std::ostream& addItem() = 0;
             virtual void addNote() {}
             virtual void serverSideStream();
