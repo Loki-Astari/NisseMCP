@@ -4,21 +4,20 @@
 #include "JsonRPC.h"
 #include "NisseHTTP/Util.h"
 #include "Server.h"
-#include "MCPCore.h"
+#include "MCPServer.h"
 #include "NisseHTTP/ClientHTTP.h"
 #include "CommandPing.h"
 #include "CommandInitialize.h"
 #include "ThorSerialize/JsonThor.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
-using MCPServer = Server<MCPCore>;
 
-struct MCPServerTest: public Server<MCPCore>
+struct MCPServerTest: public MCPServer
 {
     MCPCore         core;
     public:
         MCPServerTest(Protocol protocol = Protocol::v2025_11_25)
-            : Server<MCPCore>{"https://thors-anvil.com", core}
+            : MCPServer{{.allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .protocol = protocol}}
             , core{protocol}
         {}
 };

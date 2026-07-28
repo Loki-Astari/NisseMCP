@@ -25,20 +25,12 @@ namespace ThorsAnvil::Nisse::MCP
 
 using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
 
-class JsonRPCCoreRequestValidtor
-{
-    public:
-        bool validateRequest(ThorsAnvil::Nisse::HTTP::Request const&, ThorsAnvil::Nisse::HTTP::Response&, std::string_view)   {return true;}
-};
-
 class JsonRPCCore
 {
 
     ExecuteMap      executeMap;
 
     public:
-        using DefaultValidator = JsonRPCCoreRequestValidtor;
-
         virtual ~JsonRPCCore() {}
 
         virtual bool handleInputStream(Context& context);

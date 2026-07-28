@@ -21,14 +21,11 @@ class LocalContext: public Context
         virtual std::ostream& addItem() override;
 };
 
-template<typename Core>
 class Local
 {
-    Core& core;
     public:
-        Local(Core& core)
-            : core{core}
-        {}
+        virtual ~Local() {}
+        virtual JsonRPCCore& getCore()  = 0;
 
         void run(std::istream& input, std::ostream& output)
         {
@@ -36,7 +33,7 @@ class Local
             {
                 ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
                 LocalContext    context(input, output);
-                if (!core.handleInputStream(context)) {
+                if (!getCore().handleInputStream(context)) {
                     break;
                 }
             }
