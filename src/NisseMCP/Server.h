@@ -55,6 +55,7 @@ namespace ThorsAnvil::Nisse::MCP
             {
                 if (!validator.validateRequest(request, response, allowedOrigin)) {
                     // Validation has already set the response code and sent appropriate output to the stream;
+                    request.body().setstate(std::ios_base::failbit);
                     return;
                 }
                 ServerContext     context{request, response};

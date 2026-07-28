@@ -6,6 +6,7 @@
 #include "Server.h"
 #include "MCPCore.h"
 #include "NisseHTTP/ClientHTTP.h"
+#include "CommandPing.h"
 #include "CommandInitialize.h"
 #include "ThorSerialize/JsonThor.h"
 
@@ -43,6 +44,39 @@ TEST(HTTPTest, AcceptValidRequest)
     {
         responseProcessed = true;
         ASSERT_EQ(202, resp.getStatus());
+
+        auto const& ctype = resp.getHeader().getHeader("content-type");
+        ASSERT_EQ(1, ctype.size());
+        EXPECT_EQ("application/json", ctype[0]);
+    });
+    EXPECT_TRUE(responseProcessed);
+}
+TEST(HTTPTest, AcceptValidRequestButNoSeasionIdAndNotInit)
+{
+    MCPServerRunner                         server;
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
+
+    client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
+    {
+        out << ThorsAnvil::Serialize::jsonExporter(Command::PingRequest{.jsonrpc = "2.0", .id = 1, .method = "ping", .params = {}}, Context::outputConfig);
+        return true;
+    });
+    bool responseProcessed = false;
+    client.processResp([&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        responseProcessed = true;
+        ASSERT_EQ(400, resp.getStatus());
+        ASSERT_EQ("Bad Request", resp.getMessage());
+
+        JsonRPC::ClientResponse errorValue;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
+
+        ASSERT_TRUE(errorValue.error.has_value());
+        EXPECT_EQ(12, errorValue.error.value().code);
 
         auto const& ctype = resp.getHeader().getHeader("content-type");
         ASSERT_EQ(1, ctype.size());

@@ -18,4 +18,6 @@ namespace ThorsAnvil::Nisse::MCP::Command
 
 }
 
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::PingRequest,         jsonrpc, id, method/*, params*/);
+
 #endif
