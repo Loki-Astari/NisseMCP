@@ -32,15 +32,8 @@ namespace ThorsAnvil::Nisse::MCP
     class Server: public ThorsAnvil::Nisse::HTTP::Server
     {
         public:
-            Server(std::string_view slot, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
-                : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
-            {
-                addPath(ThorsAnvil::Nisse::HTTP::Method::POST, std::string{slot}, [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-                {
-                    handleRequest(request, response);
-                    return true;
-                });
-            }
+            Server(std::string_view slot, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079});
+            virtual ~Server();
             virtual JsonRPCCore& getCore() = 0;
 
         private:

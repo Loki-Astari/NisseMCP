@@ -13,9 +13,7 @@ namespace ThorsAnvil::Nisse::MCP
         JsonRPCCore         core;
 
         public:
-            JsonRPCServer(std::string_view slot, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
-                : Server{slot, workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
-            {}
+            using Server::Server;
 
             virtual JsonRPCCore& getCore() override {return core;}
         private:

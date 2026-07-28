@@ -24,20 +24,10 @@ class LocalContext: public Context
 class Local
 {
     public:
-        virtual ~Local() {}
+        virtual ~Local();
         virtual JsonRPCCore& getCore()  = 0;
 
-        void run(std::istream& input, std::ostream& output)
-        {
-            while (true)
-            {
-                ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
-                LocalContext    context(input, output);
-                if (!getCore().handleInputStream(context)) {
-                    break;
-                }
-            }
-        }
+        void run(std::istream& input, std::ostream& output);
 };
 
 }
