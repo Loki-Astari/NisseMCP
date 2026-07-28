@@ -102,4 +102,8 @@ class JsonRPCCore
 
 }
 
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "JsonRPCCore.source"
+#endif
+
 #endif

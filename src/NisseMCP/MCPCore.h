@@ -46,4 +46,8 @@ class MCPCore: public JsonRPCCore
 
 }
 
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "MCPCore.source"
+#endif
+
 #endif

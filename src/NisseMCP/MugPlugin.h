@@ -29,4 +29,9 @@ class MugPlugin: public ThorsAnvil::ThorsMug::MugPluginSimple
  * This may change. But functionality will be maintained.
  */
 #define THORS_ANVIL_NISSE_MCP_SERVER_INIT(Config, MCPCore)           THORS_ANVIL_SIMPLE_MUG_SERVER_INIT(Config, MCPCore)
+
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "MCPPlugin.source"
+#endif
+
 #endif

@@ -2,6 +2,7 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ServerContext::ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
     : Context{request.body()}
     , response{response}
@@ -9,6 +10,7 @@ ServerContext::ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, Th
     , status{200}
 {}
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ServerContext::~ServerContext()
 {
     if (stream && count > 0) {
@@ -19,12 +21,14 @@ ServerContext::~ServerContext()
     }
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ServerContext::serverSideStream()
 {
     status = 202;
     Context::serverSideStream();
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ServerContext::error(JsonRPC::OptRequestId id, int code, std::string_view message)
 {
     if (!stream) {
@@ -33,6 +37,7 @@ void ServerContext::error(JsonRPC::OptRequestId id, int code, std::string_view m
     Context::error(id, code, message);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ServerContext::addNote()
 {
     if (!stream) {
@@ -40,6 +45,7 @@ void ServerContext::addNote()
     }
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 std::ostream& ServerContext::addItem()
 {
     if (!stream && status == 200) {
@@ -61,6 +67,7 @@ std::ostream& ServerContext::addItem()
     return (*body);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 Server::Server(std::string_view slot, std::size_t workerCount, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit, ThorsAnvil::ThorsSocket::ServerInit&& controlInit)
     : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
 {
@@ -71,5 +78,6 @@ Server::Server(std::string_view slot, std::size_t workerCount, ThorsAnvil::Thors
     });
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 Server::~Server()
 {}

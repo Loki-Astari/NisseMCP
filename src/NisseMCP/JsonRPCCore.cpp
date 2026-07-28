@@ -2,6 +2,7 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 bool JsonRPCCore::handleInputStream(Context& context)
 {
     if (supportBatchRequest()) {
@@ -20,6 +21,7 @@ bool JsonRPCCore::handleInputStream(Context& context)
     }
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 bool JsonRPCCore::readOneAction(Context& context)
 {
     JsonRPC::Request    rpc;
@@ -42,6 +44,7 @@ bool JsonRPCCore::readOneAction(Context& context)
     return context.input.good();
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 bool JsonRPCCore::handleInputStreamWithBatch(Context& context)
 {
     using namespace std::string_view_literals;

@@ -3,6 +3,7 @@
 using namespace ThorsAnvil::Nisse::MCP;
 
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 MCPServer::MCPServer(MCPServerConfig const& config, std::size_t workerCount, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit, ThorsAnvil::ThorsSocket::ServerInit&& controlInit)
     : Server{config.slot, workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
     , core{config.protocol}
@@ -15,12 +16,14 @@ MCPServer::MCPServer(MCPServerConfig const& config, std::size_t workerCount, Tho
     });
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 JsonRPCCore& MCPServer::getCore()
 {
     return core;
 }
 
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPServer::handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     if (!validateRequest(request, response, allowedOrigin)) {
@@ -32,6 +35,7 @@ void MCPServer::handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, T
     core.handleInputStream(context);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 bool MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed)
 {
     // Valid Request must have Origin.

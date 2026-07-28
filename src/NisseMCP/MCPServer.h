@@ -32,4 +32,8 @@ namespace ThorsAnvil::Nisse::MCP
     };
 }
 
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "MCPServer.source"
+#endif
+
 #endif

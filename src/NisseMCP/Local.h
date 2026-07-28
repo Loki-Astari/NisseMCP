@@ -32,4 +32,8 @@ class Local
 
 }
 
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "Local.source"
+#endif
+
 #endif

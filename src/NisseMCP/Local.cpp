@@ -5,11 +5,13 @@
 using namespace ThorsAnvil::Nisse::MCP;
 
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 LocalContext::LocalContext(std::istream& input, std::ostream& output)
     : Context{input}
     , output{output}
 {}
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 LocalContext::~LocalContext()
 {
     // Close the output array.
@@ -19,15 +21,18 @@ LocalContext::~LocalContext()
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 std::ostream& LocalContext::addItem()
 {
     std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
     return output << sep;
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 Local::~Local()
 {}
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void Local::run(std::istream& input, std::ostream& output)
 {
     while (true)
