@@ -4,17 +4,16 @@
 #include "NisseMCPConfig.h"
 
 #include "JsonRPC.h"
-#include "JsonRPCCore.h"
 #include "Context.h"
-#include "Session.h"
 
 #include "NisseHTTP/Server.h"
 
-#include <string>
 #include <string_view>
 
 namespace ThorsAnvil::Nisse::MCP
 {
+    class JsonRPCCore;
+
     class ServerContext: public Context
     {
         ThorsAnvil::Nisse::HTTP::Response&  response;

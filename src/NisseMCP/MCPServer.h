@@ -2,7 +2,6 @@
 #define THORSANVIL_NISSE_MCP_MCPSERVER_H
 
 #include "NisseMCPConfig.h"
-#include "Context.h"
 #include "Session.h"
 
 #include "Server.h"

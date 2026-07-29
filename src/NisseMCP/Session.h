@@ -6,7 +6,6 @@
 
 #include <boost/uuid.hpp>
 
-#include <ctime>
 #include <map>
 
 namespace ThorsAnvil::Nisse::MCP

@@ -1,4 +1,5 @@
 #include "Local.h"
+#include "JsonRPCCore.h"
 
 #include "ThorsLogging/ThorsLogging.h"
 

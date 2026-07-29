@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "Local.h"
+#include "JsonRPCCore.h"
 
 namespace ThorsAnvil::Nisse::MCP
 {

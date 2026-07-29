@@ -15,8 +15,9 @@ namespace ThorsAnvil::Nisse::MCP
 
     class MCPCore;
 
-    struct Context
+    class Context
     {
+        public:
             static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
 
             std::istream&           input;

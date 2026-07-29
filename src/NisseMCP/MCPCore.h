@@ -3,13 +3,13 @@
 
 #include "NisseMCPConfig.h"
 #include "JsonRPCCore.h"
-#include "Context.h"
 
 #include "CommandInitialize.h"
 
 namespace ThorsAnvil::Nisse::MCP
 {
 
+class Context;
 class MCPCore: public JsonRPCCore
 {
     Protocol protocol;

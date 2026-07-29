@@ -10,7 +10,7 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-struct Context;
+class Context;
 
 // Map an `operator()` signature to its single parameter.
 // Catch-all: no `Param` member. Only the `P const&` single-parameter forms

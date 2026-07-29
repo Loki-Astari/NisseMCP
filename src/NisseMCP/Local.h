@@ -2,11 +2,14 @@
 #define THORSANVIL_NISSE_MCP_LOCAL_H
 
 #include "NisseMCPConfig.h"
-#include "MCPCore.h"
 #include "Context.h"
+
+#include <iostream>
 
 namespace ThorsAnvil::Nisse::MCP
 {
+
+class JsonRPCCore;
 
 class LocalContext: public Context
 {
