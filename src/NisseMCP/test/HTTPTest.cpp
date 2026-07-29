@@ -14,11 +14,9 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 struct MCPServerTest: public MCPServer
 {
-    MCPCore         core;
     public:
         MCPServerTest(Protocol protocol = Protocol::v2025_11_25)
-            : MCPServer{{.allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .protocol = protocol}}
-            , core{protocol}
+            : MCPServer{{.allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .minProtocol = protocol, .maxProtocol = protocol}}
         {}
 };
 
