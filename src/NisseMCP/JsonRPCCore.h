@@ -5,20 +5,12 @@
 #include "JsonRPC.h"
 #include "Context.h"
 #include "MetaFunction.h"
-#include "CommandInitialize.h"
-
-#include "NisseHTTP/Request.h"
-#include "NisseHTTP/Response.h"
-#include "ThorSerialize/JsonThor.h"
-#include "ThorSerialize/Traits.h"
 
 #include <map>
 #include <string>
-#include <string_view>
-#include <iostream>
 #include <functional>
 #include <utility>
-#include <type_traits>
+#include <string_view>
 
 namespace ThorsAnvil::Nisse::MCP
 {

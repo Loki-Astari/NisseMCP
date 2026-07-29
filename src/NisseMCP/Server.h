@@ -6,6 +6,7 @@
 #include "JsonRPC.h"
 #include "JsonRPCCore.h"
 #include "Context.h"
+#include "Session.h"
 
 #include "NisseHTTP/Server.h"
 
