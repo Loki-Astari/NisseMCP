@@ -13,18 +13,20 @@ namespace ThorsAnvil::Nisse::MCP
 {
     enum class Protocol {v2024_11_05, v2025_03_26, v2025_06_18, v2025_11_25};
 
-    class MCPCore;
-
+    class Session;
     class Context
     {
         public:
-            static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
-
+            Session&                session;
             std::istream&           input;
+        protected:
             std::size_t             count;
             bool                    stream;
 
-            Context(std::istream& input);
+        public:
+            static ThorsAnvil::Serialize::PrinterConfig    outputConfig;
+
+            Context(Session& session, std::istream& input);
             virtual ~Context();
 
             virtual void serverSideStream();

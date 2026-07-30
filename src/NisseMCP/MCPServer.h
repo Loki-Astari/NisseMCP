@@ -3,9 +3,10 @@
 
 #include "NisseMCPConfig.h"
 #include "Session.h"
-
-#include "Server.h"
 #include "MCPCore.h"
+#include "Server.h"
+
+#include "NisseServer/TimerAction.h"
 
 #include <chrono>
 #include <string_view>
@@ -20,6 +21,18 @@ namespace ThorsAnvil::Nisse::MCP
         Protocol                maxProtocol     = Protocol::v2025_11_25;
         Duration                sessionTimeout  = std::chrono::minutes{30};
         Duration                initHandShake   = std::chrono::seconds{10};
+    };
+
+    using SessionMap = std::map<boost::uuids::uuid, MCPSession>;
+
+    class MCPServerContext: public ServerContext
+    {
+        public:
+            MCPServerContext(MCPSession& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
+                : ServerContext(session, request, response)
+            {}
+
+            MCPSession& getMCPSession() {return dynamic_cast<MCPSession&>(session);}
     };
 
     class MCPJanitor: public ThorsAnvil::Nisse::Server::TimerAction
@@ -58,7 +71,7 @@ namespace ThorsAnvil::Nisse::MCP
         private:
                     void                removeSession(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
             virtual void                handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response) override;
-                    Session&            validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed);
+                    MCPSession&         validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed);
                     std::string_view    getMethodName(ThorsAnvil::Nisse::HTTP::Request const& request) const;
     };
 }

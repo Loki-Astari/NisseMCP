@@ -5,7 +5,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 NISSEMCP_HEADER_ONLY_INCLUDE
 bool JsonRPCCore::handleInputStream(Context& context)
 {
-    if (supportBatchRequest()) {
+    if (supportBatchRequest(context)) {
         return handleInputStreamWithBatch(context);
     }
     else {

@@ -4,6 +4,7 @@
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
 #include "Context.h"
+#include "Session.h"
 #include "MetaFunction.h"
 
 #include <map>
@@ -17,6 +18,12 @@ namespace ThorsAnvil::Nisse::MCP
 
 using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
 
+class JsonRPCSession: public Session
+{
+    public:
+        virtual bool     supportBatchRequest()  const {return true;}
+};
+
 class JsonRPCCore
 {
 
@@ -27,10 +34,11 @@ class JsonRPCCore
 
         virtual bool handleInputStream(Context& context);
 
+    protected:
+        virtual bool supportBatchRequest(Context&) const {return true;}
     private:
         bool handleInputStreamWithBatch(Context& context);
         bool readOneAction(Context& context);
-        virtual bool supportBatchRequest() const {return true;}
 
         template<typename F, typename... Args>
         static JsonRPC::Response invokeToResponse(F&& f, Args&&... args)

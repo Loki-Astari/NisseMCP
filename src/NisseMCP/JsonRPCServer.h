@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 
+#include "Session.h"
 #include "Server.h"
 #include "JsonRPCCore.h"
 
@@ -10,6 +11,8 @@ namespace ThorsAnvil::Nisse::MCP
 {
     class JsonRPCServer: public Server
     {
+        // JSONRPCServer has a single session.
+        JsonRPCSession      session;
         JsonRPCCore         core;
 
         public:
@@ -19,7 +22,7 @@ namespace ThorsAnvil::Nisse::MCP
         private:
             virtual void handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response) override
             {
-                ServerContext     context{request, response};
+                ServerContext     context{session, request, response};
                 core.handleInputStream(context);
             }
 

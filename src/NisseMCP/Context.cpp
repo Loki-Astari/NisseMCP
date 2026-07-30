@@ -5,8 +5,9 @@ using namespace ThorsAnvil::Nisse::MCP;
 ThorsAnvil::Serialize::PrinterConfig    Context::outputConfig{ThorsAnvil::Serialize::OutputType::Stream};
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-Context::Context(std::istream& input)
-    : input{input}
+Context::Context(Session& session, std::istream& input)
+    : session{session}
+    , input{input}
     , count{0}
     , stream{false}
 {}

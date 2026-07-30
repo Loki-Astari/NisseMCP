@@ -1,6 +1,5 @@
 #include "MCPServer.h"
 #include "NisseHTTP/Util.h"
-#include "Session.h"
 #include <boost/uuid.hpp>
 #include <tuple>
 
@@ -11,7 +10,6 @@ NISSEMCP_HEADER_ONLY_INCLUDE
 MCPServer::MCPServer(MCPServerConfig const& config, std::size_t workerCount, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit, ThorsAnvil::ThorsSocket::ServerInit&& controlInit)
     : Server{config.slot, workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
     , defaultProtocol{config.maxProtocol}
-    , core{config.maxProtocol}
     , janitor{sessionMap, config.initHandShake, config.initHandShake}
     , allowedOrigin{config.allowedOrigin}
 {
@@ -49,12 +47,12 @@ void MCPServer::removeSession(ThorsAnvil::Nisse::HTTP::Request const& request, T
 NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPServer::handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
-    Session& session = validateRequest(request, response, allowedOrigin);
+    MCPSession& session = validateRequest(request, response, allowedOrigin);
     if (!session.isValid())
     {
         return;
     }
-    ServerContext    context{request, response};
+    MCPServerContext    context{session, request, response};
     core.handleInputStream(context);
 }
 
@@ -79,9 +77,9 @@ std::string_view MCPServer::getMethodName(ThorsAnvil::Nisse::HTTP::Request const
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-Session& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed)
+MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed)
 {
-    static Session notFoundSession{SessionState::Invalid, Protocol::v2024_11_05, {}};
+    static MCPSession notFoundSession{SessionState::Invalid, Protocol::v2024_11_05, {}};
 
     // Valid Request must have Origin.
     auto const& origin = request.headers().getHeader("origin");
@@ -151,7 +149,7 @@ Session& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& requ
                 << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
         return notFoundSession;
     }
-    Session&            session         = find->second;
+    MCPSession&            session         = find->second;
     if (session.isRequested() && getMethodName(request) != "notifications/initialized"sv) {
         // Session is only requested and has not been confirmed by the client.
         // We will ignore until the client has correctly initialized.

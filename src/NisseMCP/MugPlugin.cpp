@@ -4,6 +4,7 @@
 // Temporary: We will need our own context.
 //            But use this as a stop gap.
 #include "Local.h"
+#include "Session.h"
 
 #include "NisseHTTP/Request.h"
 
@@ -41,6 +42,7 @@ NISSEMCP_HEADER_ONLY_INCLUDE
 void MugPlugin::processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     // MIY TODO: Fix Context
-    LocalContext        context(request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
+    JsonRPCSession      session;
+    LocalContext        context(session, request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
     // handleInputStream(context);
 }

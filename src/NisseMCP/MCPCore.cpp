@@ -6,11 +6,16 @@
 using namespace ThorsAnvil::Nisse::MCP;
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-MCPCore::MCPCore(Protocol protocol)
-    : protocol{protocol}
+MCPCore::MCPCore()
 {
     addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){return initialize(context, id, param);});
     addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/){return notifications_Initialized(context);});
+}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+bool MCPCore::supportBatchRequest(Context& context) const
+{
+    return context.session.supportBatchRequest();
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE

@@ -3,8 +3,8 @@
 using namespace ThorsAnvil::Nisse::MCP;
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-ServerContext::ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-    : Context{request.body()}
+ServerContext::ServerContext(Session& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
+    : Context{session, request.body()}
     , response{response}
     , body{nullptr}
     , status{200}

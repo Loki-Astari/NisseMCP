@@ -17,7 +17,7 @@ class LocalContext: public Context
         std::ostream&   output;
 
     public:
-        LocalContext(std::istream& input, std::ostream& output);
+        LocalContext(Session& session, std::istream& input, std::ostream& output);
 
         ~LocalContext();
 
@@ -30,7 +30,7 @@ class Local
         virtual ~Local();
         virtual JsonRPCCore& getCore()  = 0;
 
-        void run(std::istream& input, std::ostream& output);
+        void run(Session& session, std::istream& input, std::ostream& output);
 };
 
 }

@@ -12,9 +12,6 @@ class MCPLocal: public Local
 {
     MCPCore     core;
     public:
-        MCPLocal(Protocol protocol)
-            : core{protocol}
-        {}
         virtual JsonRPCCore& getCore()  override   {return core;}
 };
 

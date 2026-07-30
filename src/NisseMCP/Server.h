@@ -20,7 +20,7 @@ namespace ThorsAnvil::Nisse::MCP
         std::ostream*                       body;
         int                                 status;
         public:
-            ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
+            ServerContext(Session& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
             ~ServerContext();
 
             virtual void serverSideStream() override;
