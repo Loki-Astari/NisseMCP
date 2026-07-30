@@ -17,8 +17,8 @@ namespace ThorsAnvil::Nisse::MCP
     {
         std::string_view        allowedOrigin;
         std::string_view        slot            = "/mpc";
-        Protocol                minProtocol     = Protocol::v2025_11_25;
-        Protocol                maxProtocol     = Protocol::v2025_11_25;
+        Protocol                minProtocol     = Protocol::v2026_07_28;
+        Protocol                maxProtocol     = Protocol::v2026_07_28;
         Duration                sessionTimeout  = std::chrono::minutes{30};
         Duration                initHandShake   = std::chrono::seconds{10};
     };
