@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "CommandCommon.h"
+#include "Context.h"
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#initialize
 namespace ThorsAnvil::Nisse::MCP::Command
@@ -86,7 +87,7 @@ namespace ThorsAnvil::Nisse::MCP::Command
     struct InitializeRequestParams
     {
         OptMeta     /*vera*/    _meta;
-        std::string             protocolVersion;
+        Protocol                protocolVersion;
         ClientCapabilities      capabilities;
         Implementation          clientInfo;
     };
@@ -129,12 +130,13 @@ namespace ThorsAnvil::Nisse::MCP::Command
     struct InitializeResult
     {
         OptMeta     /*vera*/    _meta;
-        std::string             protocolVersion;
+        Protocol                protocolVersion;
         ServerCapabilities      capabilities;
         Implementation          serverInfo;
         OptString               instructions;
         // [key: string]: unknown;
     };
+    using OptInitializeResult = std::optional<InitializeResult>;
 
     // https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequest
     struct InitializeRequest
@@ -145,6 +147,13 @@ namespace ThorsAnvil::Nisse::MCP::Command
         InitializeRequestParams params;
     };
 
+    struct InitializeResponse
+    {
+        std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+        OptInitializeResult result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+        JsonRPC::OptError   error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+        JsonRPC::ResponseId id;
+    };
 }
 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Object);
@@ -165,5 +174,7 @@ ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerTasks,              
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerCapabilities,       logging, completions, prompts, resources, tools, tasks);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResult,         _meta, protocolVersion, capabilities, serverInfo, instructions);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequest,        jsonrpc, id, method, params);
+
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResponse,       jsonrpc, result, error, id);
 
 #endif

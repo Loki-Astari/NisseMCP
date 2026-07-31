@@ -12,15 +12,20 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
+namespace
+{
+
 struct MCPServerTest: public MCPServer
 {
     public:
-        MCPServerTest(Protocol protocol = Protocol::v2025_11_25)
-            : MCPServer{{.allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .minProtocol = protocol, .maxProtocol = protocol}}
+        MCPServerTest(ProtocolRange protocolInfo = {Protocol::v2025_11_25, Protocol::v2025_11_25})
+            : MCPServer{{.allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .protocolInfo = protocolInfo}}
         {}
 };
 
 using MCPServerRunner = ThorsAnvil::Nisse::Server::UnitTest::ServerRunner<MCPServerTest>;
+
+}
 
 TEST(HTTPTest, AcceptValidRequest)
 {
@@ -33,7 +38,7 @@ TEST(HTTPTest, AcceptValidRequest)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -91,7 +96,7 @@ TEST(HTTPTest, AcceptValidRequestSingleAccept)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -116,7 +121,7 @@ TEST(HTTPTest, NoOriginProvided)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -149,7 +154,7 @@ TEST(HTTPTest, NotAcceptJson)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -181,7 +186,7 @@ TEST(HTTPTest, NotAcceptStream)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = "2025_11_25"}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;

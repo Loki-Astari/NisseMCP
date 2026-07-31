@@ -35,6 +35,7 @@ bool JsonRPCCore::readOneAction(Context& context)
     }
 
     auto find = executeMap.find(rpc.method);
+    ThorsLogInfo("ThorsAnvil::Nisse::MCP::JsonRPCCore", "readOneAction", "Method: ", rpc.method, " Found: ", (find != std::end(executeMap) ? "true" : "false"));
     if (find == std::end(executeMap)) {
         context.error(rpc.id, -32601, "Method not found");
         return true;

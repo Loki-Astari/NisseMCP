@@ -109,6 +109,8 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
     {
         std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
         // OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+        // If you are on the client side and want to read a specific response, Then look at the command you are sending their will
+        // be a response class available to use.
         OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
         OptResponseId       id;
 

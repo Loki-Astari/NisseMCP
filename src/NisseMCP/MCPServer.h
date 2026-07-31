@@ -15,10 +15,10 @@ namespace ThorsAnvil::Nisse::MCP
 {
     struct MCPServerConfig
     {
+        std::string_view        serverName;
         std::string_view        allowedOrigin;                              // Origin header validated against this string.
         std::string_view        slot            = "/mpc";                   // HTTP endpoint.
-        Protocol                minProtocol     = Protocol::v2025_11_25;    // Default to only using the latest version of the standard.
-        Protocol                maxProtocol     = Protocol::v2025_11_25;
+        ProtocolRange           protocolInfo    = {Protocol::v2025_11_25, Protocol::v2025_11_25};
         Duration                sessionTimeout  = std::chrono::minutes{30}; // Session time out after 30 minutes of no activity
         Duration                initHandShake   = std::chrono::seconds{10}; // Init handshake needs to be completed in 10 seconds.
     };
@@ -59,9 +59,10 @@ namespace ThorsAnvil::Nisse::MCP
     class MCPServer: public Server
     {
         SessionMap          sessionMap;
-        Protocol            defaultProtocol;
+        ProtocolRange       protocolInfo;
         MCPCore             core;
         MCPJanitor          janitor;
+        std::string         serverName;
         std::string         allowedOrigin;
 
         public:

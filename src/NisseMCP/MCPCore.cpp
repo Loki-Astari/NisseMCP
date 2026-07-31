@@ -3,13 +3,15 @@
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
 
+#include "CommandPing.h"
+
 using namespace ThorsAnvil::Nisse::MCP;
 
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPCore::MCPCore()
 {
     addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){return initialize(context, id, param);});
-    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/){return notifications_Initialized(context);});
+    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/)    {return notifications_Initialized(context);});
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
@@ -19,12 +21,21 @@ bool MCPCore::supportBatchRequest(Context& context) const
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& /*param*/)
+void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param)
 {
+    ProtocolRange protocolInfo = context.session.protocolRange();
+
+    Protocol  defaultProtocol = param.protocolVersion;
+    if (defaultProtocol < protocolInfo.first) {
+        defaultProtocol =  protocolInfo.first;
+    }
+    else if (defaultProtocol > protocolInfo.second) {
+        defaultProtocol = protocolInfo.second;
+    }
     using namespace std::string_literals;
     context.addItem(id, Command::InitializeResult{
                                                 ._meta          = {},
-                                                .protocolVersion= "2025-11-25"s,
+                                                .protocolVersion= defaultProtocol,
                                                 .capabilities =
                                                 {
                                                         .logging        = {},
@@ -34,7 +45,7 @@ void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::In
                                                         .tools          = {},
                                                         .tasks          = {}
                                                 },
-                                                .serverInfo     = {},
+                                                .serverInfo     = {.name = std::string{context.session.serviceName()}},
                                                 .instructions   = {}
                                                  });
 }

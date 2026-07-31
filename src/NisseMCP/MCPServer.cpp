@@ -9,8 +9,9 @@ using namespace ThorsAnvil::Nisse::MCP;
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPServer::MCPServer(MCPServerConfig const& config, std::size_t workerCount, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit, ThorsAnvil::ThorsSocket::ServerInit&& controlInit)
     : Server{config.slot, workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
-    , defaultProtocol{config.maxProtocol}
-    , janitor{sessionMap, config.initHandShake, config.initHandShake}
+    , protocolInfo{config.protocolInfo}
+    , janitor{sessionMap, config.sessionTimeout, config.initHandShake}
+    , serverName{config.serverName}
     , allowedOrigin{config.allowedOrigin}
 {
     addPath(ThorsAnvil::Nisse::HTTP::Method::DELETER, std::string{config.slot}, [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
@@ -79,7 +80,7 @@ std::string_view MCPServer::getMethodName(ThorsAnvil::Nisse::HTTP::Request const
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed)
 {
-    static MCPSession notFoundSession{SessionState::Invalid, Protocol::v2024_11_05, {}};
+    static MCPSession notFoundSession{[&](){return serverName;}, [&](){return protocolInfo;}, SessionState::Invalid, Protocol::v2024_11_05, {}};
 
     // Valid Request must have Origin.
     auto const& origin = request.headers().getHeader("origin");
@@ -122,7 +123,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
     if (sessionHeaders.size() == 0 && getMethodName(request) == "initialize"sv)
     {
         boost::uuids::uuid  sessionId       = boost::uuids::random_generator{}();
-        auto                newSession      = sessionMap.try_emplace(sessionId, SessionState::Requested, defaultProtocol, sessionId);
+        auto                newSession      = sessionMap.try_emplace(sessionId, [&](){return serverName;}, [&](){return protocolInfo;}, SessionState::Requested, protocolInfo.second, sessionId);
         return newSession.first->second;
     }
 

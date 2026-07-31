@@ -4,6 +4,7 @@
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
 
+#include <ThorSerialize/Traits.h>
 #include <ThorSerialize/JsonThor.h>
 
 #include <iostream>
@@ -51,5 +52,7 @@ namespace ThorsAnvil::Nisse::MCP
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "Context.source"
 #endif
+
+ThorsAnvil_MakeEnumAlt(ThorsAnvil::Nisse::MCP::Protocol, "2024_11_05", "2025_03_26", "2025_06_18", "2025_11_25", "2026_07_28");
 
 #endif
