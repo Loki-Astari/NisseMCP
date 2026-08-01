@@ -9,9 +9,6 @@
 namespace ThorsAnvil::Nisse::MCP::Command
 {
 
-struct Object {};
-using OptObject             = std::optional<Object>;
-
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities
 // Serialized
 struct Roots
@@ -146,8 +143,17 @@ struct InitializeRequest
     RequestId               id;
     std::string             method; //  “initialize”;
     InitializeRequestParams params;
+    InitializeRequest(RequestId&& id, InitializeRequestParams&& params)
+        : jsonrpc{"2.0"}
+        , id{std::move(id)}
+        , method{"initialize"}
+        , params{std::move(params)}
+    {}
 };
 
+// Used by Client.
+// Client can't use JsonRPC::Response directly as the result field is a std::any
+// So this result is specific in what we expect back from the server.
 struct InitializeResponse
 {
     std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
@@ -156,9 +162,19 @@ struct InitializeResponse
     JsonRPC::ResponseId id;
 };
 
+
+struct Notification_Initialized
+{
+    std::string         jsonrpc;
+    std::string         method;
+    Notification_Initialized()
+        : jsonrpc{"2.0"}
+        , method{"notifications/initialized"}
+    {}
+};
+
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Object);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Roots,                    listChanged, subscribe);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Sampling,                 context, tools);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Elicitation,              form, url);
@@ -176,6 +192,7 @@ ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerTasks,              
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerCapabilities,       logging, completions, prompts, resources, tools, tasks);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResult,         _meta, protocolVersion, capabilities, serverInfo, instructions);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequest,        jsonrpc, id, method, params);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Notification_Initialized, jsonrpc, method);
 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResponse,       jsonrpc, result, error, id);
 

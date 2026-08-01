@@ -6,6 +6,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 NISSEMCP_HEADER_ONLY_INCLUDE
 ServerContext::ServerContext(Session& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
     : Context{session, request.body()}
+    , request{request}
     , response{response}
     , body{nullptr}
     , status{200}

@@ -79,6 +79,8 @@ class MCPCore: public JsonRPCCore
             // Initialization.
             void initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param);
             void notifications_Initialized(Context& context);
+
+            void ping(Context& context, JsonRPC::OptRequestId id);
 #if 0
         void resource();
         void tool();

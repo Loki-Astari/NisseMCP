@@ -38,7 +38,7 @@ TEST(HTTPTest, AcceptValidRequest)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -64,7 +64,7 @@ TEST(HTTPTest, AcceptValidRequestButNoSeasionIdAndNotInit)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::PingRequest{.jsonrpc = "2.0", .id = 1, .method = "ping", .params = {}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::PingRequest{1}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -96,7 +96,7 @@ TEST(HTTPTest, AcceptValidRequestSingleAccept)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -121,7 +121,7 @@ TEST(HTTPTest, NoOriginProvided)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -154,7 +154,7 @@ TEST(HTTPTest, NotAcceptJson)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -186,7 +186,7 @@ TEST(HTTPTest, NotAcceptStream)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{.jsonrpc = "2.0", .id = 1, .method = "initialize", .params = {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;

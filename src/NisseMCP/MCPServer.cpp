@@ -123,7 +123,8 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
     // OR: Be an initialize request (in which case the request is to generate a sessionID).
     // IF the session ID has not been confirmed by the client with an notifications/initialized command then its not valid.
     using namespace std::string_view_literals;
-    auto const& sessionHeaders = request.headers().getHeader("MCP-Session-Id");
+    // TODO: Should not need to make that lower-case manually.
+    auto const& sessionHeaders = request.headers().getHeader("mcp-session-id");
 
     // No Header with Session-ID check if this is an initialize command.
     if (sessionHeaders.size() == 0 && getMethodName(request) == "initialize"sv)

@@ -19,6 +19,9 @@
 namespace ThorsAnvil::Nisse::MCP::Command
 {
 
+struct Object {};
+using OptObject             = std::optional<Object>;
+
 using OptBool           = std::optional<bool>;
 
 using OptString         = std::optional<std::string>;
@@ -110,6 +113,7 @@ using EmptyResult       = Result;
 
 }
 
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Object);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Icon,                 src, mimeType, sizes, theme);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Meta,                 progressToken);
 

@@ -17,6 +17,9 @@ class JsonRPCCore;
 
 class ServerContext: public Context
 {
+    public:
+    ThorsAnvil::Nisse::HTTP::Request const&   request;
+    private:
     ThorsAnvil::Nisse::HTTP::Response&  response;
     std::ostream*                       body;
     int                                 status;

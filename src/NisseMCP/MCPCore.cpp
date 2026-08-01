@@ -1,17 +1,21 @@
 #include "MCPCore.h"
+#include "Context.h"
+#include "MCPServer.h"
 #include "JsonRPC.h"
+#include "CommandPing.h"
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
 
-#include "CommandPing.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPCore::MCPCore()
 {
-    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){return initialize(context, id, param);});
-    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/)    {return notifications_Initialized(context);});
+    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){initialize(context, id, param);});
+    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/)    {notifications_Initialized(context);});
+
+    addExecutor("ping",                      [&](Context& context, JsonRPC::OptRequestId id)        {ping(context, id);});
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
@@ -51,8 +55,23 @@ void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::In
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-void MCPCore::notifications_Initialized(Context& /*context*/)
+void MCPCore::notifications_Initialized(Context& context)
 {
+    MCPServerContext&   mcpContext  = dynamic_cast<MCPServerContext&>(context);
+    MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(mcpContext.session);
+    auto const&         headers     = mcpContext.request.headers();
+    auto const&         protocols   = headers.getHeader("mcp-protocol-version");
+    if (protocols.size() != 1) {
+        return;
+    }
+    std::string const&  protocolStr = protocols[0];
+    Protocol            protocol    = ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::getValue(protocolStr, "");
+    mcpSession.initialize(protocol);
+}
+
+void MCPCore::ping(Context& context, JsonRPC::OptRequestId id)
+{
+    context.addItem(id, Command::Object{});
 }
 
 #if 0
