@@ -8,152 +8,154 @@
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#initialize
 namespace ThorsAnvil::Nisse::MCP::Command
 {
-    struct Object {};
-    using OptObject             = std::optional<Object>;
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities
-    // Serialized
-    struct Roots
-    {
-        OptBool                 listChanged;
-        OptBool                 subscribe;
-    };
-    using OptRoots              = std::optional<Roots>;
-    // Serialized
-    struct Sampling
-    {
-        OptObject               context;
-        OptObject               tools;
-    };
-    using OptSampling           = std::optional<Sampling>;
-    // Serialized
-    struct Elicitation
-    {
-        OptObject               form;
-        OptObject               url;
-    };
-    using OptElicitation        = std::optional<Elicitation>;
-    // Serialized
-    struct RequestSampling
-    {
-        OptObject               createMessage;
-    };
-    using OptRequestSampling    = std::optional<Sampling>;
-    // Serialized
-    struct RequestElicitation
-    {
-        OptObject               create;
-    };
-    using OptRequestElicitation = std::optional<Elicitation>;
-    // Serialized
-    struct Request
-    {
-        OptRequestSampling      sampling;
-        OptRequestElicitation   elicitation;
-    };
-    using OptRequest            = std::optional<Request>;
-    // Serialized
-    struct Tasks
-    {
-        OptObject               list;
-        OptObject               cancel;
-        OptRequest              requests;
-    };
-    using OptTasks              = std::optional<Tasks>;
-    // Serialized
-    struct ClientCapabilities
-    {
-        // experimental?: { [key: string]: object };
-        OptRoots                roots;
-        OptSampling             sampling;
-        OptElicitation          elicitation;
-        OptTasks                tasks;
-    };
+struct Object {};
+using OptObject             = std::optional<Object>;
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#implementation
-    // Serialized
-    struct Implementation
-    {
-        OptVecIcon              icons;
-        std::string             name;
-        OptString               title;
-        OptString               version;
-        OptString               description;
-        OptString               websiteUrl;
-    };
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities
+// Serialized
+struct Roots
+{
+    OptBool                 listChanged;
+    OptBool                 subscribe;
+};
+using OptRoots              = std::optional<Roots>;
+// Serialized
+struct Sampling
+{
+    OptObject               context;
+    OptObject               tools;
+};
+using OptSampling           = std::optional<Sampling>;
+// Serialized
+struct Elicitation
+{
+    OptObject               form;
+    OptObject               url;
+};
+using OptElicitation        = std::optional<Elicitation>;
+// Serialized
+struct RequestSampling
+{
+    OptObject               createMessage;
+};
+using OptRequestSampling    = std::optional<Sampling>;
+// Serialized
+struct RequestElicitation
+{
+    OptObject               create;
+};
+using OptRequestElicitation = std::optional<Elicitation>;
+// Serialized
+struct Request
+{
+    OptRequestSampling      sampling;
+    OptRequestElicitation   elicitation;
+};
+using OptRequest            = std::optional<Request>;
+// Serialized
+struct Tasks
+{
+    OptObject               list;
+    OptObject               cancel;
+    OptRequest              requests;
+};
+using OptTasks              = std::optional<Tasks>;
+// Serialized
+struct ClientCapabilities
+{
+    // experimental?: { [key: string]: object };
+    OptRoots                roots;
+    OptSampling             sampling;
+    OptElicitation          elicitation;
+    OptTasks                tasks;
+};
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequestparams
-    // Serialized
-    struct InitializeRequestParams
-    {
-        OptMeta     /*vera*/    _meta;
-        Protocol                protocolVersion;
-        ClientCapabilities      capabilities;
-        Implementation          clientInfo;
-    };
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#implementation
+// Serialized
+struct Implementation
+{
+    OptVecIcon              icons;
+    std::string             name;
+    OptString               title;
+    OptString               version;
+    OptString               description;
+    OptString               websiteUrl;
+};
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#servercapabilities
-    // Serialized
-    struct Caller
-    {
-        OptObject               call;
-    };
-    using OptCaller             = std::optional<Caller>;
-    // Serialized
-    struct Tools
-    {
-        Caller                  tools;
-    };
-    using OptTools              = std::optional<Tools>;
-    // Serialized
-    struct ServerTasks
-    {
-        OptObject               list;
-        OptObject               cancel;
-        OptTools                requests;
-    };
-    using OptServerTasks        = std::optional<ServerTasks>;
-    // Serialized
-    struct ServerCapabilities
-    {
-        // experimental?: { [key: string]: object };
-        OptObject               logging;
-        OptObject               completions;
-        OptRoots                prompts;
-        OptRoots                resources;
-        OptRoots                tools;
-        OptServerTasks          tasks;
-    };
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequestparams
+// Serialized
+struct InitializeRequestParams
+{
+    OptMeta     /*vera*/    _meta;
+    Protocol                protocolVersion;
+    ClientCapabilities      capabilities;
+    Implementation          clientInfo;
+};
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#initializeresult
-    // Serialized
-    struct InitializeResult
-    {
-        OptMeta     /*vera*/    _meta;
-        Protocol                protocolVersion;
-        ServerCapabilities      capabilities;
-        Implementation          serverInfo;
-        OptString               instructions;
-        // [key: string]: unknown;
-    };
-    using OptInitializeResult = std::optional<InitializeResult>;
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#servercapabilities
+// Serialized
+struct Caller
+{
+    OptObject               call;
+};
+using OptCaller             = std::optional<Caller>;
+// Serialized
+struct Tools
+{
+    Caller                  tools;
+};
+using OptTools              = std::optional<Tools>;
+// Serialized
+struct ServerTasks
+{
+    OptObject               list;
+    OptObject               cancel;
+    OptTools                requests;
+};
+using OptServerTasks        = std::optional<ServerTasks>;
+// Serialized
+struct ServerCapabilities
+{
+    // experimental?: { [key: string]: object };
+    OptObject               logging;
+    OptObject               completions;
+    OptRoots                prompts;
+    OptRoots                resources;
+    OptRoots                tools;
+    OptServerTasks          tasks;
+};
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequest
-    struct InitializeRequest
-    {
-        std::string             jsonrpc; // “2.0”;
-        RequestId               id;
-        std::string             method; //  “initialize”;
-        InitializeRequestParams params;
-    };
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#initializeresult
+// Serialized
+struct InitializeResult
+{
+    OptMeta     /*vera*/    _meta;
+    Protocol                protocolVersion;
+    ServerCapabilities      capabilities;
+    Implementation          serverInfo;
+    OptString               instructions;
+    // [key: string]: unknown;
+};
+using OptInitializeResult = std::optional<InitializeResult>;
 
-    struct InitializeResponse
-    {
-        std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
-        OptInitializeResult result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
-        JsonRPC::OptError   error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-        JsonRPC::ResponseId id;
-    };
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#initializerequest
+struct InitializeRequest
+{
+    std::string             jsonrpc; // “2.0”;
+    RequestId               id;
+    std::string             method; //  “initialize”;
+    InitializeRequestParams params;
+};
+
+struct InitializeResponse
+{
+    std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    OptInitializeResult result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+    JsonRPC::OptError   error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    JsonRPC::ResponseId id;
+};
+
 }
 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Object);

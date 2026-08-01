@@ -18,94 +18,95 @@
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#common-types
 namespace ThorsAnvil::Nisse::MCP::Command
 {
-    using OptBool           = std::optional<bool>;
 
-    using OptString         = std::optional<std::string>;
+using OptBool           = std::optional<bool>;
 
-    using VecString         = std::vector<std::string>;
-    using OptVecString      = std::optional<VecString>;
+using OptString         = std::optional<std::string>;
 
-    using Number            = int;
-    using OptNumber         = std::optional<Number>;
+using VecString         = std::vector<std::string>;
+using OptVecString      = std::optional<VecString>;
 
-    using OptAny            = std::optional<std::any>;
+using Number            = int;
+using OptNumber         = std::optional<Number>;
 
-    enum class Role {user, assistant};
-    using VecRole           = std::vector<Role>;
-    using OptVecRole        = std::optional<VecRole>;
+using OptAny            = std::optional<std::any>;
 
-    struct PaginatedRequestParams
-    {};
-    using OptPaginatedRequestParams = std::optional<PaginatedRequestParams>;
+enum class Role {user, assistant};
+using VecRole           = std::vector<Role>;
+using OptVecRole        = std::optional<VecRole>;
 
-    struct RequestParams
-    {};
-    using OptRequestParams          = std::optional<RequestParams>;
+struct PaginatedRequestParams
+{};
+using OptPaginatedRequestParams = std::optional<PaginatedRequestParams>;
 
-    struct Properties
-    {
-        // : { [key: string]: PrimitiveSchemaDefinition };
-    };
-    struct Schema
-    {
-        OptString           $schema;
-        std::string         type; //  “object”;
-        Properties          properties;
-        OptVecString        required;
-    };
+struct RequestParams
+{};
+using OptRequestParams          = std::optional<RequestParams>;
 
-    struct Annotations
-    {
-        OptVecRole          audience;
-        OptNumber           priority;
-        OptString           lastModified;
-    };
-    using OptAnnotations    = std::optional<Annotations>;
+struct Properties
+{
+    // : { [key: string]: PrimitiveSchemaDefinition };
+};
+struct Schema
+{
+    OptString           $schema;
+    std::string         type; //  “object”;
+    Properties          properties;
+    OptVecString        required;
+};
 
-    using Cursor            = std::string;
+struct Annotations
+{
+    OptVecRole          audience;
+    OptNumber           priority;
+    OptString           lastModified;
+};
+using OptAnnotations    = std::optional<Annotations>;
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#error
-    struct Error
-    {
-        Number              code;
-        std::string         message;
-        OptString           data;           // String for now. Can be more complicated. See: Error docs.
-    };
+using Cursor            = std::string;
 
-    enum class Theme {light, dark};
-    using OptTheme          = std::optional<Theme>;
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#error
+struct Error
+{
+    Number              code;
+    std::string         message;
+    OptString           data;           // String for now. Can be more complicated. See: Error docs.
+};
 
-    struct Icon
-    {
-        std::string         src;
-        OptString           mimeType;
-        OptVecString        sizes;
-        OptTheme            theme;
-    };
-    using VecIcon           = std::vector<Icon>;
-    using OptVecIcon        = std::optional<VecIcon>;
+enum class Theme {light, dark};
+using OptTheme          = std::optional<Theme>;
 
-    enum class LoggingLevel {debug, info, notice, warning, error, critical, alert, emergency };
+struct Icon
+{
+    std::string         src;
+    OptString           mimeType;
+    OptVecString        sizes;
+    OptTheme            theme;
+};
+using VecIcon           = std::vector<Icon>;
+using OptVecIcon        = std::optional<VecIcon>;
 
-    using ProgressToken     = JsonRPC::SerializableId;
-    using OptProgressToken  = std::optional<ProgressToken>;
-    using RequestId         = JsonRPC::RequestId;
-    using OptRequestId      = std::optional<RequestId>;
+enum class LoggingLevel {debug, info, notice, warning, error, critical, alert, emergency };
 
-    struct Meta
-    {
-        OptProgressToken    progressToken;
-        // [key: string]: unknown
-    };
-    using OptMeta           = std::optional<Meta>;
+using ProgressToken     = JsonRPC::SerializableId;
+using OptProgressToken  = std::optional<ProgressToken>;
+using RequestId         = JsonRPC::RequestId;
+using OptRequestId      = std::optional<RequestId>;
 
-    struct Result
-    {
-        OptMeta /*vera*/    _meta;
-        // [key: string]: unknown;
-    };
+struct Meta
+{
+    OptProgressToken    progressToken;
+    // [key: string]: unknown
+};
+using OptMeta           = std::optional<Meta>;
 
-    using EmptyResult       = Result;
+struct Result
+{
+    OptMeta /*vera*/    _meta;
+    // [key: string]: unknown;
+};
+
+using EmptyResult       = Result;
 
 }
 

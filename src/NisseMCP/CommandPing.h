@@ -7,14 +7,15 @@
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#ping
 namespace ThorsAnvil::Nisse::MCP::Command
 {
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#pingrequest
-    struct PingRequest
-    {
-        std::string                     jsonrpc; // “2.0”;
-        RequestId                       id;
-        std::string                     method; // “ping”;
-        OptRequestParams                params;
-    };
+
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#pingrequest
+struct PingRequest
+{
+    std::string                     jsonrpc; // “2.0”;
+    RequestId                       id;
+    std::string                     method; // “ping”;
+    OptRequestParams                params;
+};
 
 }
 
