@@ -7,6 +7,7 @@
 #include "CommandInitialize.h"
 
 #include <boost/uuid.hpp>
+#include <string_view>
 
 namespace ThorsAnvil::Nisse::MCP
 {
@@ -56,9 +57,10 @@ namespace ThorsAnvil::Nisse::MCP
             virtual bool                supportBatchRequest()   const override {return protocol < Protocol::v2025_06_18;}
             virtual ProtocolRange       protocolRange()         const override {return protocolRetriever();}
 
-            bool     isValid()              const {return state != Invalid;}
-            bool     isRequested()          const {return state == Requested;}
-            Protocol getProtocol()          const {return protocol;}
+            bool        isValid()               const {return state != Invalid;}
+            bool        isRequested()           const {return state == Requested;}
+            Protocol    getProtocol()           const {return protocol;}
+            std::string toString()              const {return boost::uuids::to_string(id);}
 
             void     initialize(Protocol newProtocol)  {state = Confirmed; protocol = newProtocol;}
     };

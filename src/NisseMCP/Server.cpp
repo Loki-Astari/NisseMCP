@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "Session.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
@@ -54,9 +55,9 @@ std::ostream& ServerContext::addItem()
         status = 202;
     }
     if (body == nullptr) {
-        std::ostream& s = response.setStatus(status)
-                                  .addHeader("content-type", stream ? "text/event-stream" : "application/json")
-                                  .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
+        std::ostream& s = addHeaders(response.setStatus(status))
+                            .addHeader("content-type", stream ? "text/event-stream" : "application/json")
+                            .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
         body = &s;
     }
     if (stream) {

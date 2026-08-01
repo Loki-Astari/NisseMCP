@@ -33,6 +33,7 @@ namespace ThorsAnvil::Nisse::MCP
             {}
 
             MCPSession& getMCPSession() {return dynamic_cast<MCPSession&>(session);}
+            virtual ThorsAnvil::Nisse::HTTP::Response& addHeaders(ThorsAnvil::Nisse::HTTP::Response& response) override;
     };
 
     class MCPJanitor: public ThorsAnvil::Nisse::Server::TimerAction

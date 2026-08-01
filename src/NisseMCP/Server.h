@@ -27,6 +27,8 @@ namespace ThorsAnvil::Nisse::MCP
             virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override;
             virtual void addNote() override;
             virtual std::ostream& addItem() override;
+        protected:
+            virtual ThorsAnvil::Nisse::HTTP::Response& addHeaders(ThorsAnvil::Nisse::HTTP::Response& response) {return response;}
     };
 
     class Server: public ThorsAnvil::Nisse::HTTP::Server

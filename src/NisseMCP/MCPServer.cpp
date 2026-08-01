@@ -7,6 +7,12 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 
 NISSEMCP_HEADER_ONLY_INCLUDE
+ThorsAnvil::Nisse::HTTP::Response& MCPServerContext::addHeaders(ThorsAnvil::Nisse::HTTP::Response& response)
+{
+    return ServerContext::addHeaders(response).addHeader("MCP-Session-Id", dynamic_cast<MCPSession&>(session).toString());
+}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
 MCPServer::MCPServer(MCPServerConfig const& config, std::size_t workerCount, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit, ThorsAnvil::ThorsSocket::ServerInit&& controlInit)
     : Server{config.slot, workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
     , protocolInfo{config.protocolInfo}
