@@ -42,7 +42,7 @@ JsonRPCCore& MCPServer::getCore()
 NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPServer::removeSession(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& /*response*/)
 {
-    auto const&         sessionHeaders  = request.headers().getHeader("mcp-session-id");
+    auto const&         sessionHeaders  = request.headers().getHeader("MCP-Session-Id");
     if (sessionHeaders.size() == 0) {
         ThorsLogError("ThorsAnvil::Nisse::MCP::MCPServer", "removeSession", "Attempt to remove session but no session id");
         return;
@@ -125,7 +125,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
     // IF the session ID has not been confirmed by the client with an notifications/initialized command then its not valid.
     using namespace std::string_view_literals;
     // TODO: Should not need to make that lower-case manually.
-    auto const& sessionHeaders = request.headers().getHeader("mcp-session-id");
+    auto const& sessionHeaders = request.headers().getHeader("MCP-Session-Id");
 
     // No Header with Session-ID check if this is an initialize command.
     if (sessionHeaders.size() == 0 && getMethodName(request) == "initialize"sv)
@@ -148,7 +148,8 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
     // Try and find the session ID
     std::string_view    sessionHeader   = sessionHeaders[0];
     auto                find            = std::end(sessionMap);
-    try {
+    try
+    {
         boost::uuids::uuid  sessionId = boost::uuids::string_generator{}(std::begin(sessionHeader), std::end(sessionHeader));
         find = sessionMap.find(sessionId);
     }
@@ -179,7 +180,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
 
     // Check protocol:
     bool protocolMismatch = false;
-    auto const& protocols = request.headers().getHeader("mcp-protocol-version");
+    auto const& protocols = request.headers().getHeader("MCP-Protocol-Version");
     if (protocols.size() != 1) {
         // Header does not have a protocol.
         protocolMismatch = true;

@@ -85,7 +85,7 @@ struct Implementation
 struct InitializeRequestParams
 {
     OptMeta     /*vera*/    _meta;
-    Protocol                protocolVersion;
+    Protocol                protocolVersion = Protocol::v2025_11_25;
     ClientCapabilities      capabilities;
     Implementation          clientInfo;
 };

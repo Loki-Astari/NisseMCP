@@ -126,7 +126,7 @@ TEST(SessionTest, InitializeShouldHaveSessionIDSet)
     client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
-        EXPECT_EQ(1, resp.getHeader().getHeader("mcp-session-id").size());
+        EXPECT_EQ(1, resp.getHeader().getHeader("MCP-Session-Id").size());
     });
 
     EXPECT_TRUE(called);
@@ -167,7 +167,7 @@ TEST(SessionTest, SendPingAfterHandShake)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -207,7 +207,7 @@ TEST(SessionTest, SendInitNotificationToSlowly)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
     sleep(2);
@@ -234,7 +234,7 @@ TEST(SessionTest, SendPingAfterSessionDelete)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -276,7 +276,7 @@ TEST(SessionTest, SendPingBeforeHandshakeCompleteisOK)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -313,7 +313,7 @@ TEST(SessionTest, SendLoggingBeforeHandshakeCompleteisIsNotOK)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -350,7 +350,7 @@ TEST(SessionTest, SendLoggingAfterHandshakeCompleteisIsOK)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -387,7 +387,7 @@ TEST(SessionTest, SendWrongSessionID)
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -405,8 +405,8 @@ TEST(SessionTest, SendWrongSessionID)
     headersAlternative.add("accept", "text/event-stream");
 
     using namespace std::string_literals;
-    headersAlternative.add("MCP-Session-Id", "000"s + (headers.getHeader("mcp-session-id")[0]));
-    headersAlternative.add("MCP-Protocol-Version", (headers.getHeader("mcp-protocol-version")[0]));
+    headersAlternative.add("MCP-Session-Id", "000"s + (headers.getHeader("MCP-Session-Id")[0]));
+    headersAlternative.add("MCP-Protocol-Version", (headers.getHeader("MCP-Protocol-Version")[0]));
     called = false;
     client.post_async({.path="/mcp", .headers=headersAlternative}, Command::SetLevelRequest{2, Command::LoggingLevel::alert}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
@@ -430,10 +430,10 @@ TEST(SessionTest, SendWrongProtocolVersion)
     client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         Command::InitializeResponse initResponse;
-        resp.body();
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
-        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("MCP-Session-Id")[0]);
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
@@ -451,7 +451,7 @@ TEST(SessionTest, SendWrongProtocolVersion)
     headersAlternative.add("accept", "text/event-stream");
 
     using namespace std::string_literals;
-    headersAlternative.add("MCP-Session-Id", headers.getHeader("mcp-session-id")[0]);
+    headersAlternative.add("MCP-Session-Id", headers.getHeader("MCP-Session-Id")[0]);
     headersAlternative.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(Protocol::v2024_11_05));
     called = false;
     client.post_async({.path="/mcp", .headers=headersAlternative}, Command::SetLevelRequest{2, Command::LoggingLevel::alert}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)

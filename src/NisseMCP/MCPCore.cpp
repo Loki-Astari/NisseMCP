@@ -63,7 +63,7 @@ void MCPCore::notifications_Initialized(Context& context)
     MCPServerContext&   mcpContext  = dynamic_cast<MCPServerContext&>(context);
     MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(mcpContext.session);
     auto const&         headers     = mcpContext.request.headers();
-    auto const&         protocols   = headers.getHeader("mcp-protocol-version");
+    auto const&         protocols   = headers.getHeader("MCP-Protocol-Version");
     if (protocols.size() != 1) {
         return;
     }

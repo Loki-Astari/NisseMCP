@@ -55,6 +55,6 @@ class Context
 #include "Context.source"
 #endif
 
-ThorsAnvil_MakeEnumAlt(ThorsAnvil::Nisse::MCP::Protocol, "2024_11_05", "2025_03_26", "2025_06_18", "2025_11_25", "2026_07_28");
+ThorsAnvil_MakeEnumAlt(ThorsAnvil::Nisse::MCP::Protocol, "2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28");
 
 #endif
