@@ -30,7 +30,7 @@ MCPServer::MCPServer(MCPServerConfig const& config, std::size_t workerCount, Tho
         handleRequest(request, response);
         return true;
     });
-    addTimer(std::chrono::seconds{30}, janitor);
+    addTimer(config.janitorCheckTime, janitor);
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE

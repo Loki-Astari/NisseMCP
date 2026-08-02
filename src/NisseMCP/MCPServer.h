@@ -20,8 +20,11 @@ struct MCPServerConfig
     std::string_view        allowedOrigin;                              // Origin header validated against this string.
     std::string_view        slot            = "/mpc";                   // HTTP endpoint.
     ProtocolRange           protocolInfo    = {Protocol::v2025_11_25, Protocol::v2025_11_25};
+    Duration                janitorCheckTime= std::chrono::seconds{30}; // When the janitor thread runs.
     Duration                sessionTimeout  = std::chrono::minutes{30}; // Session time out after 30 minutes of no activity
-    Duration                initHandShake   = std::chrono::seconds{10}; // Init handshake needs to be completed in 10 seconds.
+    Duration                initHandShake   = std::chrono::seconds{15}; // Init handshake needs to be completed in 10 seconds.
+                                                                        // Note: Shorter than janitor thread so it wil pick
+                                                                        // up timed out handskes quickly but it may take upto 45 seconds.
 };
 
 using SessionMap = std::map<boost::uuids::uuid, MCPSession>;
