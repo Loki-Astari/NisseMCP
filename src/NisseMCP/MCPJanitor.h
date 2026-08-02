@@ -17,23 +17,8 @@ class MCPJanitor: public ThorsAnvil::Nisse::Server::TimerAction
     Duration        sessionTimeout;
     Duration        initHandShake;
     public:
-        MCPJanitor(SessionMap& sessionMap, Duration sessionTimeout, Duration initHandShake)
-            : sessionMap{sessionMap}
-            , sessionTimeout{sessionTimeout}
-            , initHandShake{initHandShake}
-        {}
-        virtual void handleRequest(int /*timerId*/) override
-        {
-            for (auto loop = std::begin(sessionMap); loop != std::end(sessionMap);) {
-                bool timeOut = loop->second.hasTimedOut(loop->second.isRequested() ? initHandShake : sessionTimeout);
-                if (timeOut) {
-                    loop = sessionMap.erase(loop);
-                }
-                else {
-                    ++loop;
-                }
-            }
-        }
+        MCPJanitor(SessionMap& sessionMap, Duration sessionTimeout, Duration initHandShake);
+        virtual void handleRequest(int /*timerId*/) override;
 };
 
 }

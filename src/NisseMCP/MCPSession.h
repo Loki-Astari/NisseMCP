@@ -28,18 +28,8 @@ class MCPSession: public Session
     ProtocolRet         protocolRetriever;
 
     public:
-        MCPSession(NameRet&& nameRetriever, ProtocolRet&& protocolRetriever, SessionState initialState, Protocol defaultProtocol, boost::uuids::uuid id)
-            : state{initialState}
-            , protocol{defaultProtocol}
-            , id{std::move(id)}
-            , lastUsed{Clock::now()}
-            , nameRetriever{std::move(nameRetriever)}
-            , protocolRetriever{std::move(protocolRetriever)}
-        {}
-        ~MCPSession()
-        {
-            // Must close all open connections.
-        }
+        MCPSession(NameRet&& nameRetriever, ProtocolRet&& protocolRetriever, SessionState initialState, Protocol defaultProtocol, boost::uuids::uuid id);
+        ~MCPSession();
 
         // Can not be moved or copied.
         // Created in place in the SessionMap only.
@@ -58,7 +48,7 @@ class MCPSession: public Session
         std::string toString()                              const {return boost::uuids::to_string(id);}
         bool        hasTimedOut(Duration timeout)           const {return (Clock::now() - lastUsed) > timeout; }
 
-        void     initialize(Protocol newProtocol)  {state = Confirmed; protocol = newProtocol;}
+        void initialize(Protocol newProtocol);
 };
 
 using SessionMap = std::map<boost::uuids::uuid, MCPSession>;

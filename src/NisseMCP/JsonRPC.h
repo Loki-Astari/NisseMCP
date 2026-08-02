@@ -10,12 +10,11 @@
 #include <any>
 #include <string>
 #include <string_view>
-//#include <istream>
 #include <optional>
-//#include <variant>
+#include <variant>
 #include <functional>
-//#include <utility>
-//#include <type_traits>
+#include <utility>
+#include <type_traits>
 
 // https://www.jsonrpc.org/specification
 
@@ -36,6 +35,7 @@ struct ResponseConverter
     template<typename T>
     ResponseId operator()(T const& val)   const {return val;}
 };
+
 inline ResponseId makeId(RequestId const& r)
 {
     return std::visit(ResponseConverter{}, r);
@@ -50,6 +50,7 @@ struct Request
 };
 
 class ResultSerializer;
+
 class Result
 {
     std::any                                                                                                                value;
@@ -78,17 +79,12 @@ class Result
               })
         {}
 };
+
 class ResultSerializer
 {
     public:
-        static std::size_t getPrintSize(ThorsAnvil::Serialize::PrinterInterface& printer, Result const& object)
-        {
-            return object.sizer(printer, object.value);
-        }
-        static void writeCustom(ThorsAnvil::Serialize::Serializer& serializer, ThorsAnvil::Serialize::PrinterInterface& printer, Result const& object)
-        {
-            object.outputer(serializer, printer, object.value);
-        }
+        static std::size_t getPrintSize(ThorsAnvil::Serialize::PrinterInterface& printer, Result const& object);
+        static void writeCustom(ThorsAnvil::Serialize::Serializer& serializer, ThorsAnvil::Serialize::PrinterInterface& printer, Result const& object);
         static void readCustom(ThorsAnvil::Serialize::DeSerializer&, ThorsAnvil::Serialize::ParserInterface& parser, Result& object);
 };
 
@@ -103,6 +99,7 @@ struct Error
     std::string         message;
     OptData             data;
 };
+
 using OptError = std::optional<Error>;
 
 // We can not 'import' an std::any. So we must know the expected result on the client side.
@@ -116,27 +113,9 @@ struct ClientResponse
     OptResponseId       id;
 
     public:
-        ClientResponse(void)
-            : jsonrpc{"2.0"}
-            , id{static_cast<char*>(nullptr)}
-        {}
-        ClientResponse(OptRequestId const& requestId)
-            : jsonrpc{"2.0"}
-            , id{static_cast<char*>(nullptr)}
-        {
-            if (requestId.has_value()) {
-                id = makeId(requestId.value());
-            }
-        }
-        ClientResponse(int code, std::string_view message, OptRequestId const& requestId)
-            : jsonrpc{"2.0"}
-            , error{Error{code, {std::begin(message), std::end(message)}, {}}}
-            , id{static_cast<char*>(nullptr)}
-        {
-            if (requestId.has_value()) {
-                id = makeId(requestId.value());
-            }
-        }
+        ClientResponse(void);
+        ClientResponse(OptRequestId const& requestId);
+        ClientResponse(int code, std::string_view message, OptRequestId const& requestId);
 };
 
 // We can build and serialize a normal response object on the server as we know the type as we generate the output.
@@ -148,24 +127,12 @@ struct Response
     OptResponseId       id;
 
     public:
-        Response(void)
-            : jsonrpc{"2.0"}
-            , result{}
-            , id{static_cast<char*>(nullptr)}
-        {}
+        Response(void);
+        Response(int code, std::string_view message, OptRequestId const& requestId);
         template<typename T>
         Response(T&& result, OptRequestId const& requestId)
             : jsonrpc{"2.0"}
             , result{std::forward<T>(result)}
-            , id{static_cast<char*>(nullptr)}
-        {
-            if (requestId.has_value()) {
-                id = makeId(requestId.value());
-            }
-        }
-        Response(int code, std::string_view message, OptRequestId const& requestId)
-            : jsonrpc{"2.0"}
-            , error{Error{code, {std::begin(message), std::end(message)}, {}}}
             , id{static_cast<char*>(nullptr)}
         {
             if (requestId.has_value()) {

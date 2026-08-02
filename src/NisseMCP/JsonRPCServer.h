@@ -4,7 +4,6 @@
 #include "NisseMCPConfig.h"
 
 #include "Server.h"
-#include "ServerContext.h"
 #include "JsonRPCSession.h"
 #include "JsonRPCCore.h"
 
@@ -20,16 +19,15 @@ class JsonRPCServer: public Server
     public:
         using Server::Server;
 
-        virtual JsonRPCCore& getCore() override {return core;}
+        virtual JsonRPCCore& getCore() override;
     private:
-        virtual void handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response) override
-        {
-            ServerContext     context{session, request, response};
-            core.handleInputStream(context);
-        }
-
+        virtual void handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response) override;
 };
 
 }
+
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "JsonRPCServer.source"
+#endif
 
 #endif
