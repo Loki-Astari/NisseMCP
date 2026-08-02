@@ -1,4 +1,5 @@
 #include "MugPlugin.h"
+#include "LocalContext.h"
 #include <sstream>
 
 // Temporary: We will need our own context.

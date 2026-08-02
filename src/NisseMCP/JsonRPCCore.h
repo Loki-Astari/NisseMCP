@@ -4,27 +4,21 @@
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
 #include "Context.h"
-#include "Session.h"
+#include "JsonRPCSession.h"
 #include "MetaFunction.h"
 
 #include <map>
 #include <string>
 #include <functional>
-//#include <utility>
 #include <string_view>
+#include <type_traits>
+#include <ios>
+
 
 namespace ThorsAnvil::Nisse::MCP
 {
 
 using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
-
-class JsonRPCSession: public Session
-{
-    public:
-        virtual std::string_view    serviceName()           const override {return "";}
-        virtual bool                supportBatchRequest()   const override {return true;}
-        virtual ProtocolRange       protocolRange()         const override {return {Protocol::v2024_11_05, Protocol::v2024_11_05};}
-};
 
 class JsonRPCCore
 {

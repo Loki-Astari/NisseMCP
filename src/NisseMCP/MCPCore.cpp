@@ -1,6 +1,5 @@
 #include "MCPCore.h"
-#include "Context.h"
-#include "MCPServer.h"
+#include "MCPServerContext.h"
 #include "JsonRPC.h"
 #include "CommandPing.h"
 #include "NisseHTTP/Request.h"

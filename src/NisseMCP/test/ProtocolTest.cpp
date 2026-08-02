@@ -3,6 +3,7 @@
 #include "JsonRPC.h"
 #include "MCPCore.h"
 #include "MCPLocal.h"
+#include "MCPSession.h"
 #include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
 #include <numeric>

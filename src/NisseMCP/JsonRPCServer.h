@@ -3,8 +3,9 @@
 
 #include "NisseMCPConfig.h"
 
-#include "Session.h"
 #include "Server.h"
+#include "ServerContext.h"
+#include "JsonRPCSession.h"
 #include "JsonRPCCore.h"
 
 namespace ThorsAnvil::Nisse::MCP

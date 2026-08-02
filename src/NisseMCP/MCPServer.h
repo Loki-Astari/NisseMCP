@@ -2,11 +2,14 @@
 #define THORSANVIL_NISSE_MCP_MCPSERVER_H
 
 #include "NisseMCPConfig.h"
-#include "Session.h"
+#include "MCPSession.h"
+#include "MCPJanitor.h"
 #include "MCPCore.h"
 #include "Server.h"
 
 #include "NisseServer/TimerAction.h"
+
+#include <boost/uuid.hpp>
 
 #include <chrono>
 #include <string_view>
@@ -25,44 +28,6 @@ struct MCPServerConfig
     Duration                initHandShake   = std::chrono::seconds{15}; // Init handshake needs to be completed in 10 seconds.
                                                                         // Note: Shorter than janitor thread so it wil pick
                                                                         // up timed out handskes quickly but it may take upto 45 seconds.
-};
-
-using SessionMap = std::map<boost::uuids::uuid, MCPSession>;
-
-class MCPServerContext: public ServerContext
-{
-    public:
-        MCPServerContext(MCPSession& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-            : ServerContext(session, request, response)
-        {}
-
-        MCPSession& getMCPSession() {return dynamic_cast<MCPSession&>(session);}
-        virtual ThorsAnvil::Nisse::HTTP::Response& addHeaders(ThorsAnvil::Nisse::HTTP::Response& response) override;
-};
-
-class MCPJanitor: public ThorsAnvil::Nisse::Server::TimerAction
-{
-    SessionMap&     sessionMap;
-    Duration        sessionTimeout;
-    Duration        initHandShake;
-    public:
-        MCPJanitor(SessionMap& sessionMap, Duration sessionTimeout, Duration initHandShake)
-            : sessionMap{sessionMap}
-            , sessionTimeout{sessionTimeout}
-            , initHandShake{initHandShake}
-        {}
-        virtual void handleRequest(int /*timerId*/) override
-        {
-            for (auto loop = std::begin(sessionMap); loop != std::end(sessionMap);) {
-                bool timeOut = loop->second.hasTimedOut(loop->second.isRequested() ? initHandShake : sessionTimeout);
-                if (timeOut) {
-                    loop = sessionMap.erase(loop);
-                }
-                else {
-                    ++loop;
-                }
-            }
-        }
 };
 
 class MCPServer: public Server

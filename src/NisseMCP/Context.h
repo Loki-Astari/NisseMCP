@@ -2,9 +2,9 @@
 #define THORSANVIL_NISSE_MCP_CONTEXT_H
 
 #include "NisseMCPConfig.h"
+#include "MCPUtil.h"
 #include "JsonRPC.h"
 
-#include <ThorSerialize/Traits.h>
 #include <ThorSerialize/JsonThor.h>
 
 #include <iostream>
@@ -13,7 +13,6 @@
 namespace ThorsAnvil::Nisse::MCP
 {
 
-enum class Protocol {v2024_11_05, v2025_03_26, v2025_06_18, v2025_11_25, v2026_07_28};
 
 class Session;
 class Context
@@ -54,7 +53,5 @@ class Context
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "Context.source"
 #endif
-
-ThorsAnvil_MakeEnumAlt(ThorsAnvil::Nisse::MCP::Protocol, "2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28");
 
 #endif

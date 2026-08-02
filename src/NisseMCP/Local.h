@@ -2,7 +2,6 @@
 #define THORSANVIL_NISSE_MCP_LOCAL_H
 
 #include "NisseMCPConfig.h"
-#include "Context.h"
 
 #include <iostream>
 
@@ -10,19 +9,7 @@ namespace ThorsAnvil::Nisse::MCP
 {
 
 class JsonRPCCore;
-
-class LocalContext: public Context
-{
-    private:
-        std::ostream&   output;
-
-    public:
-        LocalContext(Session& session, std::istream& input, std::ostream& output);
-
-        ~LocalContext();
-
-        virtual std::ostream& addItem() override;
-};
+class Session;
 
 class Local
 {
