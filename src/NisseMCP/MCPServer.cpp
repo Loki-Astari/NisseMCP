@@ -147,8 +147,12 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
 
     // Try and find the session ID
     std::string_view    sessionHeader   = sessionHeaders[0];
-    boost::uuids::uuid  sessionId       = boost::uuids::string_generator{}(std::begin(sessionHeader), std::end(sessionHeader));
-    auto                find            = sessionMap.find(sessionId);
+    auto                find            = std::end(sessionMap);
+    try {
+        boost::uuids::uuid  sessionId = boost::uuids::string_generator{}(std::begin(sessionHeader), std::end(sessionHeader));
+        find = sessionMap.find(sessionId);
+    }
+    catch (...) {/* Ignore Error as find will not be changed and the next test will indicate failure */}
 
     if (find == std::end(sessionMap)) {
         // Session Not Found.
@@ -171,6 +175,28 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
                     << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
             return notFoundSession;
         }
+    }
+
+    // Check protocol:
+    bool protocolMismatch = false;
+    auto const& protocols = request.headers().getHeader("mcp-protocol-version");
+    if (protocols.size() != 1) {
+        // Header does not have a protocol.
+        protocolMismatch = true;
+    }
+    else {
+        Protocol protocol = ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::getValue(protocols[0], "");
+        if (session.getProtocol() != protocol) {
+            // header protocol does not match session protocol.
+            protocolMismatch = true;
+        }
+    }
+    if (protocolMismatch) {
+        response.setStatus(400)
+                .addHeader("content-type", "application/json")
+                .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{13, "Protocol Session Mismatch", {}});
+        return notFoundSession;
     }
 
     return session;
