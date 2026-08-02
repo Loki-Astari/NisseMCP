@@ -26,7 +26,15 @@ struct PingResponse
 {
     std::string                     jsonrpc;
     RequestId                       id;
-    Object                          result;
+    OptObject                       result;
+    JsonRPC::OptError               error;
+};
+
+struct Ping
+{
+    using Request   = PingRequest;
+    using Result    = PingResponse;
+    using UserData  = Object;
 };
 
 }
