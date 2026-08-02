@@ -1,15 +1,19 @@
 #include "Local.h"
+#include "JsonRPCCore.h"
+#include "Session.h"
 
 #include "ThorsLogging/ThorsLogging.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
 
-LocalContext::LocalContext(std::istream& input, std::ostream& output)
-    : Context{input}
+NISSEMCP_HEADER_ONLY_INCLUDE
+LocalContext::LocalContext(Session& session, std::istream& input, std::ostream& output)
+    : Context{session, input}
     , output{output}
 {}
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 LocalContext::~LocalContext()
 {
     // Close the output array.
@@ -19,8 +23,26 @@ LocalContext::~LocalContext()
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 std::ostream& LocalContext::addItem()
 {
     std::string_view sep = !stream ? "" : (count == 0) ? "[" : ",";
     return output << sep;
+}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+Local::~Local()
+{}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+void Local::run(Session& session, std::istream& input, std::ostream& output)
+{
+    while (true)
+    {
+        ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
+        LocalContext    context(session, input, output);
+        if (!getCore().handleInputStream(context)) {
+            break;
+        }
+    }
 }

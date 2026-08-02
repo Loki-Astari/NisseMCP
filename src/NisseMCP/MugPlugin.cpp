@@ -4,11 +4,13 @@
 // Temporary: We will need our own context.
 //            But use this as a stop gap.
 #include "Local.h"
+#include "Session.h"
 
 #include "NisseHTTP/Request.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 std::vector<ThorsAnvil::ThorsMug::Action> MugPlugin::getAction()
 {
     static std::vector<ThorsAnvil::ThorsMug::Action> result
@@ -36,9 +38,11 @@ std::vector<ThorsAnvil::ThorsMug::Action> MugPlugin::getAction()
     return result;
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void MugPlugin::processesRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
 {
     // MIY TODO: Fix Context
-    LocalContext        context(request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
+    JsonRPCSession      session;
+    LocalContext        context(session, request.body(), response.body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked));
     // handleInputStream(context);
 }

@@ -1,67 +1,55 @@
-#ifndef THORSANVIL_NISSE_MCP_MCPSERVER_H
-#define THORSANVIL_NISSE_MCP_MCPSERVER_H
+#ifndef THORSANVIL_NISSE_MCP_SERVER_H
+#define THORSANVIL_NISSE_MCP_SERVER_H
 
 #include "NisseMCPConfig.h"
 
 #include "JsonRPC.h"
-#include "MCPCore.h"
 #include "Context.h"
-#include "CommandInitialize.h"
 
-#include "NisseHTTP/Util.h"
 #include "NisseHTTP/Server.h"
-#include "ThorSerialize/JsonThor.h"
 
-#include <string>
+#include <string_view>
 
 namespace ThorsAnvil::Nisse::MCP
 {
-    class ServerContext: public Context
-    {
-        ThorsAnvil::Nisse::HTTP::Response&  response;
-        std::ostream*                       body;
-        int                                 status;
-        public:
-            ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
-            ~ServerContext();
 
-            virtual void serverSideStream() override;
-            virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override;
-            virtual void addNote() override;
-            virtual std::ostream& addItem() override;
-    };
+class JsonRPCCore;
 
-    template<typename Core, typename RequestValidator = typename Core::DefaultValidator>
-    class Server: public ThorsAnvil::Nisse::HTTP::Server
-    {
-        Core&               core;
-        RequestValidator    validator;
-        std::string         allowedOrigin;
+class ServerContext: public Context
+{
+    public:
+    ThorsAnvil::Nisse::HTTP::Request const&   request;
+    private:
+    ThorsAnvil::Nisse::HTTP::Response&  response;
+    std::ostream*                       body;
+    int                                 status;
+    public:
+        ServerContext(Session& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response);
+        ~ServerContext();
 
-        public:
-            Server(std::string_view allowedOrigin, Core& core, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079})
-                : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
-                , core{core}
-                , allowedOrigin{allowedOrigin}
-            {
-                addPath(ThorsAnvil::Nisse::HTTP::Method::POST, "/mcp", [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-                {
-                    handleRequest(request, response);
-                    return true;
-                });
-            }
+        virtual void serverSideStream() override;
+        virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override;
+        virtual void addNote() override;
+        virtual std::ostream& addItem() override;
+    protected:
+        virtual ThorsAnvil::Nisse::HTTP::Response& addHeaders(ThorsAnvil::Nisse::HTTP::Response& response) {return response;}
+};
 
-            void handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-            {
-                if (!validator.validateRequest(request, response, allowedOrigin)) {
-                    // Validation has already set the response code and sent appropriate output to the stream;
-                    return;
-                }
-                ServerContext     context{request, response};
-                core.handleInputStream(context);
-            }
+class Server: public ThorsAnvil::Nisse::HTTP::Server
+{
+    public:
+        Server(std::string_view slot, std::size_t workerCount = 4, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit = ThorsAnvil::ThorsSocket::ServerInfo{8070}, ThorsAnvil::ThorsSocket::ServerInit&& controlInit = ThorsAnvil::ThorsSocket::ServerInfo{8079});
+        virtual ~Server();
+        virtual JsonRPCCore& getCore() = 0;
 
-    };
+    private:
+        virtual void handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response) = 0;
+};
+
 }
+
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "Server.source"
+#endif
 
 #endif

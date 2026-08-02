@@ -1,14 +1,18 @@
 #include "Server.h"
+#include "Session.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-ServerContext::ServerContext(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
-    : Context{request.body()}
+NISSEMCP_HEADER_ONLY_INCLUDE
+ServerContext::ServerContext(Session& session, ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
+    : Context{session, request.body()}
+    , request{request}
     , response{response}
     , body{nullptr}
     , status{200}
 {}
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ServerContext::~ServerContext()
 {
     if (stream && count > 0) {
@@ -19,12 +23,14 @@ ServerContext::~ServerContext()
     }
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ServerContext::serverSideStream()
 {
     status = 202;
     Context::serverSideStream();
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ServerContext::error(JsonRPC::OptRequestId id, int code, std::string_view message)
 {
     if (!stream) {
@@ -33,6 +39,7 @@ void ServerContext::error(JsonRPC::OptRequestId id, int code, std::string_view m
     Context::error(id, code, message);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ServerContext::addNote()
 {
     if (!stream) {
@@ -40,6 +47,7 @@ void ServerContext::addNote()
     }
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 std::ostream& ServerContext::addItem()
 {
     if (!stream && status == 200) {
@@ -48,9 +56,9 @@ std::ostream& ServerContext::addItem()
         status = 202;
     }
     if (body == nullptr) {
-        std::ostream& s = response.setStatus(status)
-                                  .addHeader("content-type", stream ? "text/event-stream" : "application/json")
-                                  .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
+        std::ostream& s = addHeaders(response.setStatus(status))
+                            .addHeader("content-type", stream ? "text/event-stream" : "application/json")
+                            .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked);
         body = &s;
     }
     if (stream) {
@@ -60,3 +68,18 @@ std::ostream& ServerContext::addItem()
     }
     return (*body);
 }
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+Server::Server(std::string_view slot, std::size_t workerCount, ThorsAnvil::ThorsSocket::ServerInit&& handlerInit, ThorsAnvil::ThorsSocket::ServerInit&& controlInit)
+    : ThorsAnvil::Nisse::HTTP::Server{workerCount, std::forward<ThorsAnvil::ThorsSocket::ServerInit>(handlerInit), std::forward<ThorsAnvil::ThorsSocket::ServerInit>(controlInit)}
+{
+    addPath(ThorsAnvil::Nisse::HTTP::Method::POST, std::string{slot}, [&](ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response)
+    {
+        handleRequest(request, response);
+        return true;
+    });
+}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+Server::~Server()
+{}

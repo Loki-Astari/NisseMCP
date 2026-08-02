@@ -2,11 +2,14 @@
 #define THORSANVIL_NISSE_MCP_LOCAL_H
 
 #include "NisseMCPConfig.h"
-#include "MCPCore.h"
 #include "Context.h"
+
+#include <iostream>
 
 namespace ThorsAnvil::Nisse::MCP
 {
+
+class JsonRPCCore;
 
 class LocalContext: public Context
 {
@@ -14,35 +17,26 @@ class LocalContext: public Context
         std::ostream&   output;
 
     public:
-        LocalContext(std::istream& input, std::ostream& output);
+        LocalContext(Session& session, std::istream& input, std::ostream& output);
 
         ~LocalContext();
 
         virtual std::ostream& addItem() override;
 };
 
-template<typename Core>
 class Local
 {
-    Core& core;
     public:
-        Local(Core& core)
-            : core{core}
-        {}
+        virtual ~Local();
+        virtual JsonRPCCore& getCore()  = 0;
 
-        void run(std::istream& input, std::ostream& output)
-        {
-            while (true)
-            {
-                ThorsLogInfo("ThorsAnvil::Nisse::MCP::Local", "run", "Command Execution Complete");
-                LocalContext    context(input, output);
-                if (!core.handleInputStream(context)) {
-                    break;
-                }
-            }
-        }
+        void run(Session& session, std::istream& input, std::ostream& output);
 };
 
 }
+
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "Local.source"
+#endif
 
 #endif

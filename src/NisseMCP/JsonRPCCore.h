@@ -4,31 +4,26 @@
 #include "NisseMCPConfig.h"
 #include "JsonRPC.h"
 #include "Context.h"
+#include "Session.h"
 #include "MetaFunction.h"
-#include "CommandInitialize.h"
-
-#include "NisseHTTP/Request.h"
-#include "NisseHTTP/Response.h"
-#include "ThorSerialize/JsonThor.h"
-#include "ThorSerialize/Traits.h"
 
 #include <map>
 #include <string>
-#include <string_view>
-#include <iostream>
 #include <functional>
-#include <utility>
-#include <type_traits>
+//#include <utility>
+#include <string_view>
 
 namespace ThorsAnvil::Nisse::MCP
 {
 
 using ExecuteMap = std::map<std::string, std::function<void(Context&, JsonRPC::Request const&)>>;
 
-class JsonRPCCoreRequestValidtor
+class JsonRPCSession: public Session
 {
     public:
-        bool validateRequest(ThorsAnvil::Nisse::HTTP::Request const&, ThorsAnvil::Nisse::HTTP::Response&, std::string_view)   {return true;}
+        virtual std::string_view    serviceName()           const override {return "";}
+        virtual bool                supportBatchRequest()   const override {return true;}
+        virtual ProtocolRange       protocolRange()         const override {return {Protocol::v2024_11_05, Protocol::v2024_11_05};}
 };
 
 class JsonRPCCore
@@ -37,16 +32,15 @@ class JsonRPCCore
     ExecuteMap      executeMap;
 
     public:
-        using DefaultValidator = JsonRPCCoreRequestValidtor;
-
         virtual ~JsonRPCCore() {}
 
         virtual bool handleInputStream(Context& context);
 
+    protected:
+        virtual bool supportBatchRequest(Context&) const {return true;}
     private:
         bool handleInputStreamWithBatch(Context& context);
         bool readOneAction(Context& context);
-        virtual bool supportBatchRequest() const {return true;}
 
         template<typename F, typename... Args>
         static JsonRPC::Response invokeToResponse(F&& f, Args&&... args)
@@ -109,5 +103,9 @@ class JsonRPCCore
 };
 
 }
+
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "JsonRPCCore.source"
+#endif
 
 #endif

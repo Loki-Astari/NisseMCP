@@ -3,25 +3,42 @@
 
 #include "NisseMCPConfig.h"
 #include "CommandCommon.h"
+#include "ThorSerialize/Traits.h"
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#logging/setlevel
 namespace ThorsAnvil::Nisse::MCP::Command
 {
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequestparams
-    struct SetLevelRequestParams
-    {
-        OptMeta     /*vera*/    _meta;
-        LoggingLevel            level;
-    };
 
-    // https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequest
-    struct SetLevelRequest
-    {
-        std::string             jsonrpc; // “2.0”;
-        RequestId               id;
-        std::string             method; // “logging/setLevel”;
-        SetLevelRequestParams   params;
-    };
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequestparams
+struct SetLevelRequestParams
+{
+    OptMeta     /*vera*/    _meta;
+    LoggingLevel            level;
+    SetLevelRequestParams()
+    {}
+    SetLevelRequestParams(LoggingLevel level)
+        : level{level}
+    {}
+};
+
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequest
+struct SetLevelRequest
+{
+    std::string             jsonrpc; // “2.0”;
+    RequestId               id;
+    std::string             method; // “logging/setLevel”;
+    SetLevelRequestParams   params;
+    SetLevelRequest(RequestId&& id, LoggingLevel level)
+        : jsonrpc{"2.0"}
+        , id{std::move(id)}
+        , method{"logging/setLevel"}
+        , params{level}
+    {}
+};
+
 }
+
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequestParams,    level);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequest,          jsonrpc, id, method, params);
 
 #endif

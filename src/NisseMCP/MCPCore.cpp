@@ -1,55 +1,47 @@
 #include "MCPCore.h"
+#include "Context.h"
+#include "MCPServer.h"
 #include "JsonRPC.h"
+#include "CommandPing.h"
+#include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
+
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-bool MCPCoreRequestValidtor::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& response, std::string_view originAllowed)
+NISSEMCP_HEADER_ONLY_INCLUDE
+MCPCore::MCPCore()
 {
-    auto const& origin = request.headers().getHeader("origin");
+    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param) {initialize(context, id, param);});
+    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/)                                            {notifications_Initialized(context);});
 
-    if (origin.size() != 1 || origin[0] != originAllowed) {
-        response.setStatus(403)
-                .addHeader("content-type", "application/json")
-                .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{10, "Invalid Origin. Request forbidden", {}});
-        return false;
-    }
-
-    auto const& accept = request.headers().getHeader("accept");
-    bool acceptJson = false;
-    bool acceptStream= false;
-    for (auto const& aVal: accept) {
-        if (aVal == "application/json") {
-            acceptJson = true;
-        }
-        if (aVal == "text/event-stream") {
-            acceptStream = true;
-        }
-    }
-    if (!acceptJson || !acceptStream) {
-        response.setStatus(404)
-                .addHeader("content-type", "application/json")
-                .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{11, "Invalid Accept: Requires 'application/json' and 'text/event-stream'", {}});
-        return false;
-    }
-    return true;
+    addExecutor("ping",                      [&](Context& context, JsonRPC::OptRequestId id)                                                {ping(context, id);});
+    addExecutor("logging/setLevel",          [&](Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& param)   {loggingSetLevel(context, id, param);});
 }
 
-MCPCore::MCPCore(Protocol protocol)
-    : protocol{protocol}
+NISSEMCP_HEADER_ONLY_INCLUDE
+bool MCPCore::supportBatchRequest(Context& context) const
 {
-    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){return initialize(context, id, param);});
-    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/){return notifications_Initialized(context);});
+    return context.session.supportBatchRequest();
 }
 
-void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& /*param*/)
+NISSEMCP_HEADER_ONLY_INCLUDE
+void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param)
 {
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "initialize", "MCP Core Functionaliy");
+    ProtocolRange protocolInfo = context.session.protocolRange();
+
+    Protocol  defaultProtocol = param.protocolVersion;
+    if (defaultProtocol < protocolInfo.first) {
+        defaultProtocol =  protocolInfo.first;
+    }
+    else if (defaultProtocol > protocolInfo.second) {
+        defaultProtocol = protocolInfo.second;
+    }
     using namespace std::string_literals;
     context.addItem(id, Command::InitializeResult{
                                                 ._meta          = {},
-                                                .protocolVersion= "2025-11-25"s,
+                                                .protocolVersion= defaultProtocol,
                                                 .capabilities =
                                                 {
                                                         .logging        = {},
@@ -59,23 +51,52 @@ void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::In
                                                         .tools          = {},
                                                         .tasks          = {}
                                                 },
-                                                .serverInfo     = {},
+                                                .serverInfo     = {.name = std::string{context.session.serviceName()}},
                                                 .instructions   = {}
                                                  });
 }
 
-void MCPCore::notifications_Initialized(Context& /*context*/)
+NISSEMCP_HEADER_ONLY_INCLUDE
+void MCPCore::notifications_Initialized(Context& context)
 {
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "notifications_Initialized", "MCP Core Functionaliy");
+    MCPServerContext&   mcpContext  = dynamic_cast<MCPServerContext&>(context);
+    MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(mcpContext.session);
+    auto const&         headers     = mcpContext.request.headers();
+    auto const&         protocols   = headers.getHeader("MCP-Protocol-Version");
+    if (protocols.size() != 1) {
+        return;
+    }
+    std::string const&  protocolStr = protocols[0];
+    Protocol            protocol    = ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::getValue(protocolStr, "");
+    mcpSession.initialize(protocol);
 }
+
+void MCPCore::ping(Context& context, JsonRPC::OptRequestId id)
+{
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "ping", "MCP Core Functionaliy");
+    context.addItem(id, Command::Object{});
+}
+
+void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& /*param*/)
+{
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "loggingSetLevel", "MCP Core Functionaliy");
+    // TODO Needs real implementation.
+    context.addItem(id, Command::Object{});
+}
+
 #if 0
+NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPCore::resource()
 {
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPCore::tool()
 {
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPCore::prompt()
 {
 }
