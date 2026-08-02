@@ -5,6 +5,7 @@
 #include "JsonRPCCore.h"
 
 #include "CommandInitialize.h"
+#include "CommandLogging.h"
 
 #include <boost/uuid.hpp>
 #include <string_view>
@@ -82,6 +83,7 @@ class MCPCore: public JsonRPCCore
             void notifications_Initialized(Context& context);
 
             void ping(Context& context, JsonRPC::OptRequestId id);
+            void loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& param);
 #if 0
         void resource();
         void tool();

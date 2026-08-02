@@ -12,10 +12,11 @@ using namespace ThorsAnvil::Nisse::MCP;
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPCore::MCPCore()
 {
-    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param){initialize(context, id, param);});
-    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/)    {notifications_Initialized(context);});
+    addExecutor("initialize",                [&](Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param) {initialize(context, id, param);});
+    addExecutor("notifications/initialized", [&](Context& context, JsonRPC::OptRequestId /*id*/)                                            {notifications_Initialized(context);});
 
-    addExecutor("ping",                      [&](Context& context, JsonRPC::OptRequestId id)        {ping(context, id);});
+    addExecutor("ping",                      [&](Context& context, JsonRPC::OptRequestId id)                                                {ping(context, id);});
+    addExecutor("logging/setLevel",          [&](Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& param)   {loggingSetLevel(context, id, param);});
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
@@ -27,6 +28,7 @@ bool MCPCore::supportBatchRequest(Context& context) const
 NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param)
 {
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "initialize", "MCP Core Functionaliy");
     ProtocolRange protocolInfo = context.session.protocolRange();
 
     Protocol  defaultProtocol = param.protocolVersion;
@@ -57,6 +59,7 @@ void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::In
 NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPCore::notifications_Initialized(Context& context)
 {
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "notifications_Initialized", "MCP Core Functionaliy");
     MCPServerContext&   mcpContext  = dynamic_cast<MCPServerContext&>(context);
     MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(mcpContext.session);
     auto const&         headers     = mcpContext.request.headers();
@@ -71,6 +74,14 @@ void MCPCore::notifications_Initialized(Context& context)
 
 void MCPCore::ping(Context& context, JsonRPC::OptRequestId id)
 {
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "ping", "MCP Core Functionaliy");
+    context.addItem(id, Command::Object{});
+}
+
+void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& /*param*/)
+{
+    ThorsLogNote("ThorsAnvil::Nisse::MCP::MCPCore", "loggingSetLevel", "MCP Core Functionaliy");
+    // TODO Needs real implementation.
     context.addItem(id, Command::Object{});
 }
 

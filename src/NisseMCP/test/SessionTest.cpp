@@ -2,6 +2,7 @@
 #include <chrono>
 #include "CommandInitialize.h"
 #include "CommandPing.h"
+#include "CommandLogging.h"
 #include "Context.h"
 #include "MCPServer.h"
 #include "NisseHTTP/Util.h"
@@ -251,11 +252,122 @@ TEST(SessionTest, SendPingAfterSessionDelete)
     });
     EXPECT_TRUE(called);
     called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{1}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{2}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(404, resp.getStatus());
     });
     EXPECT_TRUE(called);
+}
+
+TEST(SessionTest, SendPingBeforeHandshakeCompleteisOK)
+{
+    MCPServerRunner     server;
+
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
+
+    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        Command::InitializeResponse initResponse;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
+
+        ASSERT_EQ(202, resp.getStatus());
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
+    });
+
+    bool called = false;
+    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{2}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        called = true;
+        EXPECT_EQ(202, resp.getStatus());
+    });
+    EXPECT_TRUE(called);
+    called = false;
+    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        called = true;
+        ASSERT_EQ(200, resp.getStatus());
+    });
+    EXPECT_TRUE(called);
+
+}
+
+TEST(SessionTest, SendLoggingBeforeHandshakeCompleteisIsNotOK)
+{
+    MCPServerRunner     server;
+
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
+
+    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        Command::InitializeResponse initResponse;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
+
+        ASSERT_EQ(202, resp.getStatus());
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
+    });
+
+    bool called = false;
+    client.post_async({.path="/mcp", .headers=headers}, Command::SetLevelRequest{2, Command::LoggingLevel::alert}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        called = true;
+        EXPECT_EQ(404, resp.getStatus());
+    });
+    EXPECT_TRUE(called);
+    called = false;
+    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        called = true;
+        ASSERT_EQ(200, resp.getStatus());
+    });
+    EXPECT_TRUE(called);
+
+}
+
+TEST(SessionTest, SendLoggingAfterHandshakeCompleteisIsOK)
+{
+    MCPServerRunner     server;
+
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
+
+    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        Command::InitializeResponse initResponse;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
+
+        ASSERT_EQ(202, resp.getStatus());
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
+    });
+
+    bool called = false;
+    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        called = true;
+        ASSERT_EQ(200, resp.getStatus());
+    });
+    EXPECT_TRUE(called);
+    called = false;
+    client.post_async({.path="/mcp", .headers=headers}, Command::SetLevelRequest{2, Command::LoggingLevel::alert}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        called = true;
+        EXPECT_EQ(202, resp.getStatus());
+    });
+    EXPECT_TRUE(called);
+
 }
 

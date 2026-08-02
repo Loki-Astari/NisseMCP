@@ -159,14 +159,18 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
         return notFoundSession;
     }
     MCPSession&            session         = find->second;
-    if (session.isRequested() && getMethodName(request) != "notifications/initialized"sv) {
-        // Session is only requested and has not been confirmed by the client.
-        // We will ignore until the client has correctly initialized.
-        response.setStatus(404)
-                .addHeader("content-type", "application/json")
-                .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
-        return notFoundSession;
+    if (session.isRequested())
+    {
+        std::string_view methodName = getMethodName(request);
+        if (methodName != "notifications/initialized"sv && methodName != "ping"sv) {
+            // Session is only requested and has not been confirmed by the client.
+            // We will ignore until the client has correctly initialized.
+            response.setStatus(404)
+                    .addHeader("content-type", "application/json")
+                    .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
+                    << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
+            return notFoundSession;
+        }
     }
 
     return session;
