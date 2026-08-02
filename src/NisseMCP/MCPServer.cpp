@@ -42,8 +42,9 @@ JsonRPCCore& MCPServer::getCore()
 NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPServer::removeSession(ThorsAnvil::Nisse::HTTP::Request const& request, ThorsAnvil::Nisse::HTTP::Response& /*response*/)
 {
-    auto const&         sessionHeaders  = request.headers().getHeader("MCP-Session-Id");
+    auto const&         sessionHeaders  = request.headers().getHeader("mcp-session-id");
     if (sessionHeaders.size() == 0) {
+        ThorsLogError("ThorsAnvil::Nisse::MCP::MCPServer", "removeSession", "Attempt to remove session but no session id");
         return;
     }
     std::string_view    sessionHeader   = sessionHeaders[0];
