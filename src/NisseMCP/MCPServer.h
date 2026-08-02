@@ -50,9 +50,13 @@ class MCPJanitor: public ThorsAnvil::Nisse::Server::TimerAction
         {}
         virtual void handleRequest(int /*timerId*/) override
         {
-            for (auto loop = std::begin(sessionMap); loop != std::end(sessionMap); ++loop) {
-                if (sessionTimeout == Duration{1'0000'000}) {
-                    initHandShake = Duration{1};
+            for (auto loop = std::begin(sessionMap); loop != std::end(sessionMap);) {
+                bool timeOut = loop->second.hasTimedOut(loop->second.isRequested() ? initHandShake : sessionTimeout);
+                if (timeOut) {
+                    loop = sessionMap.erase(loop);
+                }
+                else {
+                    ++loop;
                 }
             }
         }

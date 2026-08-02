@@ -57,10 +57,11 @@ class MCPSession: public Session
         virtual bool                supportBatchRequest()   const override {return protocol < Protocol::v2025_06_18;}
         virtual ProtocolRange       protocolRange()         const override {return protocolRetriever();}
 
-        bool        isValid()               const {return state != Invalid;}
-        bool        isRequested()           const {return state == Requested;}
-        Protocol    getProtocol()           const {return protocol;}
-        std::string toString()              const {return boost::uuids::to_string(id);}
+        bool        isValid()                               const {return state != Invalid;}
+        bool        isRequested()                           const {return state == Requested;}
+        Protocol    getProtocol()                           const {return protocol;}
+        std::string toString()                              const {return boost::uuids::to_string(id);}
+        bool        hasTimedOut(Duration timeout)           const {return (Clock::now() - lastUsed) > timeout; }
 
         void     initialize(Protocol newProtocol)  {state = Confirmed; protocol = newProtocol;}
 };

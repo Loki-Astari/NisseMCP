@@ -13,11 +13,12 @@ using namespace ThorsAnvil::Nisse::MCP;
 namespace
 {
 
+MCPServerConfig defaultConfig = {.serverName = "SessionTest Server 1.0", .allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .protocolInfo = {Protocol::v2025_11_25, Protocol::v2024_11_05}};
 struct MCPServerTest: public MCPServer
 {
     public:
-        MCPServerTest(ProtocolRange protocolInfo = {Protocol::v2025_11_25, Protocol::v2024_11_05})
-            : MCPServer{{.serverName = "SessionTest Server 1.0", .allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .protocolInfo = protocolInfo}}
+        MCPServerTest(MCPServerConfig&& config = {.serverName = "SessionTest Server 1.0", .allowedOrigin = "https://thors-anvil.com", .slot = "/mcp", .protocolInfo = {Protocol::v2025_11_25, Protocol::v2024_11_05}})
+            : MCPServer{std::move(config)}
         {}
 };
 
@@ -46,7 +47,9 @@ TEST(SessionTest, InitializeOnly)
 
 TEST(SessionTest, InitializeProtocolBelowRange)
 {
-    MCPServerRunner     server{ProtocolRange{Protocol::v2025_03_26, Protocol::v2025_11_25}};
+    MCPServerConfig     config{defaultConfig};
+    config.protocolInfo = {Protocol::v2025_03_26, Protocol::v2025_11_25};
+    MCPServerRunner     server{std::move(config)};
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
     ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
@@ -65,7 +68,9 @@ TEST(SessionTest, InitializeProtocolBelowRange)
 
 TEST(SessionTest, InitializeProtocolAboveRange)
 {
-    MCPServerRunner     server{ProtocolRange{Protocol::v2025_03_26, Protocol::v2025_11_25}};
+    MCPServerConfig     config{defaultConfig};
+    config.protocolInfo = {Protocol::v2025_03_26, Protocol::v2025_11_25};
+    MCPServerRunner     server{std::move(config)};
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
     ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
@@ -84,7 +89,9 @@ TEST(SessionTest, InitializeProtocolAboveRange)
 
 TEST(SessionTest, InitializeProtocolInRange)
 {
-    MCPServerRunner     server{ProtocolRange{Protocol::v2025_03_26, Protocol::v2025_11_25}};
+    MCPServerConfig     config{defaultConfig};
+    config.protocolInfo = {Protocol::v2025_03_26, Protocol::v2025_11_25};
+    MCPServerRunner     server{std::move(config)};
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
     ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
@@ -103,7 +110,9 @@ TEST(SessionTest, InitializeProtocolInRange)
 
 TEST(SessionTest, InitializeShouldHaveSessionIDSet)
 {
-    MCPServerRunner     server{ProtocolRange{Protocol::v2025_11_25, Protocol::v2025_11_25}};
+    MCPServerConfig     config{defaultConfig};
+    config.protocolInfo = {Protocol::v2025_03_26, Protocol::v2025_11_25};
+    MCPServerRunner     server{std::move(config)};
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
     ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
@@ -123,7 +132,7 @@ TEST(SessionTest, InitializeShouldHaveSessionIDSet)
 
 TEST(SessionTest, SendPingWithNoSessionId)
 {
-    MCPServerRunner     server{ProtocolRange{Protocol::v2025_11_25, Protocol::v2025_11_25}};
+    MCPServerRunner     server;
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
     ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
@@ -142,7 +151,7 @@ TEST(SessionTest, SendPingWithNoSessionId)
 
 TEST(SessionTest, SendPingAfterHandShake)
 {
-    MCPServerRunner     server{ProtocolRange{Protocol::v2025_11_25, Protocol::v2025_11_25}};
+    MCPServerRunner     server;
 
     ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
     ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
@@ -172,5 +181,34 @@ TEST(SessionTest, SendPingAfterHandShake)
         EXPECT_EQ(202, resp.getStatus());
     });
     EXPECT_TRUE(called);
+}
+
+TEST(SessionTest, SendInitNotificationToSlowly)
+{
+    // Janitor runs every 10 seconds.
+    // So have to wait a min 10 seconds for the sweep.
+    MCPServerRunner     server;
+
+    ThorsAnvil::Nisse::HTTP::ClientHTTP     client{ThorsAnvil::ThorsSocket::SocketInfo{"localhost", 8070}};
+    ThorsAnvil::Nisse::HTTP::HeaderRequest  headers;
+    headers.add("origin", "https://thors-anvil.com");
+    headers.add("accept", "application/json");
+    headers.add("accept", "text/event-stream");
+
+    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        Command::InitializeResponse initResponse;
+        resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
+
+        ASSERT_EQ(202, resp.getStatus());
+        headers.add("MCP-Session-Id", resp.getHeader().getHeader("mcp-session-id")[0]);
+        headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
+    });
+    sleep(22);
+
+    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    {
+        ASSERT_EQ(404, resp.getStatus());
+    });
 }
 
