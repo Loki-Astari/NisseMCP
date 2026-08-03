@@ -4,6 +4,7 @@
 #include "NisseMCPConfig.h"
 #include "MCPUtil.h"
 #include "Context.h"
+#include "JsonRPC.h"
 
 #include "NisseHTTP/ClientHTTP.h"
 #include "ThorSerialize/JsonThor.h"
@@ -37,36 +38,57 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
         ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
         ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
 
-        template<typename Command, typename... Args>
-        std::pair<bool, typename Command::UserData> sendRequest(Args&&... args)
+        template<typename C>
+        using Action = std::function<void(typename C::UserData&&)>;
+        using Error  = std::function<void(int, int, std::string_view)>;
+
+        template<typename Command>
+        void sendRequest(Action<Command>&& action,
+                         Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
-            using Result    = typename Command::Result;
-            using UserData  = typename Command::UserData;
 
-            bool ok = false;
-            Result reply;
-            post_async({.path = slot, .headers = headers}, Request{getNextRequestId(), std::forward<Args>(args)...}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
-            {
-                ok = (resp.getStatus() == 202) && (resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply));
-            });
-            if (ok && reply.result.has_value()) {
-                return {true, reply.result.value()};
-            }
-            return {false, UserData{}};
+            post_async({.path = slot, .headers = headers}, Request{getNextRequestId()},
+                       [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
-
         template<typename Command, typename... Args>
-        bool sendNotification(Args&&... args)
+        void sendRequest(Args&&... args,
+                         Action<Command>&& action,
+                         Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
 
-            bool ok = false;
-            post_async({.path = slot, .headers = headers}, Request{{}, std::forward<Args>(args)...}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp){ok = resp.getStatus() == 200;});
-            return ok;
+            post_async({.path = slot, .headers = headers}, Request{getNextRequestId(), std::forward<Args>(args)...},
+                       [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
 
     private:
+        template<typename Command>
+        void handleRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+        {
+            using Result = typename Command::Result;
+
+            if (resp.getStatus() == 202) {
+                Result reply;
+                if (resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply)) {
+                    std::forward<Action<Command>>(action)(std::move(reply.result));
+                }
+                else {
+                    std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Normal Path");
+                }
+            }
+            else {
+                JsonRPC::ErrorResponse errorResp;
+                if (resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorResp)) {
+                    std::forward<Error>(errorAction)(resp.getStatus(), errorResp.error.code, errorResp.error.message);
+                }
+                else {
+                    std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Error Path");
+                }
+            }
+        }
+
+        static void logErrorMessage(int status, int code, std::string_view message);
         void init(ClientConfig const& config, std::string_view origin);
         virtual bool resetStream() override;
 };

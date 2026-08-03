@@ -77,3 +77,8 @@ bool ClientMCP::resetStream()
 {
     return ClientHTTP::resetStream();
 }
+
+void ClientMCP::logErrorMessage(int status, int code, std::string_view message)
+{
+    ThorsLogInfo("ThorsAnvil::Nisse::MCP::ClientMCP", "logErrorMessage", "HTTP Status: ", status, " JsonRPC Error Code: ", code, " Message: ", message);
+}

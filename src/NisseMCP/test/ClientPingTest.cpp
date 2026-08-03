@@ -30,6 +30,7 @@ TEST(ClientPingTest, SendPing)
 
     ClientMCP           client{{.protocol = Protocol::v2025_11_25}, {"localhost", 8070}};
 
-    auto result = client.sendRequest<Command::Ping>();
-    ASSERT_TRUE(result.first);
+    bool pingResponse = false;
+    client.sendRequest<Command::Ping>([&](Command::Object&&){pingResponse = true;});
+    ASSERT_TRUE(pingResponse);
 }

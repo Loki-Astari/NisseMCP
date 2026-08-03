@@ -26,10 +26,13 @@ struct PingResponse
 {
     std::string                     jsonrpc;
     RequestId                       id;
-    OptObject                       result;
+    Object                          result;
     JsonRPC::OptError               error;
 };
 
+/*
+ * Used by the ClientMCP to understand what to send
+ */
 struct Ping
 {
     using Request   = PingRequest;

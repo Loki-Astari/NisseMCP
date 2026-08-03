@@ -95,8 +95,8 @@ using OptData = std::optional<Data>;
 
 struct Error
 {
-    int                 code;
-    std::string         message;
+    int                 code        = 101;
+    std::string         message     = "No Error Provided";
     OptData             data;
 };
 
@@ -141,6 +141,13 @@ struct Response
         }
 };
 
+struct ErrorResponse
+{
+    std::string         jsonrpc;
+    Error               error;
+    OptResponseId       id;
+};
+
 }
 
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
@@ -148,6 +155,7 @@ ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse, jsonrpc, error, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response, jsonrpc, result, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse, jsonrpc, error, id);
 
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "JsonRPC.source"
