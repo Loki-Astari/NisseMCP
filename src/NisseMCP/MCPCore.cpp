@@ -39,7 +39,7 @@ void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::In
     }
     using namespace std::string_literals;
     context.addItem(id, Command::InitializeResult{
-                                                ._meta          = {},
+                                                // TODO ._meta          = {},
                                                 .protocolVersion= defaultProtocol,
                                                 .capabilities =
                                                 {

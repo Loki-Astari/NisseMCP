@@ -9,10 +9,13 @@
 namespace ThorsAnvil::Nisse::MCP::Command
 {
 
+enum class LoggingLevel {debug, info, notice, warning, error, critical, alert, emergency };
+
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequestparams
 struct SetLevelRequestParams
 {
-    OptMeta     /*vera*/    _meta;
+    // OptMeta     /*vera*/    _meta;
+    // TODO Meta
     LoggingLevel            level;
     SetLevelRequestParams()
     {}

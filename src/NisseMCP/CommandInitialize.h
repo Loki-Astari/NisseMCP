@@ -84,7 +84,7 @@ struct Implementation
 // Serialized
 struct InitializeRequestParams
 {
-    OptMeta     /*vera*/    _meta;
+    // TODO: OptMeta     /*vera*/    _meta;
     Protocol                protocolVersion = Protocol::v2025_11_25;
     ClientCapabilities      capabilities;
     Implementation          clientInfo;
@@ -127,7 +127,7 @@ struct ServerCapabilities
 // Serialized
 struct InitializeResult
 {
-    OptMeta     /*vera*/    _meta;
+    // TODO OptMeta     /*vera*/    _meta;
     Protocol                protocolVersion;
     ServerCapabilities      capabilities;
     Implementation          serverInfo;
@@ -184,13 +184,13 @@ ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Request,                  
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Tasks,                    list, cancel, requests);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ClientCapabilities,       roots, sampling, elicitation, tasks);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Implementation,           icons, name, title, version, description, websiteUrl);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequestParams,  _meta, protocolVersion, capabilities, clientInfo);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequestParams,  protocolVersion, capabilities, clientInfo);
 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Caller,                   call);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Tools,                    tools);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerTasks,              list, cancel, requests);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerCapabilities,       logging, completions, prompts, resources, tools, tasks);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResult,         _meta, protocolVersion, capabilities, serverInfo, instructions);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResult,         protocolVersion, capabilities, serverInfo, instructions);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequest,        jsonrpc, id, method, params);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Notification_Initialized, jsonrpc, method);
 
