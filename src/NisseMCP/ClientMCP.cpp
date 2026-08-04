@@ -4,6 +4,7 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version)
     : ClientHTTP{info, version}
     , protocol{config.protocol}
@@ -11,6 +12,7 @@ ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocke
     init(config, info.host);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version)
     : ClientHTTP{info, version}
     , protocol{config.protocol}
@@ -18,6 +20,7 @@ ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::Socket
     init(config, info.host);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& info, ThorsAnvil::Nisse::HTTP::Version version)
     : ClientHTTP{info, version}
     , protocol{config.protocol}
@@ -25,6 +28,7 @@ ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::Socket
     init(config, info.host);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& info, ThorsAnvil::Nisse::HTTP::Version version)
     : ClientHTTP{info, version}
     , protocol{config.protocol}
@@ -32,6 +36,7 @@ ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocke
     init(config, info.host);
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ClientMCP::init(ClientConfig const& config, std::string_view origin)
 {
     slot        = config.slot;
@@ -73,11 +78,13 @@ void ClientMCP::init(ClientConfig const& config, std::string_view origin)
     });
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 bool ClientMCP::resetStream()
 {
     return ClientHTTP::resetStream();
 }
 
+NISSEMCP_HEADER_ONLY_INCLUDE
 void ClientMCP::logErrorMessage(int status, int code, std::string_view message)
 {
     ThorsLogInfo("ThorsAnvil::Nisse::MCP::ClientMCP", "logErrorMessage", "HTTP Status: ", status, " JsonRPC Error Code: ", code, " Message: ", message);

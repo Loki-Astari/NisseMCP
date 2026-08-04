@@ -39,9 +39,38 @@ struct SetLevelRequest
     {}
 };
 
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#loggingmessagenotificationparams
+struct LoggingMessageNotificationParams
+{
+    //OptMeta             /*vera*/    _meta;
+    // TODO Meta
+    LoggingLevel                    level;
+    OptString                       logger;
+    using JsonBlock = ThorsAnvil::Serialize::AnyBlock;
+    JsonBlock                       data;
+};
+
+// https://modelcontextprotocol.io/specification/2025-11-25/schema#loggingmessagenotification
+struct LoggingMessageNotification
+{
+    std::string                         jsonrpc; // “2.0”;
+    std::string                         method; // “notifications/message”;
+    LoggingMessageNotificationParams    params;
+};
+
+struct Logging
+{
+    using Request   = SetLevelRequest;
+    using Result    = LoggingMessageNotification;
+    using UserData  = LoggingMessageNotificationParams;
+};
+
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequestParams,    level);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequest,          jsonrpc, id, method, params);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::LoggingMessageNotificationParams, level, logger, data);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::LoggingMessageNotification,       jsonrpc, method, params);
+
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequestParams,            level);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequest,                  jsonrpc, id, method, params);
 
 #endif

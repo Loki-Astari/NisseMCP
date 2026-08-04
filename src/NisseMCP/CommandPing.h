@@ -1,9 +1,9 @@
 #ifndef THORSANVIL_NISSE_MCP_COMMAND_PING_H
 #define THORSANVIL_NISSE_MCP_COMMAND_PING_H
 
-#include <string>
 #include "NisseMCPConfig.h"
 #include "CommandCommon.h"
+#include <string>
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#ping
 namespace ThorsAnvil::Nisse::MCP::Command
@@ -26,7 +26,7 @@ struct PingResponse
 {
     std::string                     jsonrpc;
     RequestId                       id;
-    Object                          result;
+    OptObject                       result;
     JsonRPC::OptError               error;
 };
 
@@ -43,6 +43,6 @@ struct Ping
 }
 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::PingRequest,         jsonrpc, id, method);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::PingResponse,        jsonrpc, id, result);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::PingResponse,        jsonrpc, id, result, error);
 
 #endif

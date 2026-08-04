@@ -5,10 +5,12 @@
 #include "MCPUtil.h"
 #include "Context.h"
 #include "JsonRPC.h"
+#include "SSEInfo.h"
 
 #include "NisseHTTP/ClientHTTP.h"
 #include "ThorSerialize/JsonThor.h"
 
+#include <limits>
 #include <string>
 #include <string_view>
 
@@ -63,27 +65,96 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
         }
 
     private:
+        void handleErrorRespFromServer(Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+        {
+            JsonRPC::ErrorResponse errorResp;
+            if (resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorResp)) {
+                std::forward<Error>(errorAction)(resp.getStatus(), errorResp.error.code, errorResp.error.message);
+            }
+            else {
+                std::forward<Error>(errorAction)(resp.getStatus(), 100, "Failed to decode JsonRPC object: Error Path");
+            }
+        }
         template<typename Command>
         void handleRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = typename Command::Result;
+            if (resp.getStatus() != 202) {
+                handleErrorRespFromServer(std::forward<Error>(errorAction), resp);
+                return;
+            }
 
-            if (resp.getStatus() == 202) {
-                Result reply;
-                if (resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply)) {
-                    std::forward<Action<Command>>(action)(std::move(reply.result));
+            enum ReponseType {Unknown, ResponseObject, ResponseStream, NoResponse};
+            ReponseType  responseType = Unknown;
+            // Is this a notification?
+            // If so then there is no response object.
+            if (responseType == NoResponse) {
+                // TODO
+                // We should still call the succ/error functions.
+                // Need a use case
+                return;
+            }
+            auto const& contentType = resp.getHeader().getHeader("Content-Type");
+            if (contentType.size() == 1) {
+                if (contentType[0] == "application/json") {
+                    responseType = ResponseObject;
                 }
-                else {
-                    std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Normal Path");
+                if (contentType[0] == "text/event-stream") {
+                    responseType = ResponseStream;
                 }
             }
-            else {
-                JsonRPC::ErrorResponse errorResp;
-                if (resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorResp)) {
-                    std::forward<Error>(errorAction)(resp.getStatus(), errorResp.error.code, errorResp.error.message);
+
+            switch (responseType)
+            {
+                case Unknown:
+                    return std::forward<Error>(errorAction)(resp.getStatus(), 100, "Invalid Content-Type from server");
+
+                case ResponseObject:
+                    return handleObjectRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);
+
+                case ResponseStream:
+                    return handleStreamRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);
+
+                case NoResponse:
+                    // TODO
+                    throw std::runtime_error("Should not reach here");
+            }
+        }
+
+        template<typename Command>
+        void handleObjectRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+        {
+            using Result = typename Command::Result;
+            Result reply;
+            if (!(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
+                std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Normal Path");
+                return;
+            }
+            if (reply.error.has_value()) {
+                std::forward<Error>(errorAction)(202, reply.error.value().code, reply.error.value().message);
+                return;
+            }
+            if (!reply.result.has_value()) {
+                std::forward<Error>(errorAction)(202, 100, "No value in the result field");
+                return;
+            }
+
+            // All checks passed. We have a value.
+            std::forward<Action<Command>>(action)(std::move(reply.result.value()));
+        }
+
+        template<typename Command>
+        void handleStreamRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+        {
+            using Result = typename Command::Result;
+
+            SSEInfo<Result>     event;
+            while (resp.body() >> event) {
+                if (event.data.error.has_value()) {
+                    std::forward<Error>(errorAction)(202, event.data.error.value().code, event.data.error.value().message);
+                    continue;
                 }
-                else {
-                    std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Error Path");
+                if (event.data.result.has_value()) {
+                    std::forward<Action<Command>>(action)(std::move(event.data.result.value()));
                 }
             }
         }
@@ -94,5 +165,9 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
 };
 
 }
+
+#if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
+#include "ClientMPC.source"
+#endif
 
 #endif
