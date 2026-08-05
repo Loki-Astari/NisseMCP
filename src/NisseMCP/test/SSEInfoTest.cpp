@@ -7,7 +7,18 @@
 #include <string>
 #include <vector>
 
-// Distinct names: every test .cpp is linked into one binary alongside SSEInfoTest.cpp.
+// https://html.spec.whatwg.org/multipage/server-sent-events.html
+//
+// Note: the tests below spell out "\n" / "\r\n" explicitly rather than using raw
+// string literals. Line endings and leading spaces are semantically significant to
+// a line oriented parser, so it is worth being able to see exactly what is on the
+// wire without counting whitespace in the source.
+
+class TestData {};
+ThorsAnvil_MakeTrait(TestData);
+
+// Payload with a field, so a test can prove that the correct bytes reached the
+// JSON parser rather than simply that an event was dispatched.
 struct Payload
 {
     int     n = 0;
@@ -15,8 +26,10 @@ struct Payload
 };
 ThorsAnvil_MakeTrait(Payload, n, error);
 
-using SSEEvent = ThorsAnvil::Nisse::MCP::SSEInfo<Payload>;
+using SSETestEvet   = ThorsAnvil::Nisse::MCP::SSEInfo<TestData>;
+using SSEPayload    = ThorsAnvil::Nisse::MCP::SSEInfo<Payload>;
 
+// A snapshot of one dispatched event, so a whole stream can be asserted on at once.
 struct Captured
 {
     std::string     id;
@@ -28,7 +41,7 @@ struct Captured
 std::vector<Captured> readAll(std::istream& input)
 {
     std::vector<Captured>  result;
-    SSEEvent               event;
+    SSEPayload             event;
     while (input >> event) {
         result.push_back(Captured{event.id, event.event, event.data.n, event.data.error.has_value() ? event.data.error.value().code : 0});
     }
@@ -39,6 +52,22 @@ std::vector<Captured> readAll(std::istream& input)
 // Well formed events
 // ---------------------------------------------------------------------------
 
+TEST(SSEInforTest, Data)
+{
+    std::stringstream input{
+R"(data: {}
+
+)"};
+
+    std::size_t     count = 0;
+    SSETestEvet     event;
+    while (input >> event) {
+        ++count;
+    }
+
+    ASSERT_EQ(1, count);
+}
+
 TEST(SSEInfoTest, DataValueReachesParser)
 {
     std::stringstream   input{"data: {\"n\":42}\n\n"};
@@ -46,6 +75,16 @@ TEST(SSEInfoTest, DataValueReachesParser)
 
     ASSERT_EQ(1, events.size());
     EXPECT_EQ(42, events[0].n);
+}
+
+TEST(SSEInforTest, EventTypeAndData)
+{
+    std::stringstream   input{"event: message\ndata: {\"n\":1}\n\n"};
+    auto                events = readAll(input);
+
+    ASSERT_EQ(1, events.size());
+    EXPECT_EQ("message", events[0].event);
+    EXPECT_EQ(1, events[0].n);
 }
 
 TEST(SSEInfoTest, IdEventAndData)
@@ -127,6 +166,16 @@ TEST(SSEInfoTest, MixedLineEndings)
 // Comments, blank lines, keep alive
 // ---------------------------------------------------------------------------
 
+TEST(SSEInforTest, CommentBeforeEventIsIgnored)
+{
+    std::stringstream   input{": this is a comment\ndata: {\"n\":1}\n\n"};
+    auto                events = readAll(input);
+
+    ASSERT_EQ(1, events.size());
+    EXPECT_EQ(1, events[0].n);
+}
+
+// The common server keep alive: a bare ":ping" between real events.
 TEST(SSEInfoTest, KeepAlivePingBetweenEvents)
 {
     std::stringstream   input{":ping\ndata: {\"n\":1}\n\n:ping\n\ndata: {\"n\":2}\n\n"};
@@ -187,6 +236,17 @@ TEST(SSEInfoTest, IdPersistsToFollowingEvent)
     EXPECT_EQ("abc", events[1].id);
 }
 
+TEST(SSEInforTest, IdReplacedByLaterEvent)
+{
+    std::stringstream   input{"id: a\ndata: {\"n\":1}\n\nid: b\ndata: {\"n\":2}\n\n"};
+    auto                events = readAll(input);
+
+    ASSERT_EQ(2, events.size());
+    EXPECT_EQ("a", events[0].id);
+    EXPECT_EQ("b", events[1].id);
+}
+
+// Unlike the id, the event type resets to empty for every event.
 TEST(SSEInfoTest, EventTypeDoesNotPersist)
 {
     std::stringstream   input{"event: alpha\ndata: {\"n\":1}\n\ndata: {\"n\":2}\n\n"};
@@ -219,6 +279,9 @@ TEST(SSEInfoTest, UnknownFieldIsIgnored)
     EXPECT_EQ(1, events[0].n);
 }
 
+// Shares its first letter with "data", so it exercises the mid-name mismatch path
+// in checkFor(). The mismatch happens before the line ending, so ignoreLine()
+// correctly finishes the current line.
 TEST(SSEInfoTest, UnknownFieldSharingAPrefixIsIgnored)
 {
     std::stringstream   input{"duration: 5\ndata: {\"n\":42}\n\n"};
@@ -228,8 +291,62 @@ TEST(SSEInfoTest, UnknownFieldSharingAPrefixIsIgnored)
     EXPECT_EQ(42, events[0].n);
 }
 
-// A colon-less field is a legal empty value. Reading the name whole before
-// dispatching means the following line cannot be swallowed.
+// ---------------------------------------------------------------------------
+// Stream termination
+// ---------------------------------------------------------------------------
+
+TEST(SSEInforTest, EmptyStreamProducesNoEvents)
+{
+    std::stringstream   input{""};
+    auto                events = readAll(input);
+
+    EXPECT_EQ(0, events.size());
+}
+
+TEST(SSEInforTest, FinalEventTerminatedByEndOfStream)
+{
+    std::stringstream   input{"data: {\"n\":1}\n"};
+    auto                events = readAll(input);
+
+    ASSERT_EQ(1, events.size());
+    EXPECT_EQ(1, events[0].n);
+}
+
+TEST(SSEInforTest, FinalEventTerminatedByEndOfStreamWithNoNewline)
+{
+    std::stringstream   input{"data: {\"n\":1}"};
+    auto                events = readAll(input);
+
+    ASSERT_EQ(1, events.size());
+    EXPECT_EQ(1, events[0].n);
+}
+
+// ---------------------------------------------------------------------------
+// Known issues.
+//
+// These describe the behaviour the parser should have. They are expected to fail
+// against the parser as it currently stands, and are kept in a separate suite so
+// that the passing suite above can be run on its own:
+//
+//     make test-SSEInforTest.*
+//     make test-SSEInforKnownIssueTest.*
+// ---------------------------------------------------------------------------
+
+// Reaching the end of a well formed stream is not an error. Today the final read
+// sets badbit, and ClientMCP::handleStreamRespFromServer tests body().fail() -
+// which is (failbit || badbit) - so every successful stream reports an error.
+TEST(SSEInforKnownIssueTest, CleanEndOfStreamIsNotAnError)
+{
+    std::stringstream   input{"data: {\"n\":1}\n\n"};
+    auto                events = readAll(input);
+
+    ASSERT_EQ(1, events.size());
+    EXPECT_FALSE(input.bad());
+}
+
+// A field name with no colon is legal and means "empty value". checkFor() consumes
+// the mismatching character without ungetting it, so when the mismatch is the line
+// ending itself the caller's ignoreLine() swallows the whole of the next line.
 TEST(SSEInfoTest, FieldNameWithNoColonDoesNotEatTheNextLine)
 {
     std::stringstream   input{"id\ndata: {\"n\":42}\n\n"};
@@ -240,7 +357,6 @@ TEST(SSEInfoTest, FieldNameWithNoColonDoesNotEatTheNextLine)
     EXPECT_EQ("", events[0].id);
 }
 
-// A line merely starting with 'd' must not mark the event as carrying data.
 TEST(SSEInfoTest, UnknownFieldStartingWithDDoesNotDispatch)
 {
     std::stringstream   input{"dodgy: value\n\n"};
@@ -319,8 +435,10 @@ TEST(SSEInfoTest, RepeatedDataFieldIsRejectedCleanly)
     EXPECT_FALSE(input.bad());
 }
 
-// JSON pretty printed across data lines splits mid-token,
-TEST(SSEInfoTest, PrettyPrintedJsonAcrossDataLinesShouldWork)
+// The spec concatenates repeated data fields with "\n" and parses the result, which
+// lets a server pretty print its JSON across several lines. readFieldDataValue()
+// parses straight off the stream, so the first partial line fails to parse.
+TEST(SSEInforKnownIssueTest, MultipleDataLinesAreConcatenated)
 {
     std::stringstream   input{"data: {\"n\":\ndata: 1}\n\n"};
     auto                events = readAll(input);
