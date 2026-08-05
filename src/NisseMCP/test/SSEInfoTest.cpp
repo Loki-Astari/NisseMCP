@@ -303,22 +303,31 @@ TEST(SSEInforTest, EmptyStreamProducesNoEvents)
     EXPECT_EQ(0, events.size());
 }
 
-TEST(SSEInforTest, FinalEventTerminatedByEndOfStream)
+// "Once the end of the file is reached, any pending data must be discarded. (If the
+// file ends in the middle of an event, before the final empty line, the incomplete
+// event is not dispatched.)" An event with no terminating blank line is therefore
+// dropped rather than delivered.
+//
+// Note this currently falls out of std::istream::get() setting failbit as well as
+// eofbit when it cannot extract a character, which makes readEventFromStream()
+// return a failed stream and suppresses the swap in operator>>. The explicit
+// "wasThereData" branch in the eof case reads as though it intended to return
+// success here. Take care that any fix for the badbit issue below does not start
+// dispatching incomplete events.
+TEST(SSEInforTest, IncompleteFinalEventIsDiscarded)
 {
     std::stringstream   input{"data: {\"n\":1}\n"};
     auto                events = readAll(input);
 
-    ASSERT_EQ(1, events.size());
-    EXPECT_EQ(1, events[0].n);
+    EXPECT_EQ(0, events.size());
 }
 
-TEST(SSEInforTest, FinalEventTerminatedByEndOfStreamWithNoNewline)
+TEST(SSEInforTest, IncompleteFinalEventWithNoNewlineIsDiscarded)
 {
     std::stringstream   input{"data: {\"n\":1}"};
     auto                events = readAll(input);
 
-    ASSERT_EQ(1, events.size());
-    EXPECT_EQ(1, events[0].n);
+    EXPECT_EQ(0, events.size());
 }
 
 // ---------------------------------------------------------------------------
