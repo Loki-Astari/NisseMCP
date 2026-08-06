@@ -49,21 +49,21 @@ void ClientMCP::init(ClientConfig const& config, std::string_view origin)
     {
         Command::InitializeResponse reply;
         if (resp.getStatus() != 202 || !(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
-            ThorsLogAndThrowInfo(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Bad response from server");
+            ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Bad response from server");
         }
 
         auto const& sessionIds      = resp.getHeader().getHeader("MCP-Session-Id");
         if (sessionIds.size() != 1) {
-            ThorsLogAndThrowInfo(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: No Session Information from server");
+            ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: No Session Information from server");
         }
 
         if (!reply.result.has_value()) {
-            ThorsLogAndThrowInfo(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: No Protocol Information from server");
+            ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: No Protocol Information from server");
         }
 
         Protocol returnedProtocol = reply.result.value().protocolVersion;
         if (returnedProtocol != protocol) {
-            ThorsLogAndThrowInfo(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Requested protocol not supported");
+            ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Requested protocol not supported");
         }
 
         headers.add("MCP-Session-Id", sessionIds[0]);
@@ -73,7 +73,7 @@ void ClientMCP::init(ClientConfig const& config, std::string_view origin)
     post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         if (resp.getStatus() != 200) {
-            ThorsLogAndThrowInfo(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Handshake was not accepted");
+            ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Handshake was not accepted");
         }
     });
 }
@@ -87,5 +87,5 @@ bool ClientMCP::resetStream()
 NISSEMCP_HEADER_ONLY_INCLUDE
 void ClientMCP::logErrorMessage(int status, int code, std::string_view message)
 {
-    ThorsLogInfo("ThorsAnvil::Nisse::MCP::ClientMCP", "logErrorMessage", "HTTP Status: ", status, " JsonRPC Error Code: ", code, " Message: ", message);
+    ThorsLogError("ThorsAnvil::Nisse::MCP::ClientMCP", "logErrorMessage", "HTTP Status: ", status, " JsonRPC Error Code: ", code, " Message: ", message);
 }

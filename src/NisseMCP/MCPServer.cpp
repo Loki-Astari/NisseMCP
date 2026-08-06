@@ -39,7 +39,7 @@ void MCPServer::removeSession(ThorsAnvil::Nisse::HTTP::Request const& request, T
 {
     auto const&         sessionHeaders  = request.headers().getHeader("MCP-Session-Id");
     if (sessionHeaders.size() == 0) {
-        ThorsLogError("ThorsAnvil::Nisse::MCP::MCPServer", "removeSession", "Attempt to remove session but no session id");
+        ThorsLogAlert("ThorsAnvil::Nisse::MCP::MCPServer", "removeSession", "Attempt to remove session but no session id");
         return;
     }
     std::string_view    sessionHeader   = sessionHeaders[0];
