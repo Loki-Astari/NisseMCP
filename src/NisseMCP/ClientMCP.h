@@ -53,14 +53,14 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
             post_async({.path = slot, .headers = headers}, Request{getNextRequestId()},
                        [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
-        template<typename Command, typename... Args>
-        void sendRequest(Args&&... args,
+        template<typename Command>
+        void sendRequest(typename Command::UserParam const& param,
                          Action<Command>&& action,
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
 
-            post_async({.path = slot, .headers = headers}, Request{getNextRequestId(), std::forward<Args>(args)...},
+            post_async({.path = slot, .headers = headers}, Request{getNextRequestId(), param},
                        [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
 

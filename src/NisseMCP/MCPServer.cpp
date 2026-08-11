@@ -1,5 +1,6 @@
 #include "MCPServer.h"
 #include "MCPServerContext.h"
+#include "NisseServer/Context.h"
 #include "NisseHTTP/Util.h"
 #include <boost/uuid.hpp>
 #include <tuple>
@@ -55,7 +56,9 @@ void MCPServer::handleRequest(ThorsAnvil::Nisse::HTTP::Request const& request, T
     {
         return;
     }
+    using ThorsAnvil::Nisse::Server::ContextThreadNotify;
     MCPServerContext    context{session, request, response};
+    ContextThreadNotify contextThread(request.getContext(), context);
     core.handleInputStream(context);
 }
 

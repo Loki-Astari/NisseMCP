@@ -2,6 +2,7 @@
 #include "MCPServerContext.h"
 #include "JsonRPC.h"
 #include "CommandPing.h"
+#include "CommandLogging.h"
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
 #include "ThorsLogging/ThorsLogging.h"
@@ -60,9 +61,8 @@ void MCPCore::initialize(Context& context, JsonRPC::OptRequestId id, Command::In
 NISSEMCP_HEADER_ONLY_INCLUDE
 void MCPCore::notifications_Initialized(Context& context)
 {
-    ThorsLogDebug("ThorsAnvil::Nisse::MCP::MCPCore", "notifications_Initialized", "MCP Core Functionaliy");
+    ThorsLogNotice("ThorsAnvil::Nisse::MCP::MCPCore", "notifications_Initialized", "MCP Core Functionaliy");
     MCPServerContext&   mcpContext  = dynamic_cast<MCPServerContext&>(context);
-    MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(mcpContext.session);
     auto const&         headers     = mcpContext.request.headers();
     auto const&         protocols   = headers.getHeader("MCP-Protocol-Version");
     if (protocols.size() != 1) {
@@ -70,18 +70,20 @@ void MCPCore::notifications_Initialized(Context& context)
     }
     std::string const&  protocolStr = protocols[0];
     Protocol            protocol    = ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::getValue(protocolStr, "");
+
+    MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(mcpContext.session);
     mcpSession.initialize(protocol);
 }
 
 void MCPCore::ping(Context& context, JsonRPC::OptRequestId id)
 {
-    ThorsLogDebug("ThorsAnvil::Nisse::MCP::MCPCore", "ping", "MCP Core Functionaliy");
+    ThorsLogNotice("ThorsAnvil::Nisse::MCP::MCPCore", "ping", "MCP Core Functionaliy");
     context.addItem(id, Command::Object{});
 }
 
-void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& /*param*/)
+void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& param)
 {
-    ThorsLogDebug("ThorsAnvil::Nisse::MCP::MCPCore", "loggingSetLevel", "MCP Core Functionaliy");
+    ThorsLogNotice("ThorsAnvil::Nisse::MCP::MCPCore", "loggingSetLevel", "MCP Core Functionaliy");
 
 #if 0
     Loguru Log Levels
@@ -113,11 +115,9 @@ void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Comman
     debug
     ----
 #endif
-    // TODO: FIX
-    // loguru::Verbosity  verbosity;
-    // loguru::add_callback("'MCPLog'", mcpLog, nullptr, verbosity, syslog_close, syslog_flush);
+    MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(context.session);
+    mcpSession.setLogging(param.level);
 
-    //
     context.addItem(id, Command::Object{});
 }
 

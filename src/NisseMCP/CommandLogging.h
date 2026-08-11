@@ -9,7 +9,17 @@
 namespace ThorsAnvil::Nisse::MCP::Command
 {
 
-enum class LoggingLevel {debug, info, notice, warning, error, critical, alert, emergency };
+enum class LoggingLevel
+{
+    emergency       = ThorsAnvil::ThorsVerbosity::Emergency,
+    alert           = ThorsAnvil::ThorsVerbosity::Alert,
+    critical        = ThorsAnvil::ThorsVerbosity::Critical,
+    error           = ThorsAnvil::ThorsVerbosity::Error,
+    warning         = ThorsAnvil::ThorsVerbosity::Warning,
+    notice          = ThorsAnvil::ThorsVerbosity::Notice,
+    info            = ThorsAnvil::ThorsVerbosity::Info,
+    debug           = ThorsAnvil::ThorsVerbosity::Debug,
+};
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequestparams
 struct SetLevelRequestParams
@@ -25,17 +35,21 @@ struct SetLevelRequestParams
 };
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#setlevelrequest
+struct SetLevelRequestUserParam
+{
+    LoggingLevel    level;
+};
 struct SetLevelRequest
 {
     std::string             jsonrpc; // “2.0”;
     RequestId               id;
     std::string             method; // “logging/setLevel”;
     SetLevelRequestParams   params;
-    SetLevelRequest(RequestId&& id, LoggingLevel level)
+    SetLevelRequest(RequestId&& id, SetLevelRequestUserParam const& param)
         : jsonrpc{"2.0"}
         , id{std::move(id)}
         , method{"logging/setLevel"}
-        , params{level}
+        , params{param.level}
     {}
 };
 
@@ -58,11 +72,20 @@ struct LoggingMessageNotification
     LoggingMessageNotificationParams    params;
 };
 
+struct LoggingResponse
+{
+    std::string                     jsonrpc;
+    RequestId                       id;
+    OptObject                       result;
+    JsonRPC::OptError               error;
+};
+
 struct Logging
 {
-    using Request   = SetLevelRequest;
-    using Result    = LoggingMessageNotification;
-    using UserData  = LoggingMessageNotificationParams;
+    using Request       = SetLevelRequest;
+    using UserParam     = SetLevelRequestUserParam;
+    using Result        = LoggingResponse;
+    using UserData      = Object;
 };
 
 }
@@ -72,5 +95,7 @@ ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::LoggingMessageNotification
 
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequestParams,            level);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::SetLevelRequest,                  jsonrpc, id, method, params);
+
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::LoggingResponse,                  jsonrpc, id, result, error);
 
 #endif
