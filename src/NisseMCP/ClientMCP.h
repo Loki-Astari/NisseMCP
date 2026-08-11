@@ -1,13 +1,14 @@
 #ifndef THORSANVIL_NISSE_MCP_CLIENT_MCP_H
 #define THORSANVIL_NISSE_MCP_CLIENT_MCP_H
 
-#include "NisseHTTP/Util.h"
 #include "NisseMCPConfig.h"
 #include "MCPUtil.h"
 #include "Context.h"
 #include "JsonRPC.h"
 #include "SSEInfo.h"
+#include "ConnectionPool.h"
 
+#include "NisseHTTP/Util.h"
 #include "NisseHTTP/ClientHTTP.h"
 #include "ThorSerialize/JsonThor.h"
 
@@ -33,17 +34,12 @@ class ClientMCP
     using ClientHTTP    = ThorsAnvil::Nisse::HTTP::ClientHTTP;
     using Version       = ThorsAnvil::Nisse::HTTP::Version;
 
-    static constexpr std::size_t  maxConntextions = 10;
-
     ClientConfig                config;
-    SocketInit                  socketInfo;
-    Version                     version;
+    ConnectionPool              pool;
     HeaderRequest               headers;
     int                         requestId;
-    std::vector<ClientHTTP>     connections;
-    std::vector<std::size_t>    unusedConnections;
 
-    std::string     getNextRequestId() {return "";}
+    int     getNextRequestId() {return requestId++;}
 
     enum Init {Constructor};
 
@@ -74,9 +70,9 @@ class ClientMCP
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
-            ClientHTTP& client = getFreeClient();
+            ConnectionFromPool  client{pool};
 
-            client.post_async({std::string{config.slot}, headers}, Request{getNextRequestId()},
+            client->post_async({std::string{config.slot}, headers}, Request{getNextRequestId()},
                               [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
         template<typename Command>
@@ -85,9 +81,9 @@ class ClientMCP
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
-            ClientHTTP& client = getFreeClient();
+            ConnectionFromPool  client{pool};
 
-            client.post_async({std::string{config.slot}, headers}, Request{getNextRequestId(), param},
+            client->post_async({std::string{config.slot}, headers}, Request{getNextRequestId(), param},
                               [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
 
@@ -187,7 +183,6 @@ class ClientMCP
         }
 
         static void logErrorMessage(int status, int code, std::string_view message);
-        ClientHTTP& getFreeClient();
 };
 
 }

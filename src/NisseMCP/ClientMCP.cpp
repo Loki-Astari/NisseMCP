@@ -20,20 +20,18 @@ ClientMCP::ClientMCP(Init,
         ThorsAnvil::ThorsSocket::SocketInit const& socketInfo,
         ThorsAnvil::Nisse::HTTP::Version version)
     : config{config}
-    , socketInfo{socketInfo}
-    , version{version}
+    , pool{socketInfo, version}
     , requestId{1}
 {
-    connections.reserve(maxConntextions);
     std::string_view host = std::visit(GetHost{}, socketInfo);
 
     headers.add("origin", host);
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    connections.emplace_back(socketInfo, version);
+    ConnectionFromPool  client{pool};
 
-    connections[0].post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string{config.slot}, .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client->post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string{config.slot}, .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         Command::InitializeResponse reply;
         if (resp.getStatus() != 202 || !(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
@@ -58,7 +56,7 @@ ClientMCP::ClientMCP(Init,
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(config.protocol));
     });
 
-    connections[0].post_async({.path=std::string{config.slot}, .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client->post_async({.path=std::string{config.slot}, .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         if (resp.getStatus() != 200) {
             ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Handshake was not accepted");
@@ -70,19 +68,4 @@ NISSEMCP_HEADER_ONLY_INCLUDE
 void ClientMCP::logErrorMessage(int status, int code, std::string_view message)
 {
     ThorsLogError("ThorsAnvil::Nisse::MCP::ClientMCP", "logErrorMessage", "HTTP Status: ", status, " JsonRPC Error Code: ", code, " Message: ", message);
-}
-
-ThorsAnvil::Nisse::HTTP::ClientHTTP& ClientMCP::getFreeClient()
-{
-    if (unusedConnections.size() != 0) {
-        int next = unusedConnections.back();
-        unusedConnections.pop_back();
-        return connections[next];
-    }
-
-    if (connections.size() < maxConntextions) {
-        connections.emplace_back(socketInfo, version);
-        return connections.back();
-    }
-    throw std::runtime_error("TODO");
 }
