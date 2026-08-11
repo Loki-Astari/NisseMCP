@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_MCP_CLIENT_MCP_H
 #define THORSANVIL_NISSE_MCP_CLIENT_MCP_H
 
+#include "NisseHTTP/Util.h"
 #include "NisseMCPConfig.h"
 #include "MCPUtil.h"
 #include "Context.h"
@@ -10,6 +11,7 @@
 #include "NisseHTTP/ClientHTTP.h"
 #include "ThorSerialize/JsonThor.h"
 
+#include <iterator>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -23,22 +25,45 @@ struct ClientConfig
     Protocol            protocol;
 };
 
-class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
+
+class ClientMCP
 {
     using HeaderRequest = ThorsAnvil::Nisse::HTTP::HeaderRequest;
+    using SocketInit    = ThorsAnvil::ThorsSocket::SocketInit;
+    using ClientHTTP    = ThorsAnvil::Nisse::HTTP::ClientHTTP;
+    using Version       = ThorsAnvil::Nisse::HTTP::Version;
 
-    std::string     slot;
-    Protocol        protocol;
-    HeaderRequest   headers;
-    int             requestId;
+    static constexpr std::size_t  maxConntextions = 10;
+
+    ClientConfig                config;
+    SocketInit                  socketInfo;
+    Version                     version;
+    HeaderRequest               headers;
+    int                         requestId;
+    std::vector<ClientHTTP>     connections;
+    std::vector<std::size_t>    unusedConnections;
 
     std::string     getNextRequestId() {return "";}
 
+    enum Init {Constructor};
+
+    ClientMCP(Init, ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version);
     public:
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
+            : ClientMCP(Init::Constructor, config, socketInfo, version)
+        {}
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
+            : ClientMCP(Init::Constructor, config, socketInfo, version)
+        {}
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
+            : ClientMCP(Init::Constructor, config, socketInfo, version)
+        {}
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
+            : ClientMCP(Init::Constructor, config, socketInfo, version)
+        {}
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
+            : ClientMCP(Init::Constructor, config, socketInfo, version)
+        {}
 
         template<typename C>
         using Action = std::function<void(typename C::UserData&&)>;
@@ -49,9 +74,10 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
+            ClientHTTP& client = getFreeClient();
 
-            post_async({.path = slot, .headers = headers}, Request{getNextRequestId()},
-                       [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
+            client.post_async({std::string{config.slot}, headers}, Request{getNextRequestId()},
+                              [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
         template<typename Command>
         void sendRequest(typename Command::UserParam const& param,
@@ -59,9 +85,10 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
             using Request   = typename Command::Request;
+            ClientHTTP& client = getFreeClient();
 
-            post_async({.path = slot, .headers = headers}, Request{getNextRequestId(), param},
-                       [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
+            client.post_async({std::string{config.slot}, headers}, Request{getNextRequestId(), param},
+                              [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
 
     private:
@@ -160,8 +187,7 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
         }
 
         static void logErrorMessage(int status, int code, std::string_view message);
-        void init(ClientConfig const& config, std::string_view origin);
-        virtual bool resetStream() override;
+        ClientHTTP& getFreeClient();
 };
 
 }

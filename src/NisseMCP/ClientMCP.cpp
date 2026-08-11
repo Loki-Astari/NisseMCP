@@ -4,48 +4,36 @@
 
 using namespace ThorsAnvil::Nisse::MCP;
 
-NISSEMCP_HEADER_ONLY_INCLUDE
-ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version)
-    : ClientHTTP{info, version}
-    , protocol{config.protocol}
+struct GetHost
 {
-    init(config, info.host);
-}
+    std::string_view    operator()(ThorsAnvil::ThorsSocket::FileInfo const& /*info*/)   {ThorsLogAndThrowFatal(std::runtime_error, "ThorsAnvil::Nisse::MCP::GetHost", "operator()", "Trying to get host from a file!!");}
+    std::string_view    operator()(ThorsAnvil::ThorsSocket::PipeInfo const& /*info*/)   {ThorsLogAndThrowFatal(std::runtime_error, "ThorsAnvil::Nisse::MCP::GetHost", "operator()", "Trying to get host from a pipe!!");}
+    std::string_view    operator()(ThorsAnvil::ThorsSocket::SocketInfo const& info)     {return info.host;}
+    std::string_view    operator()(ThorsAnvil::ThorsSocket::SocketService const& info)  {return info.host;}
+    std::string_view    operator()(ThorsAnvil::ThorsSocket::SSocketInfo const& info)    {return info.host;}
+    std::string_view    operator()(ThorsAnvil::ThorsSocket::SSocketService const& info) {return info.host;}
+};
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version)
-    : ClientHTTP{info, version}
-    , protocol{config.protocol}
+ClientMCP::ClientMCP(Init,
+        ClientConfig const& config,
+        ThorsAnvil::ThorsSocket::SocketInit const& socketInfo,
+        ThorsAnvil::Nisse::HTTP::Version version)
+    : config{config}
+    , socketInfo{socketInfo}
+    , version{version}
+    , requestId{1}
 {
-    init(config, info.host);
-}
+    connections.reserve(maxConntextions);
+    std::string_view host = std::visit(GetHost{}, socketInfo);
 
-NISSEMCP_HEADER_ONLY_INCLUDE
-ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& info, ThorsAnvil::Nisse::HTTP::Version version)
-    : ClientHTTP{info, version}
-    , protocol{config.protocol}
-{
-    init(config, info.host);
-}
-
-NISSEMCP_HEADER_ONLY_INCLUDE
-ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& info, ThorsAnvil::Nisse::HTTP::Version version)
-    : ClientHTTP{info, version}
-    , protocol{config.protocol}
-{
-    init(config, info.host);
-}
-
-NISSEMCP_HEADER_ONLY_INCLUDE
-void ClientMCP::init(ClientConfig const& config, std::string_view origin)
-{
-    slot        = config.slot;
-    requestId   = 1;
-
-    headers.add("origin", origin);
+    headers.add("origin", host);
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
-    post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string{config.slot}, .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+
+    connections.emplace_back(socketInfo, version);
+
+    connections[0].post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string{config.slot}, .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         Command::InitializeResponse reply;
         if (resp.getStatus() != 202 || !(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
@@ -62,15 +50,15 @@ void ClientMCP::init(ClientConfig const& config, std::string_view origin)
         }
 
         Protocol returnedProtocol = reply.result.value().protocolVersion;
-        if (returnedProtocol != protocol) {
+        if (returnedProtocol != config.protocol) {
             ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Requested protocol not supported");
         }
 
         headers.add("MCP-Session-Id", sessionIds[0]);
-        headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(protocol));
+        headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(config.protocol));
     });
 
-    post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    connections[0].post_async({.path=std::string{config.slot}, .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         if (resp.getStatus() != 200) {
             ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Handshake was not accepted");
@@ -79,13 +67,22 @@ void ClientMCP::init(ClientConfig const& config, std::string_view origin)
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-bool ClientMCP::resetStream()
-{
-    return ClientHTTP::resetStream();
-}
-
-NISSEMCP_HEADER_ONLY_INCLUDE
 void ClientMCP::logErrorMessage(int status, int code, std::string_view message)
 {
     ThorsLogError("ThorsAnvil::Nisse::MCP::ClientMCP", "logErrorMessage", "HTTP Status: ", status, " JsonRPC Error Code: ", code, " Message: ", message);
+}
+
+ThorsAnvil::Nisse::HTTP::ClientHTTP& ClientMCP::getFreeClient()
+{
+    if (unusedConnections.size() != 0) {
+        int next = unusedConnections.back();
+        unusedConnections.pop_back();
+        return connections[next];
+    }
+
+    if (connections.size() < maxConntextions) {
+        connections.emplace_back(socketInfo, version);
+        return connections.back();
+    }
+    throw std::runtime_error("TODO");
 }
