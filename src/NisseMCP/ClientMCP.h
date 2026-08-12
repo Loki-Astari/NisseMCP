@@ -45,21 +45,11 @@ class ClientMCP
 
     ClientMCP(Init, ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version);
     public:
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
-            : ClientMCP(Init::Constructor, config, socketInfo, version)
-        {}
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
-            : ClientMCP(Init::Constructor, config, socketInfo, version)
-        {}
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
-            : ClientMCP(Init::Constructor, config, socketInfo, version)
-        {}
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
-            : ClientMCP(Init::Constructor, config, socketInfo, version)
-        {}
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1)
-            : ClientMCP(Init::Constructor, config, socketInfo, version)
-        {}
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
 
         template<typename C>
         using Action = std::function<void(typename C::UserData&&)>;

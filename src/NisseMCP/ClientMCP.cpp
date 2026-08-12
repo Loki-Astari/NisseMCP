@@ -15,6 +15,31 @@ struct GetHost
 };
 
 NISSEMCP_HEADER_ONLY_INCLUDE
+ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version)
+    : ClientMCP(Init::Constructor, config, socketInfo, version)
+{}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version)
+    : ClientMCP(Init::Constructor, config, socketInfo, version)
+{}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version)
+    : ClientMCP(Init::Constructor, config, socketInfo, version)
+{}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version)
+    : ClientMCP(Init::Constructor, config, socketInfo, version)
+{}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
+ClientMCP::ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version)
+    : ClientMCP(Init::Constructor, config, socketInfo, version)
+{}
+
+NISSEMCP_HEADER_ONLY_INCLUDE
 ClientMCP::ClientMCP(Init,
         ClientConfig const& config,
         ThorsAnvil::ThorsSocket::SocketInit const& socketInfo,
