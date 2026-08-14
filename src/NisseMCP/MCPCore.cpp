@@ -1,8 +1,8 @@
 #include "MCPCore.h"
 #include "MCPServerContext.h"
 #include "JsonRPC.h"
-#include "CommandPing.h"
-#include "CommandLogging.h"
+#include "MCPRequestPing.h"
+#include "MCPRequestLogging.h"
 #include "NisseHTTP/Request.h"
 #include "NisseHTTP/Response.h"
 #include "ThorsLogging/ThorsLogging.h"
@@ -14,11 +14,11 @@ using namespace ThorsAnvil::Nisse::MCP;
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPCore::MCPCore()
 {
-    addExecutor("initialize",                [&](Context& context, OptSerializableId id, Command::InitializeRequestParams const& param) {initialize(context, id, param);});
+    addExecutor("initialize",                [&](Context& context, OptSerializableId id, JsonRPC::InitializeRequestParams const& param) {initialize(context, id, param);});
     addExecutor("notifications/initialized", [&](Context& context, OptSerializableId /*id*/)                                            {notifications_Initialized(context);});
 
     addExecutor("ping",                      [&](Context& context, OptSerializableId id)                                                {ping(context, id);});
-    addExecutor("logging/setLevel",          [&](Context& context, OptSerializableId id, Command::SetLevelRequestParams const& param)   {loggingSetLevel(context, id, param);});
+    addExecutor("logging/setLevel",          [&](Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParams const& param)   {loggingSetLevel(context, id, param);});
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
@@ -28,7 +28,7 @@ bool MCPCore::supportBatchRequest(Context& context) const
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-void MCPCore::initialize(Context& context, OptSerializableId id, Command::InitializeRequestParams const& param)
+void MCPCore::initialize(Context& context, OptSerializableId id, JsonRPC::InitializeRequestParams const& param)
 {
     ThorsLogDebug("ThorsAnvil::Nisse::MCP::MCPCore", "initialize", "MCP Core Functionaliy");
     ProtocolRange protocolInfo = context.session.protocolRange();
@@ -41,7 +41,7 @@ void MCPCore::initialize(Context& context, OptSerializableId id, Command::Initia
         defaultProtocol = protocolInfo.second;
     }
     using namespace std::string_literals;
-    context.addItem(id, Command::InitializeResult{
+    context.addItem(id, JsonRPC::InitializeResult{
                                                 // TODO ._meta          = {},
                                                 .protocolVersion= defaultProtocol,
                                                 .capabilities =
@@ -78,10 +78,10 @@ void MCPCore::notifications_Initialized(Context& context)
 void MCPCore::ping(Context& context, OptSerializableId id)
 {
     ThorsLogNotice("ThorsAnvil::Nisse::MCP::MCPCore", "ping", "MCP Core Functionaliy");
-    context.addItem(id, Command::Object{});
+    context.addItem(id, JsonRPC::Object{});
 }
 
-void MCPCore::loggingSetLevel(Context& context, OptSerializableId id, Command::SetLevelRequestParams const& param)
+void MCPCore::loggingSetLevel(Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParams const& param)
 {
     ThorsLogNotice("ThorsAnvil::Nisse::MCP::MCPCore", "loggingSetLevel", "MCP Core Functionaliy");
 
@@ -118,7 +118,7 @@ void MCPCore::loggingSetLevel(Context& context, OptSerializableId id, Command::S
     MCPSession&         mcpSession  = dynamic_cast<MCPSession&>(context.session);
     mcpSession.setLogging(param.level);
 
-    context.addItem(id, Command::Object{});
+    context.addItem(id, JsonRPC::Object{});
 }
 
 #if 0

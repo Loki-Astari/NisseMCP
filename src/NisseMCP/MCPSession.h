@@ -4,7 +4,7 @@
 #include "NisseMCPConfig.h"
 #include "MCPUtil.h"
 #include "Session.h"
-#include "CommandLogging.h"
+#include "MCPRequestLogging.h"
 
 #include <boost/uuid.hpp>
 #include <string_view>
@@ -75,7 +75,7 @@ class MCPSession: public Session
         void initialize(Protocol newProtocol);
 
         // Set Logging Level.
-        void setLogging(Command::LoggingLevel logLevel);
+        void setLogging(JsonRPC::LoggingLevel logLevel);
         void requestAdd(std::thread::id id);
         void requestRemove(std::thread::id id);
 };

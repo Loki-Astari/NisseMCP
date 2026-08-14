@@ -16,7 +16,7 @@
 #include <memory>
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#common-types
-namespace ThorsAnvil::Nisse::MCP::Command
+namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
 
 struct Object {};
@@ -47,7 +47,7 @@ using OptVecIcon        = std::optional<VecIcon>;
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Object);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Icon,                 src, mimeType, sizes, theme);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Object);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Icon,                 src, mimeType, sizes, theme);
 
 #endif

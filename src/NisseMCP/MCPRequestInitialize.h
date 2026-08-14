@@ -2,11 +2,11 @@
 #define THORSANVIL_NISSE_MCP_COMMAND_INITIALIZE_H
 
 #include "NisseMCPConfig.h"
-#include "CommandCommon.h"
+#include "MCPRequestCommon.h"
 #include "Context.h"
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#initialize
-namespace ThorsAnvil::Nisse::MCP::Command
+namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities
@@ -44,18 +44,18 @@ struct RequestElicitation
 };
 using OptRequestElicitation = std::optional<Elicitation>;
 // Serialized
-struct Request
+struct ServerRequest
 {
     OptRequestSampling      sampling;
     OptRequestElicitation   elicitation;
 };
-using OptRequest            = std::optional<Request>;
+using OptServerRequest            = std::optional<ServerRequest>;
 // Serialized
 struct Tasks
 {
     OptObject               list;
     OptObject               cancel;
-    OptRequest              requests;
+    OptServerRequest        requests;
 };
 using OptTasks              = std::optional<Tasks>;
 // Serialized
@@ -175,25 +175,25 @@ struct Notification_Initialized
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Roots,                    listChanged, subscribe);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Sampling,                 context, tools);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Elicitation,              form, url);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::RequestSampling,          createMessage);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::RequestElicitation,       create);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Request,                  sampling, elicitation);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Tasks,                    list, cancel, requests);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ClientCapabilities,       roots, sampling, elicitation, tasks);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Implementation,           icons, name, title, version, description, websiteUrl);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequestParams,  protocolVersion, capabilities, clientInfo);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Roots,                    listChanged, subscribe);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Sampling,                 context, tools);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Elicitation,              form, url);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::RequestSampling,          createMessage);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::RequestElicitation,       create);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ServerRequest,            sampling, elicitation);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Tasks,                    list, cancel, requests);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientCapabilities,       roots, sampling, elicitation, tasks);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Implementation,           icons, name, title, version, description, websiteUrl);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::InitializeRequestParams,  protocolVersion, capabilities, clientInfo);
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Caller,                   call);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Tools,                    tools);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerTasks,              list, cancel, requests);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::ServerCapabilities,       logging, completions, prompts, resources, tools, tasks);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResult,         protocolVersion, capabilities, serverInfo, instructions);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeRequest,        jsonrpc, id, method, params);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::Notification_Initialized, jsonrpc, method);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Caller,                   call);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Tools,                    tools);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ServerTasks,              list, cancel, requests);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ServerCapabilities,       logging, completions, prompts, resources, tools, tasks);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::InitializeResult,         protocolVersion, capabilities, serverInfo, instructions);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::InitializeRequest,        jsonrpc, id, method, params);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Notification_Initialized, jsonrpc, method);
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::InitializeResponse,       jsonrpc, result, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::InitializeResponse,       jsonrpc, result, error, id);
 
 #endif

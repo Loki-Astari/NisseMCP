@@ -1,6 +1,6 @@
 #include "ClientMCP.h"
 
-#include "CommandInitialize.h"
+#include "MCPRequestInitialize.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
@@ -56,9 +56,9 @@ ClientMCP::ClientMCP(Init,
 
     ConnectionFromPool  client{pool};
 
-    client->post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string{config.slot}, .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client->post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string{config.slot}, .headers=headers}, JsonRPC::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse reply;
+        JsonRPC::InitializeResponse reply;
         if (resp.getStatus() != 202 || !(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
             ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Bad response from server");
         }
@@ -81,7 +81,7 @@ ClientMCP::ClientMCP(Init,
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(config.protocol));
     });
 
-    client->post_async({.path=std::string{config.slot}, .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client->post_async({.path=std::string{config.slot}, .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         if (resp.getStatus() != 200) {
             ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::Nisse::MCP::ClientMCP", "init", "Failed to initialize MCP server connection: Handshake was not accepted");

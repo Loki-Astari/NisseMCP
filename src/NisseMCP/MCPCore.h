@@ -4,8 +4,8 @@
 #include "NisseMCPConfig.h"
 #include "JsonRPCCore.h"
 
-#include "CommandInitialize.h"
-#include "CommandLogging.h"
+#include "MCPRequestInitialize.h"
+#include "MCPRequestLogging.h"
 
 namespace ThorsAnvil::Nisse::MCP
 {
@@ -22,11 +22,11 @@ class MCPCore: public JsonRPCCore
         // Handle Individual Commands.
         // ****************************
             // Initialization.
-            void initialize(Context& context, OptSerializableId id, Command::InitializeRequestParams const& param);
+            void initialize(Context& context, OptSerializableId id, JsonRPC::InitializeRequestParams const& param);
             void notifications_Initialized(Context& context);
 
             void ping(Context& context, OptSerializableId id);
-            void loggingSetLevel(Context& context, OptSerializableId id, Command::SetLevelRequestParams const& param);
+            void loggingSetLevel(Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParams const& param);
 #if 0
         void resource();
         void tool();

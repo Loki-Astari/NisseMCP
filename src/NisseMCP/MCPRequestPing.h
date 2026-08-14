@@ -2,11 +2,11 @@
 #define THORSANVIL_NISSE_MCP_COMMAND_PING_H
 
 #include "NisseMCPConfig.h"
-#include "CommandCommon.h"
+#include "MCPRequestCommon.h"
 #include <string>
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#ping
-namespace ThorsAnvil::Nisse::MCP::Command
+namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
 
 // https://modelcontextprotocol.io/specification/2025-11-25/schema#pingrequest
@@ -42,7 +42,7 @@ struct Ping
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::PingRequest,         jsonrpc, id, method);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::Command::PingResponse,        jsonrpc, id, result, error);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::PingRequest,         jsonrpc, id, method);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::PingResponse,        jsonrpc, id, result, error);
 
 #endif

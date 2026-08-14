@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <chrono>
-#include "CommandInitialize.h"
-#include "CommandPing.h"
-#include "CommandLogging.h"
+#include "MCPRequestInitialize.h"
+#include "MCPRequestPing.h"
+#include "MCPRequestLogging.h"
 #include "Context.h"
 #include "MCPServer.h"
 #include "NisseHTTP/Util.h"
@@ -38,7 +38,7 @@ TEST(SessionTest, InitializeOnly)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    Command::InitializeResponse result = client.post<Command::InitializeResponse>({.path="/mcp", .headers = headers}, Command::InitializeRequest{1, {}});
+    JsonRPC::InitializeResponse result = client.post<JsonRPC::InitializeResponse>({.path="/mcp", .headers = headers}, JsonRPC::InitializeRequest{1, {}});
     EXPECT_EQ("2.0", result.jsonrpc);
     EXPECT_EQ(1, std::get<long>(result.id));
     EXPECT_FALSE(result.error.has_value());
@@ -59,7 +59,7 @@ TEST(SessionTest, InitializeProtocolBelowRange)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    Command::InitializeResponse result = client.post<Command::InitializeResponse>({.path="/mcp", .headers = headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2024_11_05}});
+    JsonRPC::InitializeResponse result = client.post<JsonRPC::InitializeResponse>({.path="/mcp", .headers = headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2024_11_05}});
     EXPECT_EQ("2.0", result.jsonrpc);
     EXPECT_EQ(1, std::get<long>(result.id));
     EXPECT_FALSE(result.error.has_value());
@@ -80,7 +80,7 @@ TEST(SessionTest, InitializeProtocolAboveRange)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    Command::InitializeResponse result = client.post<Command::InitializeResponse>({.path="/mcp", .headers = headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2026_07_28}});
+    JsonRPC::InitializeResponse result = client.post<JsonRPC::InitializeResponse>({.path="/mcp", .headers = headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2026_07_28}});
     EXPECT_EQ("2.0", result.jsonrpc);
     EXPECT_EQ(1, std::get<long>(result.id));
     EXPECT_FALSE(result.error.has_value());
@@ -101,7 +101,7 @@ TEST(SessionTest, InitializeProtocolInRange)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    Command::InitializeResponse result = client.post<Command::InitializeResponse>({.path="/mcp", .headers = headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_06_18}});
+    JsonRPC::InitializeResponse result = client.post<JsonRPC::InitializeResponse>({.path="/mcp", .headers = headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_06_18}});
     EXPECT_EQ("2.0", result.jsonrpc);
     EXPECT_EQ(1, std::get<long>(result.id));
     EXPECT_FALSE(result.error.has_value());
@@ -123,7 +123,7 @@ TEST(SessionTest, InitializeShouldHaveSessionIDSet)
     headers.add("accept", "text/event-stream");
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(1, resp.getHeader().getHeader("MCP-Session-Id").size());
@@ -143,7 +143,7 @@ TEST(SessionTest, SendPingWithNoSessionId)
     headers.add("accept", "text/event-stream");
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{1}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::PingRequest{1}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(400, resp.getStatus());
@@ -161,9 +161,9 @@ TEST(SessionTest, SendPingAfterHandShake)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -171,13 +171,13 @@ TEST(SessionTest, SendPingAfterHandShake)
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         ASSERT_EQ(200, resp.getStatus());
     });
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{1}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::PingRequest{1}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(202, resp.getStatus());
@@ -201,9 +201,9 @@ TEST(SessionTest, SendInitNotificationToSlowly)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -212,7 +212,7 @@ TEST(SessionTest, SendInitNotificationToSlowly)
     });
     sleep(2);
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         ASSERT_EQ(404, resp.getStatus());
     });
@@ -228,9 +228,9 @@ TEST(SessionTest, SendPingAfterSessionDelete)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -238,7 +238,7 @@ TEST(SessionTest, SendPingAfterSessionDelete)
         headers.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(initResponse.result.value().protocolVersion));
     });
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         ASSERT_EQ(200, resp.getStatus());
     });
@@ -252,7 +252,7 @@ TEST(SessionTest, SendPingAfterSessionDelete)
     });
     EXPECT_TRUE(called);
     called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{2}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::PingRequest{2}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(404, resp.getStatus());
@@ -270,9 +270,9 @@ TEST(SessionTest, SendPingBeforeHandshakeCompleteisOK)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -281,14 +281,14 @@ TEST(SessionTest, SendPingBeforeHandshakeCompleteisOK)
     });
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::PingRequest{2}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::PingRequest{2}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(202, resp.getStatus());
     });
     EXPECT_TRUE(called);
     called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         ASSERT_EQ(200, resp.getStatus());
@@ -307,9 +307,9 @@ TEST(SessionTest, SendLoggingBeforeHandshakeCompleteisIsNotOK)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -318,14 +318,14 @@ TEST(SessionTest, SendLoggingBeforeHandshakeCompleteisIsNotOK)
     });
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::SetLevelRequest{2, {Command::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::SetLevelRequest{2, {JsonRPC::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(404, resp.getStatus());
     });
     EXPECT_TRUE(called);
     called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         ASSERT_EQ(200, resp.getStatus());
@@ -344,9 +344,9 @@ TEST(SessionTest, SendLoggingAfterHandshakeCompleteisIsOK)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -355,14 +355,14 @@ TEST(SessionTest, SendLoggingAfterHandshakeCompleteisIsOK)
     });
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         ASSERT_EQ(200, resp.getStatus());
     });
     EXPECT_TRUE(called);
     called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::SetLevelRequest{2, {Command::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::SetLevelRequest{2, {JsonRPC::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(202, resp.getStatus());
@@ -381,9 +381,9 @@ TEST(SessionTest, SendWrongSessionID)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -392,7 +392,7 @@ TEST(SessionTest, SendWrongSessionID)
     });
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         ASSERT_EQ(200, resp.getStatus());
@@ -408,7 +408,7 @@ TEST(SessionTest, SendWrongSessionID)
     headersAlternative.add("MCP-Session-Id", "000"s + (headers.getHeader("MCP-Session-Id")[0]));
     headersAlternative.add("MCP-Protocol-Version", (headers.getHeader("MCP-Protocol-Version")[0]));
     called = false;
-    client.post_async({.path="/mcp", .headers=headersAlternative}, Command::SetLevelRequest{2, {Command::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headersAlternative}, JsonRPC::SetLevelRequest{2, {JsonRPC::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(404, resp.getStatus());
@@ -427,9 +427,9 @@ TEST(SessionTest, SendWrongProtocolVersion)
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
 
-    client.post_async({.path="/mcp", .headers=headers}, Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
-        Command::InitializeResponse initResponse;
+        JsonRPC::InitializeResponse initResponse;
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(initResponse);
 
         ASSERT_EQ(202, resp.getStatus());
@@ -438,7 +438,7 @@ TEST(SessionTest, SendWrongProtocolVersion)
     });
 
     bool called = false;
-    client.post_async({.path="/mcp", .headers=headers}, Command::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headers}, JsonRPC::Notification_Initialized{}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         ASSERT_EQ(200, resp.getStatus());
@@ -454,7 +454,7 @@ TEST(SessionTest, SendWrongProtocolVersion)
     headersAlternative.add("MCP-Session-Id", headers.getHeader("MCP-Session-Id")[0]);
     headersAlternative.add("MCP-Protocol-Version", ThorsAnvil::Serialize::Traits<ThorsAnvil::Nisse::MCP::Protocol>::to_string(Protocol::v2024_11_05));
     called = false;
-    client.post_async({.path="/mcp", .headers=headersAlternative}, Command::SetLevelRequest{2, {Command::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    client.post_async({.path="/mcp", .headers=headersAlternative}, JsonRPC::SetLevelRequest{2, {JsonRPC::LoggingLevel::alert}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         called = true;
         EXPECT_EQ(400, resp.getStatus());
