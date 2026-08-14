@@ -75,7 +75,7 @@ class MCPSession: public Session
         void initialize(Protocol newProtocol);
 
         // Set Logging Level.
-        void setLogging(JsonRPC::LoggingLevel logLevel);
+        void setLogging(LoggingLevel logLevel);
         void requestAdd(std::thread::id id);
         void requestRemove(std::thread::id id);
 };

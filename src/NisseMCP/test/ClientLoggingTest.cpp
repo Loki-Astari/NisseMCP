@@ -62,7 +62,7 @@ TEST(ClientLoggingTest, TwoSessionsOneLogging)
     bool ok = false;
     bool error = false;
     int  oldCount = loguru::unitTestInfo();
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::debug},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::debug},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -82,7 +82,7 @@ TEST(ClientLoggingTest, TwoSessionsOneLoggingThenTurnItOff)
     bool ok = false;
     bool error = false;
     int  oldCount = loguru::unitTestInfo();
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::debug},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::debug},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -90,7 +90,7 @@ TEST(ClientLoggingTest, TwoSessionsOneLoggingThenTurnItOff)
     EXPECT_FALSE(error);
     EXPECT_EQ(oldCount + 1, loguru::unitTestInfo());
 
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::emergency},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::emergency},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -110,7 +110,7 @@ TEST(ClientLoggingTest, TwoSessionsOneLoggingThenPing)
     bool ok = false;
     bool error = false;
     int  oldCount = loguru::unitTestInfo();
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::info},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::info},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -136,7 +136,7 @@ TEST(ClientLoggingTest, TwoSessionsOneLoggingThenPingOtherClinet)
     bool ok = false;
     bool error = false;
     int  oldCount = loguru::unitTestInfo();
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::info},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::info},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -161,7 +161,7 @@ TEST(ClientLoggingTest, TwoSessionsOneErrorOneInfoPingError)
     bool ok = false;
     bool error = false;
     int  oldCount = loguru::unitTestInfo();
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::error},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::error},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -170,7 +170,7 @@ TEST(ClientLoggingTest, TwoSessionsOneErrorOneInfoPingError)
     EXPECT_EQ(oldCount + 1, loguru::unitTestInfo());
 
     ok = false;
-    connect2.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::info},
+    connect2.sendRequest<JsonRPC::Logging>({LoggingLevel::info},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -199,7 +199,7 @@ TEST(ClientLoggingTest, TwoSessionsOneErrorOneInfoPingInfo)
     bool ok = false;
     bool error = false;
     int  oldCount = loguru::unitTestInfo();
-    connect1.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::error},
+    connect1.sendRequest<JsonRPC::Logging>({LoggingLevel::error},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );
@@ -208,7 +208,7 @@ TEST(ClientLoggingTest, TwoSessionsOneErrorOneInfoPingInfo)
     EXPECT_EQ(oldCount + 1, loguru::unitTestInfo());
 
     ok = false;
-    connect2.sendRequest<JsonRPC::Logging>({JsonRPC::LoggingLevel::info},
+    connect2.sendRequest<JsonRPC::Logging>({LoggingLevel::info},
                                             [&](JsonRPC::Object&& /*param*/){ok = true;},
                                             [&](int /*s*/, int /*code*/, std::string_view /*message*/){error = true;}
                                           );

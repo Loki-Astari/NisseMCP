@@ -65,12 +65,12 @@ void MCPSession::initialize(Protocol newProtocol)
 #define LOG_CALLBACK    mcpLog
 #endif
 
-void MCPSession::setLogging(JsonRPC::LoggingLevel level)
+void MCPSession::setLogging(LoggingLevel level)
 {
     if (loggingSet) {
         loguru::remove_callback(toString().c_str());
     }
-    if (level != JsonRPC::LoggingLevel::emergency) {
+    if (level != LoggingLevel::emergency) {
         loggingSet = true;
         loguru::add_callback(toString().c_str(), LOG_CALLBACK, this, static_cast<loguru::Verbosity>(level), mcpLogClose, mcpLogFlush);
     }
