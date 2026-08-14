@@ -134,7 +134,7 @@ class ClientMCP
         template<typename Command>
         void handleObjectRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = JsonRPC::NewClientResponse<typename Command::Result>;
+            using Result = JsonRPC::ClientResponse<typename Command::Result>;
 
             Result reply;
             if (!(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
@@ -157,7 +157,7 @@ class ClientMCP
         template<typename Command>
         void handleStreamRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = JsonRPC::NewClientResponse<typename Command::Result>;
+            using Result = JsonRPC::ClientResponse<typename Command::Result>;
 
             SSEInfo<Result>     event;
             while (resp.body() >> event) {

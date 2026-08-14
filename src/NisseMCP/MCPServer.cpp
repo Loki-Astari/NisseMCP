@@ -94,7 +94,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
         response.setStatus(403)
                 .addHeader("content-type", "application/json")
                 .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{10, "Invalid Origin. Request forbidden", {}});
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientError{{}, 10, "Invalid Origin. Request forbidden"});
         return notFoundSession;
     }
 
@@ -114,7 +114,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
         response.setStatus(404)
                 .addHeader("content-type", "application/json")
                 .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{11, "Invalid Accept: Requires 'application/json' and 'text/event-stream'", {}});
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientError{{}, 11, "Invalid Accept: Requires 'application/json' and 'text/event-stream'"});
         return notFoundSession;
     }
 
@@ -139,7 +139,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
         response.setStatus(400)
                 .addHeader("content-type", "application/json")
                 .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientError{{}, 12, "Invalid or missing Session Id"});
         return notFoundSession;
     }
 
@@ -158,7 +158,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
         response.setStatus(404)
                 .addHeader("content-type", "application/json")
                 .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientError{{}, 12, "Invalid or missing Session Id"});
         return notFoundSession;
     }
     MCPSession&            session         = find->second;
@@ -171,7 +171,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
             response.setStatus(404)
                     .addHeader("content-type", "application/json")
                     .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                    << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{12, "Invalid or missing Session Id", {}});
+                    << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientError{{}, 12, "Invalid or missing Session Id"});
             return notFoundSession;
         }
     }
@@ -194,7 +194,7 @@ MCPSession& MCPServer::validateRequest(ThorsAnvil::Nisse::HTTP::Request const& r
         response.setStatus(400)
                 .addHeader("content-type", "application/json")
                 .body(ThorsAnvil::Nisse::HTTP::Encoding::Chunked)
-                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientResponse{13, "Protocol Session Mismatch", {}});
+                << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientError{{}, 13, "Protocol Session Mismatch"});
         return notFoundSession;
     }
 

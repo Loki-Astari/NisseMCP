@@ -119,23 +119,18 @@ struct Error
 using OptError = std::optional<Error>;
 
 // We can not 'import' an std::any. So we must know the expected result on the client side.
-struct ClientResponse
+struct ClientError
 {
     std::string             jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
-    // OptResult            result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
-    // If you are on the client side and want to read a specific response, Then look at the command you are sending their will
-    // be a response class available to use.
-    OptError                error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    Error                   error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
     OptSerializableNullId   id;
 
     public:
-        ClientResponse(void);
-        ClientResponse(OptSerializableId const& requestId);
-        ClientResponse(int code, std::string_view message, OptSerializableId const& requestId);
+        ClientError(OptSerializableId const& requestId, int code, std::string_view message);
 };
 
 template<typename Response>
-struct NewClientResponse
+struct ClientResponse
 {
     std::string                 jsonrpc;
     OptSerializableNullId       id;
@@ -178,12 +173,12 @@ struct ErrorResponse
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request,                      jsonrpc, method, id, params);
 ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::ClientRequest,    jsonrpc, method, id, params);
+ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse,   jsonrpc, id, result, error);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error,                        code, message, data);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse,               jsonrpc, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientError,                  jsonrpc, error, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response,                     jsonrpc, result, error, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse,                jsonrpc, error, id);
 
-ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::NewClientResponse, jsonrpc, id, result, error);
 
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "JsonRPC.source"

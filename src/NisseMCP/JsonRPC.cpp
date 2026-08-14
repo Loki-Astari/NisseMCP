@@ -21,23 +21,7 @@ void ResultSerializer::readCustom(ThorsAnvil::Serialize::DeSerializer&, ThorsAnv
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-ClientResponse::ClientResponse(void)
-    : jsonrpc{"2.0"}
-    , id{static_cast<char*>(nullptr)}
-{}
-
-NISSEMCP_HEADER_ONLY_INCLUDE
-ClientResponse::ClientResponse(OptSerializableId const& requestId)
-    : jsonrpc{"2.0"}
-    , id{static_cast<char*>(nullptr)}
-{
-    if (requestId.has_value()) {
-        id = makeId(requestId.value());
-    }
-}
-
-NISSEMCP_HEADER_ONLY_INCLUDE
-ClientResponse::ClientResponse(int code, std::string_view message, OptSerializableId const& requestId)
+ClientError::ClientError(OptSerializableId const& requestId, int code, std::string_view message)
     : jsonrpc{"2.0"}
     , error{Error{code, {std::begin(message), std::end(message)}, {}}}
     , id{static_cast<char*>(nullptr)}
