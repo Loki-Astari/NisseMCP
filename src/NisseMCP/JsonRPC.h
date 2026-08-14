@@ -134,6 +134,15 @@ struct ClientResponse
         ClientResponse(int code, std::string_view message, OptSerializableId const& requestId);
 };
 
+template<typename Response>
+struct NewClientResponse
+{
+    std::string                 jsonrpc;
+    OptSerializableNullId       id;
+    std::optional<Response>     result;
+    OptError                    error;
+};
+
 // We can build and serialize a normal response object on the server as we know the type as we generate the output.
 struct Response
 {
@@ -173,6 +182,8 @@ ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error,                    
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse,               jsonrpc, error, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response,                     jsonrpc, result, error, id);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse,                jsonrpc, error, id);
+
+ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::NewClientResponse, jsonrpc, id, result, error);
 
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "JsonRPC.source"

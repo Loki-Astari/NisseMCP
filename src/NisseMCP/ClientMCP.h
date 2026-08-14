@@ -52,7 +52,7 @@ class ClientMCP
         ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
 
         template<typename C>
-        using Action = std::function<void(typename C::UserData&&)>;
+        using Action = std::function<void(typename C::Result&&)>;
         using Error  = std::function<void(int, int, std::string_view)>;
 
         template<typename Command>
@@ -134,7 +134,8 @@ class ClientMCP
         template<typename Command>
         void handleObjectRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = typename Command::Result;
+            using Result = JsonRPC::NewClientResponse<typename Command::Result>;
+
             Result reply;
             if (!(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
                 std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Normal Path");
@@ -156,7 +157,7 @@ class ClientMCP
         template<typename Command>
         void handleStreamRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = typename Command::Result;
+            using Result = JsonRPC::NewClientResponse<typename Command::Result>;
 
             SSEInfo<Result>     event;
             while (resp.body() >> event) {

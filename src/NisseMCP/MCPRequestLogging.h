@@ -46,20 +46,11 @@ struct LoggingMessageNotification
     LoggingMessageNotificationParams    params;
 };
 
-struct LoggingResponse
-{
-    std::string                     jsonrpc;
-    SerializableId                  id;
-    OptObject                       result;
-    JsonRPC::OptError               error;
-};
-
 struct Logging
 {
     static constexpr char const* method = "logging/setLevel";
     using Param         = SetLevelRequestParam;
-    using Result        = LoggingResponse;
-    using UserData      = Object;
+    using Result        = Object;
 };
 
 }
@@ -67,6 +58,5 @@ struct Logging
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::LoggingMessageNotificationParams, level, logger, data);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::LoggingMessageNotification,       jsonrpc, method, params);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::SetLevelRequestParam,             level);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::LoggingResponse,                  jsonrpc, id, result, error);
 
 #endif

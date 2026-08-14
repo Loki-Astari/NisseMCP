@@ -9,14 +9,6 @@
 namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
 
-struct PingResponse
-{
-    std::string                     jsonrpc;
-    SerializableId                  id;
-    OptObject                       result;
-    JsonRPC::OptError               error;
-};
-
 /*
  * Used by the ClientMCP to understand what to send
  */
@@ -24,13 +16,10 @@ struct Ping
 {
     static constexpr char const* method = "ping";
 
-    using Param     = std::optional<int>;
-    using Result    = PingResponse;
-    using UserData  = Object;
+    using Param     = std::optional<int>;       // No parameter. It is just simpler to have an optional parameter that is not set.
+    using Result    = Object;
 };
 
 }
-
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::PingResponse,        jsonrpc, id, result, error);
 
 #endif
