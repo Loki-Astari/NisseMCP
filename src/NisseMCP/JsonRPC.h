@@ -24,29 +24,25 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
 using Params = ThorsAnvil::Serialize::AnyBlock;
 using OptParams = std::optional<Params>;
 
-using RequestId  = SerializableId;
-using OptRequestId = std::optional<RequestId>;
-
-using ResponseId = SerializableNullId;
-using OptResponseId = std::optional<ResponseId>;
-
 struct ResponseConverter
 {
     template<typename T>
-    ResponseId operator()(T const& val)   const {return val;}
+    SerializableNullId operator()(T const& val)   const {return val;}
 };
 
-inline ResponseId makeId(RequestId const& r)
+inline SerializableNullId makeId(SerializableId const& r)
 {
     return std::visit(ResponseConverter{}, r);
 }
 
+// Used by JsonRPCCore:
+// We decode the params based on the expected type of the callable.
 struct Request
 {
     std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
     std::string         method;         // A String containing the name of the method to be invoked.
     OptParams           params;
-    OptRequestId        id;
+    OptSerializableId   id;
 };
 
 class ResultSerializer;
@@ -105,32 +101,32 @@ using OptError = std::optional<Error>;
 // We can not 'import' an std::any. So we must know the expected result on the client side.
 struct ClientResponse
 {
-    std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
-    // OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+    std::string             jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    // OptResult            result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
     // If you are on the client side and want to read a specific response, Then look at the command you are sending their will
     // be a response class available to use.
-    OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-    OptResponseId       id;
+    OptError                error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    OptSerializableNullId   id;
 
     public:
         ClientResponse(void);
-        ClientResponse(OptRequestId const& requestId);
-        ClientResponse(int code, std::string_view message, OptRequestId const& requestId);
+        ClientResponse(OptSerializableId const& requestId);
+        ClientResponse(int code, std::string_view message, OptSerializableId const& requestId);
 };
 
 // We can build and serialize a normal response object on the server as we know the type as we generate the output.
 struct Response
 {
-    std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
-    OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
-    OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-    OptResponseId       id;
+    std::string             jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    OptResult               result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+    OptError                error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    OptSerializableNullId   id;
 
     public:
         Response(void);
-        Response(int code, std::string_view message, OptRequestId const& requestId);
+        Response(int code, std::string_view message, OptSerializableId const& requestId);
         template<typename T>
-        Response(T&& result, OptRequestId const& requestId)
+        Response(T&& result, OptSerializableId const& requestId)
             : jsonrpc{"2.0"}
             , result{std::forward<T>(result)}
             , id{static_cast<char*>(nullptr)}
@@ -143,9 +139,9 @@ struct Response
 
 struct ErrorResponse
 {
-    std::string         jsonrpc;
-    Error               error;
-    OptResponseId       id;
+    std::string             jsonrpc;
+    Error                   error;
+    OptSerializableNullId   id;
 };
 
 }

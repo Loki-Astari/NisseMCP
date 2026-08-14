@@ -22,11 +22,11 @@ class MCPCore: public JsonRPCCore
         // Handle Individual Commands.
         // ****************************
             // Initialization.
-            void initialize(Context& context, JsonRPC::OptRequestId id, Command::InitializeRequestParams const& param);
+            void initialize(Context& context, OptSerializableId id, Command::InitializeRequestParams const& param);
             void notifications_Initialized(Context& context);
 
-            void ping(Context& context, JsonRPC::OptRequestId id);
-            void loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Command::SetLevelRequestParams const& param);
+            void ping(Context& context, OptSerializableId id);
+            void loggingSetLevel(Context& context, OptSerializableId id, Command::SetLevelRequestParams const& param);
 #if 0
         void resource();
         void tool();

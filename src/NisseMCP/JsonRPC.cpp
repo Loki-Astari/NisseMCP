@@ -27,7 +27,7 @@ ClientResponse::ClientResponse(void)
 {}
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-ClientResponse::ClientResponse(OptRequestId const& requestId)
+ClientResponse::ClientResponse(OptSerializableId const& requestId)
     : jsonrpc{"2.0"}
     , id{static_cast<char*>(nullptr)}
 {
@@ -37,7 +37,7 @@ ClientResponse::ClientResponse(OptRequestId const& requestId)
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-ClientResponse::ClientResponse(int code, std::string_view message, OptRequestId const& requestId)
+ClientResponse::ClientResponse(int code, std::string_view message, OptSerializableId const& requestId)
     : jsonrpc{"2.0"}
     , error{Error{code, {std::begin(message), std::end(message)}, {}}}
     , id{static_cast<char*>(nullptr)}
@@ -55,7 +55,7 @@ Response::Response(void)
 {}
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-Response::Response(int code, std::string_view message, OptRequestId const& requestId)
+Response::Response(int code, std::string_view message, OptSerializableId const& requestId)
     : jsonrpc{"2.0"}
     , error{Error{code, {std::begin(message), std::end(message)}, {}}}
     , id{static_cast<char*>(nullptr)}

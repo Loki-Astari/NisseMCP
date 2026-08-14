@@ -23,7 +23,7 @@ void Context::serverSideStream()
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-void Context::error(JsonRPC::OptRequestId id, int code, std::string_view message)
+void Context::error(OptSerializableId id, int code, std::string_view message)
 {
     addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{code, message, id}, outputConfig);
     ++count;

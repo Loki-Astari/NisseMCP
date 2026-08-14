@@ -20,12 +20,12 @@ template<typename F>
 struct ParamOfSignature
 {};
 template<typename R, typename C, typename P>
-struct ParamOfSignature<R(C::*)(Context&, JsonRPC::OptRequestId, P const&) const>
+struct ParamOfSignature<R(C::*)(Context&, OptSerializableId, P const&) const>
 {
     using Param = P;
 };
 template<typename R, typename C, typename P>
-struct ParamOfSignature<R(C::*)(Context&, JsonRPC::OptRequestId, P const&)>
+struct ParamOfSignature<R(C::*)(Context&, OptSerializableId, P const&)>
 {
     using Param = P;
 };
@@ -39,13 +39,13 @@ struct FirstParam : ParamOfSignature<decltype(&std::remove_reference_t<T>::opera
 
 // Raw function type.
 template<typename R, typename P>
-struct FirstParam<R(Context&, JsonRPC::OptRequestId, P const&)>
+struct FirstParam<R(Context&, OptSerializableId, P const&)>
 {
     using Param = P;
 };
 // std::function.
 template<typename R, typename P>
-struct FirstParam<std::function<R(Context&, JsonRPC::OptRequestId, P const&)>>
+struct FirstParam<std::function<R(Context&, OptSerializableId, P const&)>>
 {
     using Param = P;
 };

@@ -22,9 +22,6 @@ namespace ThorsAnvil::Nisse::MCP::Command
 struct Object {};
 using OptObject         = std::optional<Object>;
 
-using RequestId         = JsonRPC::RequestId;
-using OptRequestId      = std::optional<RequestId>;
-
 using OptBool           = std::optional<bool>;
 
 using OptString         = std::optional<std::string>;

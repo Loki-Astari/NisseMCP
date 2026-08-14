@@ -75,10 +75,10 @@ class JsonRPCCore
             };
         }
         template<typename C>
-        requires std::invocable<C, Context&, JsonRPC::OptRequestId>
-        void addExecutor(std::string const& name, C&& f)
+        requires std::invocable<C, Context&, OptSerializableId>
+        void addExecutor(std::string const& name, C&& callable)
         {
-            executeMap[name] = [executor = std::forward<C>(f)](Context& context, JsonRPC::Request const& rpc)
+            executeMap[name] = [executor = std::forward<C>(callable)](Context& context, JsonRPC::Request const& rpc)
             {
                 if (rpc.params.has_value()) {
                     context.error(rpc.id, -32602, "Invalid params");

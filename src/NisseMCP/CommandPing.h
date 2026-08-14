@@ -13,9 +13,9 @@ namespace ThorsAnvil::Nisse::MCP::Command
 struct PingRequest
 {
     std::string                     jsonrpc; // “2.0”;
-    RequestId                       id;
+    SerializableId                  id;
     std::string                     method; // “ping”;
-    PingRequest(RequestId&& id)
+    PingRequest(SerializableId&& id)
         : jsonrpc{"2.0"}
         , id{std::move(id)}
         , method{"ping"}
@@ -25,7 +25,7 @@ struct PingRequest
 struct PingResponse
 {
     std::string                     jsonrpc;
-    RequestId                       id;
+    SerializableId                  id;
     OptObject                       result;
     JsonRPC::OptError               error;
 };

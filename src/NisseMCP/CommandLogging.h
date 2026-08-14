@@ -42,10 +42,10 @@ struct SetLevelRequestUserParam
 struct SetLevelRequest
 {
     std::string             jsonrpc; // “2.0”;
-    RequestId               id;
+    SerializableId          id;
     std::string             method; // “logging/setLevel”;
     SetLevelRequestParams   params;
-    SetLevelRequest(RequestId&& id, SetLevelRequestUserParam const& param)
+    SetLevelRequest(SerializableId&& id, SetLevelRequestUserParam const& param)
         : jsonrpc{"2.0"}
         , id{std::move(id)}
         , method{"logging/setLevel"}
@@ -75,7 +75,7 @@ struct LoggingMessageNotification
 struct LoggingResponse
 {
     std::string                     jsonrpc;
-    RequestId                       id;
+    SerializableId                  id;
     OptObject                       result;
     JsonRPC::OptError               error;
 };

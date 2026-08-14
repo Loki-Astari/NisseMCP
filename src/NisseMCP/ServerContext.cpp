@@ -30,7 +30,7 @@ void ServerContext::serverSideStream()
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-void ServerContext::error(JsonRPC::OptRequestId id, int code, std::string_view message)
+void ServerContext::error(OptSerializableId id, int code, std::string_view message)
 {
     if (!stream) {
         status = 400;

@@ -13,12 +13,14 @@
 #include <any>
 #include <stdexcept>
 
-namespace ThorsAnvil::Nisse::MCP::JsonRPC
+namespace ThorsAnvil::Nisse::MCP
 {
 
 // An object that can be a String / Number / Null
 using SerializableNullId            = std::variant<std::string, long, char*>;
 using SerializableId                = std::variant<std::string, long>;
+using OptSerializableId             = std::optional<SerializableId>;
+using OptSerializableNullId         = std::optional<SerializableNullId>;
 
 template<bool supportNull>
 class IdSerializer
@@ -83,7 +85,7 @@ class IdSerializer
 
 }
 
-ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::SerializableNullId,            ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer<true>);
-ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::SerializableId,                ThorsAnvil::Nisse::MCP::JsonRPC::IdSerializer<false>);
+ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::SerializableNullId,            ThorsAnvil::Nisse::MCP::IdSerializer<true>);
+ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::SerializableId,                ThorsAnvil::Nisse::MCP::IdSerializer<false>);
 
 #endif

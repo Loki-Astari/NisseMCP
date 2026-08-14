@@ -140,10 +140,10 @@ using OptInitializeResult = std::optional<InitializeResult>;
 struct InitializeRequest
 {
     std::string             jsonrpc; // “2.0”;
-    RequestId               id;
+    SerializableId          id;
     std::string             method; //  “initialize”;
     InitializeRequestParams params;
-    InitializeRequest(RequestId&& id, InitializeRequestParams&& params)
+    InitializeRequest(SerializableId&& id, InitializeRequestParams&& params)
         : jsonrpc{"2.0"}
         , id{std::move(id)}
         , method{"initialize"}
@@ -159,7 +159,7 @@ struct InitializeResponse
     std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
     OptInitializeResult result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
     JsonRPC::OptError   error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-    JsonRPC::ResponseId id;
+    SerializableNullId  id;
 };
 
 

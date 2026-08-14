@@ -28,7 +28,7 @@ class ServerContext: public Context
         ~ServerContext();
 
         virtual void serverSideStream() override;
-        virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message) override;
+        virtual void error(OptSerializableId id, int code, std::string_view message) override;
         virtual void addNote() override;
         virtual std::ostream& addItem() override;
     protected:
