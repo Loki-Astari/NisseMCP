@@ -9,19 +9,6 @@
 namespace ThorsAnvil::Nisse::MCP::JsonRPC
 {
 
-// https://modelcontextprotocol.io/specification/2025-11-25/schema#pingrequest
-struct PingRequest
-{
-    std::string                     jsonrpc; // “2.0”;
-    SerializableId                  id;
-    std::string                     method; // “ping”;
-    PingRequest(SerializableId&& id)
-        : jsonrpc{"2.0"}
-        , id{std::move(id)}
-        , method{"ping"}
-    {}
-};
-
 struct PingResponse
 {
     std::string                     jsonrpc;
@@ -35,14 +22,15 @@ struct PingResponse
  */
 struct Ping
 {
-    using Request   = PingRequest;
+    static constexpr char const* method = "ping";
+
+    using Param     = std::optional<int>;
     using Result    = PingResponse;
     using UserData  = Object;
 };
 
 }
 
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::PingRequest,         jsonrpc, id, method);
 ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::PingResponse,        jsonrpc, id, result, error);
 
 #endif

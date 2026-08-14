@@ -64,7 +64,7 @@ TEST(HTTPTest, AcceptValidRequestButNoSeasionIdAndNotInit)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::PingRequest{1}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientRequest<JsonRPC::Ping>{1}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;

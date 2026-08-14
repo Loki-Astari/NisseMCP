@@ -26,7 +26,7 @@ class MCPCore: public JsonRPCCore
             void notifications_Initialized(Context& context);
 
             void ping(Context& context, OptSerializableId id);
-            void loggingSetLevel(Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParams const& param);
+            void loggingSetLevel(Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParam const& param);
 #if 0
         void resource();
         void tool();

@@ -59,21 +59,19 @@ class ClientMCP
         void sendRequest(Action<Command>&& action,
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
-            using Request   = typename Command::Request;
             ConnectionFromPool  client{pool};
 
-            client->post_async({std::string{config.slot}, headers}, Request{getNextRequestId()},
+            client->post_async({std::string{config.slot}, headers}, JsonRPC::ClientRequest<Command>{getNextRequestId()},
                               [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
         template<typename Command>
-        void sendRequest(typename Command::UserParam const& param,
+        void sendRequest(typename Command::Param const& param,
                          Action<Command>&& action,
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
-            using Request   = typename Command::Request;
             ConnectionFromPool  client{pool};
 
-            client->post_async({std::string{config.slot}, headers}, Request{getNextRequestId(), param},
+            client->post_async({std::string{config.slot}, headers}, JsonRPC::ClientRequest<Command>{getNextRequestId(), param},
                               [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
 

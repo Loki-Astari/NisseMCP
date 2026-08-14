@@ -37,12 +37,32 @@ inline SerializableNullId makeId(SerializableId const& r)
 
 // Used by JsonRPCCore:
 // We decode the params based on the expected type of the callable.
+// So at this point we don't know if it is a request or a notification.
 struct Request
 {
     std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
     std::string         method;         // A String containing the name of the method to be invoked.
-    OptParams           params;
     OptSerializableId   id;
+    OptParams           params;
+};
+
+// Used by the client to send the request.
+// At the client we know what we are sending.
+template<typename T>
+struct ClientRequest
+{
+    std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    std::string         method;         // A String containing the name of the method to be invoked.
+    SerializableId      id;
+    typename T::Param   params;
+
+    template<typename...Args>
+    ClientRequest(SerializableId id, Args&&... args)
+        : jsonrpc{"2.0"}
+        , method{T::method}
+        , id{std::move(id)}
+        , params{std::forward<Args>(args)...}
+    {}
 };
 
 class ResultSerializer;
@@ -147,11 +167,12 @@ struct ErrorResponse
 }
 
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, params, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse, jsonrpc, error, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response, jsonrpc, result, error, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse, jsonrpc, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request,                      jsonrpc, method, id, params);
+ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::ClientRequest,    jsonrpc, method, id, params);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error,                        code, message, data);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse,               jsonrpc, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response,                     jsonrpc, result, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse,                jsonrpc, error, id);
 
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "JsonRPC.source"

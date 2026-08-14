@@ -18,7 +18,7 @@ MCPCore::MCPCore()
     addExecutor("notifications/initialized", [&](Context& context, OptSerializableId /*id*/)                                            {notifications_Initialized(context);});
 
     addExecutor("ping",                      [&](Context& context, OptSerializableId id)                                                {ping(context, id);});
-    addExecutor("logging/setLevel",          [&](Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParams const& param)   {loggingSetLevel(context, id, param);});
+    addExecutor("logging/setLevel",          [&](Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParam const& param)    {loggingSetLevel(context, id, param);});
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
@@ -81,7 +81,7 @@ void MCPCore::ping(Context& context, OptSerializableId id)
     context.addItem(id, JsonRPC::Object{});
 }
 
-void MCPCore::loggingSetLevel(Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParams const& param)
+void MCPCore::loggingSetLevel(Context& context, OptSerializableId id, JsonRPC::SetLevelRequestParam const& param)
 {
     ThorsLogNotice("ThorsAnvil::Nisse::MCP::MCPCore", "loggingSetLevel", "MCP Core Functionaliy");
 
