@@ -29,27 +29,33 @@ class Context;
 using NameRet       = std::function<std::string_view()>;
 using ProtocolRet   = std::function<ProtocolRange()>;
 
+struct MCPSessionLoggingInfo
+{
+    using LogableThreads = std::set<std::thread::id>;
+
+    bool                hasBeenSet  = false;
+    LogableThreads      knownThreads;
+};
+
 class MCPSession: public Session
 {
     friend void mcpLog(void* userData, const loguru::Message& message);
     friend void UnitTest::mcpLogUnitTest(void* userData, const loguru::Message& message);
     friend void mcpLogClose(void* userData);
     friend void mcpLogFlush(void* userData);
-    using LogableThreads = std::set<std::thread::id>;
 
     // Logging Callbacks.
     bool log(const loguru::Message& message);
     void logClose();
     void logFlush();
 
-    SessionState        state;
-    Protocol            protocol;
-    boost::uuids::uuid  id;
-    Time                lastUsed;
-    NameRet             nameRetriever;
-    ProtocolRet         protocolRetriever;
-    bool                loggingSet;
-    LogableThreads      logableThreads;
+    SessionState            state;
+    Protocol                protocol;
+    boost::uuids::uuid      id;
+    Time                    lastUsed;
+    NameRet                 nameRetriever;
+    ProtocolRet             protocolRetriever;
+    MCPSessionLoggingInfo   logging;
 
     public:
         MCPSession(NameRet&& nameRetriever, ProtocolRet&& protocolRetriever, SessionState initialState, Protocol defaultProtocol, boost::uuids::uuid id);

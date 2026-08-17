@@ -39,13 +39,12 @@ MCPSession::MCPSession(NameRet&& nameRetriever, ProtocolRet&& protocolRetriever,
     , lastUsed{Clock::now()}
     , nameRetriever{std::move(nameRetriever)}
     , protocolRetriever{std::move(protocolRetriever)}
-    , loggingSet{false}
 {}
 
 NISSEMCP_HEADER_ONLY_INCLUDE
 MCPSession::~MCPSession()
 {
-    if (loggingSet) {
+    if (logging.hasBeenSet) {
         loguru::remove_callback(toString().c_str());
     }
     // TODO
@@ -67,35 +66,35 @@ void MCPSession::initialize(Protocol newProtocol)
 
 void MCPSession::setLogging(LoggingLevel level)
 {
-    if (loggingSet) {
+    if (logging.hasBeenSet) {
         loguru::remove_callback(toString().c_str());
     }
     if (level != LoggingLevel::emergency) {
-        loggingSet = true;
+        logging.hasBeenSet = true;
         loguru::add_callback(toString().c_str(), LOG_CALLBACK, this, static_cast<loguru::Verbosity>(level), mcpLogClose, mcpLogFlush);
     }
     else {
-        loggingSet = false;
+        logging.hasBeenSet = false;
     }
 }
 
 void MCPSession::requestAdd(std::thread::id id)
 {
-    if (loggingSet) {
-        logableThreads.insert(id);
+    if (logging.hasBeenSet) {
+        logging.knownThreads.insert(id);
     }
 }
 
 void MCPSession::requestRemove(std::thread::id id)
 {
-    if (loggingSet) {
-        logableThreads.erase(id);
+    if (logging.hasBeenSet) {
+        logging.knownThreads.erase(id);
     }
 }
 
 bool MCPSession::log(const loguru::Message& message)
 {
-    if (logableThreads.find(std::this_thread::get_id()) != std::end(logableThreads)) {
+    if (logging.knownThreads.find(std::this_thread::get_id()) != std::end(logging.knownThreads)) {
         std::cerr << "This is a log-able Message: " << message.message << "\n";
         return true;
     }
