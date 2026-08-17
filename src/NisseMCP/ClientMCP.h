@@ -6,6 +6,8 @@
 #include "Context.h"
 #include "JsonRPC.h"
 #include "SSEInfo.h"
+#include "MCPCore.h"
+#include "ClientContextMCP.h"
 #include "ConnectionPool.h"
 
 #include "NisseHTTP/Util.h"
@@ -38,6 +40,7 @@ class ClientMCP
     ConnectionPool              pool;
     HeaderRequest               headers;
     int                         requestId;
+    MCPCore                     core;
 
     int     getNextRequestId() {return requestId++;}
 
@@ -50,6 +53,8 @@ class ClientMCP
         ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
         ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
         ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+
+        MCPCore& getCore()      {return core;}
 
         template<typename C>
         using Action = std::function<void(typename C::Result&&)>;
@@ -157,17 +162,34 @@ class ClientMCP
         template<typename Command>
         void handleStreamRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = JsonRPC::ClientResponse<typename Command::Result>;
+            static const ThorsAnvil::Serialize::ParserConfig     config{ThorsAnvil::Serialize::ParserConfig{}.setValidateNoTrailingData()};
 
-            SSEInfo<Result>     event;
+            SSEInfo     event;
             while (resp.body() >> event) {
-                if (event.data.error.has_value()) {
-                    std::forward<Error>(errorAction)(202, event.data.error.value().code, event.data.error.value().message);
-                    continue;
+                auto method = event.dataBuffer.find(R"("method")");
+                if (method != std::string_view::npos) {
+                    // Either an error or the expected response object.
+                    using Result = JsonRPC::ClientResponse<typename Command::Result>;
+                    Result data;
+                    if (event.dataBuffer >> ThorsAnvil::Serialize::jsonImporter(data, config)) {
+                        if (data.error.has_value()) {
+                            std::forward<Error>(errorAction)(202, data.error.value().code, data.error.value().message);
+                            continue;
+                        }
+                        if (data.result.has_value()) {
+                            std::forward<Action<Command>>(action)(std::move(data.result.value()));
+                        }
+                    }
+                    else {
+                        std::forward<Error>(errorAction)(202,  -32700, "Parse Error");
+                    }
+                    break;
                 }
-                if (event.data.result.has_value()) {
-                    std::forward<Action<Command>>(action)(std::move(event.data.result.value()));
-                }
+
+                // If the "method" field is provided then this is a notification or a request from the server.
+                // We handle this by sending it to the MCPCore.
+                ClientContextMCP context{std::move(event.dataBuffer)};
+                core.handleInputStream(context);
             }
         }
 

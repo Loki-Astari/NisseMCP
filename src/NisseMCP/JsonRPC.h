@@ -138,12 +138,15 @@ struct ClientResponse
     OptError                    error;
 };
 
+using OptString = std::optional<std::string>;
 // We can build and serialize a normal response object on the server as we know the type as we generate the output.
 struct Response
 {
     std::string             jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
     OptResult               result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
     OptError                error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    OptString               method;         // REQUIRED if this is a notification or request coming from the server.
+    OptParams               param;          // Some notification/requests have parameters that we do not know how to decode until we know the method.
     OptSerializableNullId   id;
 
     public:

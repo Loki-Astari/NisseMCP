@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "JsonRPC.h"
 #include "SSEInfo.h"
+#include "ThorSerialize/JsonThor.h"
 #include "ThorSerialize/Traits.h"
 #include <cstddef>
 #include <sstream>
@@ -31,8 +32,7 @@ struct Payload
 };
 ThorsAnvil_MakeTrait(Payload, n, error);
 
-using SSETestEvet   = ThorsAnvil::Nisse::MCP::SSEInfo<TestData>;
-using SSEPayload    = ThorsAnvil::Nisse::MCP::SSEInfo<Payload>;
+using ThorsAnvil::Nisse::MCP::SSEInfo;
 
 // A snapshot of one dispatched event, so a whole stream can be asserted on at once.
 struct Captured
@@ -46,9 +46,12 @@ struct Captured
 std::vector<Captured> readAll(std::istream& input)
 {
     std::vector<Captured>  result;
-    SSEPayload             event;
+    SSEInfo               event;
+    Payload                data;
     while (input >> event) {
-        result.push_back(Captured{event.id, event.event, event.data.n, event.data.error.has_value() ? event.data.error.value().code : 0});
+        std::cerr << "P: >" << event.dataBuffer << "\n";
+        event.dataBuffer >> ThorsAnvil::Serialize::jsonImporter(data);
+        result.push_back(Captured{event.id, event.event, data.n, data.error.has_value() ? data.error.value().code : 0});
     }
     return result;
 }
@@ -65,7 +68,7 @@ R"(data: {}
 )"};
 
     std::size_t     count = 0;
-    SSETestEvet     event;
+    SSEInfo         event;
     while (input >> event) {
         ++count;
     }
@@ -419,40 +422,8 @@ TEST(SSEInfoTest, CleanEndOfStreamIsNotAnError)
     EXPECT_FALSE(input.bad());
 }
 
-// A malformed payload is converted into an error object on the stream of returned objects.
-TEST(SSEInfoTest, MalformedPayloadIsNotReportedAsEndOfInput)
-{
-    std::stringstream   input{"data: not json at all\n\ndata: {\"n\":1}\n\n"};
-    auto                events = readAll(input);
-
-    ASSERT_EQ(2, events.size());
-    EXPECT_EQ(-32700, events[0].errorCode);
-    EXPECT_EQ(1, events[1].n);
-    EXPECT_FALSE(input.bad());
-    EXPECT_TRUE(input.fail());
-    EXPECT_TRUE(input.eof());
-}
-
-// A second "data:" field is caught
-// The two data fields are concatenated and parsed together.
-// This code expects exactly one JSON object in the data and thus 2 objects
-// will result in an error object being created instead.
-TEST(SSEInfoTest, RepeatedDataFieldIsRejectedCleanly)
-{
-    std::stringstream   input{"data: {\"n\":1}\ndata: {\"n\":2}\n\n"};
-    auto                events = readAll(input);
-
-    ASSERT_EQ(1, events.size());
-    EXPECT_EQ(-32700, events[0].errorCode);
-    EXPECT_TRUE(input.fail());
-    EXPECT_TRUE(input.eof());
-    EXPECT_FALSE(input.bad());
-}
-
-// The spec concatenates repeated data fields with "\n" and parses the result, which
-// lets a server pretty print its JSON across several lines. readFieldDataValue()
-// parses straight off the stream, so the first partial line fails to parse.
-TEST(SSEInforKnownIssueTest, MultipleDataLinesAreConcatenated)
+// JSON pretty printed across data lines splits mid-token,
+TEST(SSEInfoTest, PrettyPrintedJsonAcrossDataLinesShouldWork)
 {
     std::stringstream   input{"data: {\"n\":\ndata: 1}\n\n"};
     auto                events = readAll(input);
