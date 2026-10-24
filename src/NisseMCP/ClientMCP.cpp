@@ -45,7 +45,7 @@ void ClientMCP::init(ClientConfig const& config, std::string_view origin)
     headers.add("origin", origin);
     headers.add("accept", "application/json");
     headers.add("accept", "text/event-stream");
-    post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=config.slot, .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
+    post_async(ThorsAnvil::Nisse::HTTP::ClientRequest{.path=std::string(config.slot), .headers=headers}, Command::InitializeRequest{getNextRequestId(), {.protocolVersion = Protocol::v2025_11_25}}, [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
     {
         Command::InitializeResponse reply;
         if (resp.getStatus() != 202 || !(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {

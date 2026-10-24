@@ -85,10 +85,10 @@ void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Comman
 
 #if 0
     Loguru Log Levels
-	// Verbosity_FATAL   = -3,
-	// Verbosity_ERROR   = -2,
-	// Verbosity_WARNING = -1,
-	// Verbosity_INFO    =  0,              // Default Log Log
+    // Verbosity_FATAL   = -3,
+    // Verbosity_ERROR   = -2,
+    // Verbosity_WARNING = -1,
+    // Verbosity_INFO    =  0,              // Default Log Log
 
     ThorsLogging
     LogFatal                => FATAL        Emergency
@@ -113,8 +113,9 @@ void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Comman
     debug
     ----
 #endif
-    loguru::Verbosity  verbosity;
-    loguru::add_callback("'MCPLog'", mcpLog, nullptr, verbosity, syslog_close, syslog_flush);
+    // TODO: FIX
+    // loguru::Verbosity  verbosity;
+    // loguru::add_callback("'MCPLog'", mcpLog, nullptr, verbosity, syslog_close, syslog_flush);
 
     //
     context.addItem(id, Command::Object{});
