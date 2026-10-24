@@ -113,8 +113,9 @@ void MCPCore::loggingSetLevel(Context& context, JsonRPC::OptRequestId id, Comman
     debug
     ----
 #endif
-    loguru::Verbosity  verbosity;
-    loguru::add_callback("'MCPLog'", mcpLog, nullptr, verbosity, syslog_close, syslog_flush);
+    // TODO: FIX
+    // loguru::Verbosity  verbosity;
+    // loguru::add_callback("'MCPLog'", mcpLog, nullptr, verbosity, syslog_close, syslog_flush);
 
     //
     context.addItem(id, Command::Object{});
