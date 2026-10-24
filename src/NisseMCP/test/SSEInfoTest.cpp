@@ -14,8 +14,13 @@
 // a line oriented parser, so it is worth being able to see exactly what is on the
 // wire without counting whitespace in the source.
 
-class TestData {};
-ThorsAnvil_MakeTrait(TestData);
+// SSEInfo reports a payload that fails to parse by setting "error" on the
+// DataType, so every DataType needs one.
+struct TestData
+{
+    ThorsAnvil::Nisse::MCP::JsonRPC::OptError            error;
+};
+ThorsAnvil_MakeTrait(TestData, error);
 
 // Payload with a field, so a test can prove that the correct bytes reached the
 // JSON parser rather than simply that an event was dispatched.
