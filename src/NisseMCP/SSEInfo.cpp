@@ -14,7 +14,7 @@ using namespace ThorsAnvil::Nisse::MCP;
 
 // A '\r' has just been consumed; take the '\n' of a "\r\n" pair with it.
 NISSEMCP_HEADER_ONLY_INCLUDE
-void SSEInfoBase::consumePairedLF(std::streambuf& buffer)
+void SSEInfo::consumePairedLF(std::streambuf& buffer)
 {
     if (buffer.sgetc() == '\n') {
         buffer.sbumpc();
@@ -23,7 +23,7 @@ void SSEInfoBase::consumePairedLF(std::streambuf& buffer)
 
 // Discard the rest of the line, including its terminator.
 NISSEMCP_HEADER_ONLY_INCLUDE
-void SSEInfoBase::skipLine(std::streambuf& buffer)
+void SSEInfo::skipLine(std::streambuf& buffer)
 {
     for (int c = buffer.sbumpc(); c != endOfFile; c = buffer.sbumpc())
     {
@@ -40,7 +40,7 @@ void SSEInfoBase::skipLine(std::streambuf& buffer)
 // Read the rest of the line into dst, consuming its terminator.
 // SSE accepts "\r\n", "\n" or a bare "\r", which is why std::getline does not fit.
 NISSEMCP_HEADER_ONLY_INCLUDE
-void SSEInfoBase::readLine(std::streambuf& buffer, std::string& dst)
+void SSEInfo::readLine(std::streambuf& buffer, std::string& dst)
 {
     for (int c = buffer.sbumpc(); c != endOfFile; c = buffer.sbumpc())
     {
@@ -60,7 +60,7 @@ void SSEInfoBase::readLine(std::streambuf& buffer, std::string& dst)
  * Note I: A missing ':' is treated as a field name with no value.
  */
 NISSEMCP_HEADER_ONLY_INCLUDE
-SSEInfoBase::LineKind SSEInfoBase::readFieldName(std::streambuf& buffer, std::string& name)
+SSEInfo::LineKind SSEInfo::readFieldName(std::streambuf& buffer, std::string& name)
 {
     name.clear();
     for (int c = buffer.sgetc(); ; c = buffer.sgetc())
@@ -100,7 +100,7 @@ SSEInfoBase::LineKind SSEInfoBase::readFieldName(std::streambuf& buffer, std::st
 }
 
 NISSEMCP_HEADER_ONLY_INCLUDE
-std::istream& SSEInfoBase::readEvent(std::istream& stream)
+std::istream& SSEInfo::readEvent(std::istream& stream)
 {
     // One sentry for the whole event instead of one per character. Whitespace must not
     // be skipped - a blank line is the event boundary, not something to step over.
@@ -111,9 +111,9 @@ std::istream& SSEInfoBase::readEvent(std::istream& stream)
 
     std::streambuf&         buffer      = *stream.rdbuf();
     std::string             name;
-    std::string             dataBuffer;             // Store multi lines of data
     bool                    haveData    = false;
 
+    dataBuffer.clear();
     for (;;)
     {
         switch (readFieldName(buffer, name))
@@ -127,10 +127,6 @@ std::istream& SSEInfoBase::readEvent(std::istream& stream)
 
             case LineKind::Blank:
                 if (haveData) {
-                    if (!readData(dataBuffer)) {
-                        // If there is an unrecoverable error on the input set the failbit
-                        stream.setstate(std::ios::failbit);
-                    }
                     return stream;              // Complete: hand it over.
                 }
                 // An event with no data is not dispatched, and its type does not carry

@@ -6,8 +6,8 @@
 #include "Server.h"
 #include "MCPServer.h"
 #include "NisseHTTP/ClientHTTP.h"
-#include "CommandPing.h"
-#include "CommandInitialize.h"
+#include "MCPRequestPing.h"
+#include "MCPRequestInitialize.h"
 #include "ThorSerialize/JsonThor.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
@@ -38,7 +38,7 @@ TEST(HTTPTest, AcceptValidRequest)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -64,7 +64,7 @@ TEST(HTTPTest, AcceptValidRequestButNoSeasionIdAndNotInit)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::PingRequest{1}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::ClientRequest<JsonRPC::Ping>{1}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -74,11 +74,10 @@ TEST(HTTPTest, AcceptValidRequestButNoSeasionIdAndNotInit)
         ASSERT_EQ(400, resp.getStatus());
         ASSERT_EQ("Bad Request", resp.getMessage());
 
-        JsonRPC::ClientResponse errorValue;
+        JsonRPC::ClientError errorValue{{}, 0, ""};
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
 
-        ASSERT_TRUE(errorValue.error.has_value());
-        EXPECT_EQ(12, errorValue.error.value().code);
+        EXPECT_EQ(12, errorValue.error.code);
 
         auto const& ctype = resp.getHeader().getHeader("content-type");
         ASSERT_EQ(1, ctype.size());
@@ -96,7 +95,7 @@ TEST(HTTPTest, AcceptValidRequestSingleAccept)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -121,7 +120,7 @@ TEST(HTTPTest, NoOriginProvided)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -131,11 +130,10 @@ TEST(HTTPTest, NoOriginProvided)
         ASSERT_EQ(403, resp.getStatus());
         ASSERT_EQ("Forbidden", resp.getMessage());
 
-        JsonRPC::ClientResponse errorValue;
+        JsonRPC::ClientError errorValue{{}, 0, ""};
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
 
-        ASSERT_TRUE(errorValue.error.has_value());
-        EXPECT_EQ(10, errorValue.error.value().code);
+        EXPECT_EQ(10, errorValue.error.code);
 
         auto const& ctype = resp.getHeader().getHeader("content-type");
         ASSERT_EQ(1, ctype.size());
@@ -154,7 +152,7 @@ TEST(HTTPTest, NotAcceptJson)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -163,11 +161,10 @@ TEST(HTTPTest, NotAcceptJson)
         responseProcessed = true;
         ASSERT_EQ(404, resp.getStatus());
 
-        JsonRPC::ClientResponse errorValue;
+        JsonRPC::ClientError errorValue{{}, 0, ""};
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
 
-        ASSERT_TRUE(errorValue.error.has_value());
-        EXPECT_EQ(11, errorValue.error.value().code);
+        EXPECT_EQ(11, errorValue.error.code);
 
         auto const& ctype = resp.getHeader().getHeader("content-type");
         ASSERT_EQ(1, ctype.size());
@@ -186,7 +183,7 @@ TEST(HTTPTest, NotAcceptStream)
 
     client.send(ThorsAnvil::Nisse::HTTP::Method::POST, {.path = "/mcp", .headers = headers}, ThorsAnvil::Nisse::HTTP::Encoding::Chunked, [&](ThorsAnvil::Nisse::HTTP::StreamOutput& out)
     {
-        out << ThorsAnvil::Serialize::jsonExporter(Command::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
+        out << ThorsAnvil::Serialize::jsonExporter(JsonRPC::InitializeRequest{1, {.protocolVersion = Protocol::v2025_11_25}}, Context::outputConfig);
         return true;
     });
     bool responseProcessed = false;
@@ -195,11 +192,10 @@ TEST(HTTPTest, NotAcceptStream)
         responseProcessed = true;
         ASSERT_EQ(404, resp.getStatus());
 
-        JsonRPC::ClientResponse errorValue;
+        JsonRPC::ClientError errorValue{{}, 0, ""};
         resp.body() >> ThorsAnvil::Serialize::jsonImporter(errorValue);
 
-        ASSERT_TRUE(errorValue.error.has_value());
-        EXPECT_EQ(11, errorValue.error.value().code);
+        EXPECT_EQ(11, errorValue.error.code);
 
         auto const& ctype = resp.getHeader().getHeader("content-type");
         ASSERT_EQ(1, ctype.size());

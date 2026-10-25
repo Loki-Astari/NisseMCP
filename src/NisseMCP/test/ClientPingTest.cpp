@@ -2,7 +2,7 @@
 
 #include "MCPServer.h"
 #include "ClientMCP.h"
-#include "CommandPing.h"
+#include "MCPRequestPing.h"
 
 using namespace ThorsAnvil::Nisse::MCP;
 
@@ -31,6 +31,6 @@ TEST(ClientPingTest, SendPing)
     ClientMCP           client{{.protocol = Protocol::v2025_11_25}, {"localhost", 8070}};
 
     bool pingResponse = false;
-    client.sendRequest<Command::Ping>([&](Command::Object&&){pingResponse = true;});
+    client.sendRequest<JsonRPC::Ping>([&](JsonRPC::Object&&){pingResponse = true;});
     ASSERT_TRUE(pingResponse);
 }

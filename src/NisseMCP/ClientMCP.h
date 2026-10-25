@@ -6,10 +6,15 @@
 #include "Context.h"
 #include "JsonRPC.h"
 #include "SSEInfo.h"
+#include "MCPCore.h"
+#include "ClientContextMCP.h"
+#include "ConnectionPool.h"
 
+#include "NisseHTTP/Util.h"
 #include "NisseHTTP/ClientHTTP.h"
 #include "ThorSerialize/JsonThor.h"
 
+#include <iterator>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -23,45 +28,56 @@ struct ClientConfig
     Protocol            protocol;
 };
 
-class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
+
+class ClientMCP
 {
     using HeaderRequest = ThorsAnvil::Nisse::HTTP::HeaderRequest;
+    using SocketInit    = ThorsAnvil::ThorsSocket::SocketInit;
+    using ClientHTTP    = ThorsAnvil::Nisse::HTTP::ClientHTTP;
+    using Version       = ThorsAnvil::Nisse::HTTP::Version;
 
-    std::string     slot;
-    Protocol        protocol;
-    HeaderRequest   headers;
-    int             requestId;
+    ClientConfig                config;
+    ConnectionPool              pool;
+    HeaderRequest               headers;
+    int                         requestId;
+    MCPCore                     core;
 
-    std::string     getNextRequestId() {return "";}
+    int     getNextRequestId() {return requestId++;}
 
+    enum Init {Constructor};
+
+    ClientMCP(Init, ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version);
     public:
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
-        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& info, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInfo const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SSocketService const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+        ClientMCP(ClientConfig const& config, ThorsAnvil::ThorsSocket::SocketInit const& socketInfo, ThorsAnvil::Nisse::HTTP::Version version = ThorsAnvil::Nisse::HTTP::Version::HTTP1_1);
+
+        MCPCore& getCore()      {return core;}
 
         template<typename C>
-        using Action = std::function<void(typename C::UserData&&)>;
+        using Action = std::function<void(typename C::Result&&)>;
         using Error  = std::function<void(int, int, std::string_view)>;
 
         template<typename Command>
         void sendRequest(Action<Command>&& action,
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
-            using Request   = typename Command::Request;
+            ConnectionFromPool  client{pool};
 
-            post_async({.path = slot, .headers = headers}, Request{getNextRequestId()},
-                       [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
+            client->post_async({std::string{config.slot}, headers}, JsonRPC::ClientRequest<Command>{getNextRequestId()},
+                              [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
-        template<typename Command, typename... Args>
-        void sendRequest(Args&&... args,
+        template<typename Command>
+        void sendRequest(typename Command::Param const& param,
                          Action<Command>&& action,
                          Error&& errorAction = [](int s, int code, std::string_view m){logErrorMessage(s, code, m);})
         {
-            using Request   = typename Command::Request;
+            ConnectionFromPool  client{pool};
 
-            post_async({.path = slot, .headers = headers}, Request{getNextRequestId(), std::forward<Args>(args)...},
-                       [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
+            client->post_async({std::string{config.slot}, headers}, JsonRPC::ClientRequest<Command>{getNextRequestId(), param},
+                              [&](ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp) {handleRespFromServer<Command>(std::forward<Action<Command>>(action), std::forward<Error>(errorAction), resp);});
         }
 
     private:
@@ -123,7 +139,8 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
         template<typename Command>
         void handleObjectRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = typename Command::Result;
+            using Result = JsonRPC::ClientResponse<typename Command::Result>;
+
             Result reply;
             if (!(resp.body() >> ThorsAnvil::Serialize::jsonImporter(reply))) {
                 std::forward<Error>(errorAction)(202, 100, "Failed to decode JsonRPC object: Normal Path");
@@ -145,23 +162,38 @@ class ClientMCP: private ThorsAnvil::Nisse::HTTP::ClientHTTP
         template<typename Command>
         void handleStreamRespFromServer(Action<Command>&& action, Error&& errorAction, ThorsAnvil::Nisse::HTTP::ClientHTTPResponse const& resp)
         {
-            using Result = typename Command::Result;
+            static const ThorsAnvil::Serialize::ParserConfig     config{ThorsAnvil::Serialize::ParserConfig{}.setValidateNoTrailingData()};
 
-            SSEInfo<Result>     event;
+            SSEInfo     event;
             while (resp.body() >> event) {
-                if (event.data.error.has_value()) {
-                    std::forward<Error>(errorAction)(202, event.data.error.value().code, event.data.error.value().message);
-                    continue;
+                auto method = event.dataBuffer.find(R"("method")");
+                if (method != std::string_view::npos) {
+                    // Either an error or the expected response object.
+                    using Result = JsonRPC::ClientResponse<typename Command::Result>;
+                    Result data;
+                    if (event.dataBuffer >> ThorsAnvil::Serialize::jsonImporter(data, config)) {
+                        if (data.error.has_value()) {
+                            std::forward<Error>(errorAction)(202, data.error.value().code, data.error.value().message);
+                            continue;
+                        }
+                        if (data.result.has_value()) {
+                            std::forward<Action<Command>>(action)(std::move(data.result.value()));
+                        }
+                    }
+                    else {
+                        std::forward<Error>(errorAction)(202,  -32700, "Parse Error");
+                    }
+                    break;
                 }
-                if (event.data.result.has_value()) {
-                    std::forward<Action<Command>>(action)(std::move(event.data.result.value()));
-                }
+
+                // If the "method" field is provided then this is a notification or a request from the server.
+                // We handle this by sending it to the MCPCore.
+                ClientContextMCP context{std::move(event.dataBuffer)};
+                core.handleInputStream(context);
             }
         }
 
         static void logErrorMessage(int status, int code, std::string_view message);
-        void init(ClientConfig const& config, std::string_view origin);
-        virtual bool resetStream() override;
 };
 
 }

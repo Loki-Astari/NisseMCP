@@ -3,6 +3,7 @@
 
 #include "NisseMCPConfig.h"
 #include "MCPUtil.h"
+#include "SerializableId.h"
 #include "JsonRPC.h"
 
 #include <ThorSerialize/JsonThor.h>
@@ -31,12 +32,12 @@ class Context
         virtual ~Context();
 
         virtual void serverSideStream();
-        virtual void error(JsonRPC::OptRequestId id, int code, std::string_view message);
+        virtual void error(OptSerializableId id, int code, std::string_view message);
         virtual void addNote();
         virtual std::ostream& addItem() = 0;
 
         template<typename T>
-        void  addItem(JsonRPC::OptRequestId id, T const& value)
+        void  addItem(OptSerializableId id, T const& value)
         {
             if (id.has_value()) {
                 addItem() << ThorsAnvil::Serialize::jsonExporter(JsonRPC::Response{value, id}, outputConfig);

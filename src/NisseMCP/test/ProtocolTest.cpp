@@ -30,7 +30,7 @@ TEST(Protocol, protocol_v2024_11_05)
     MCPSession                                      session{[](){return "Test";}, [](){return ProtocolRange{Protocol::v2024_11_05, Protocol::v2024_11_05};}, SessionState::Confirmed, Protocol::v2024_11_05, {}};
     ThorsAnvil::Nisse::MCP::MCPLocal                local;
 
-    local.getCore().addExecutor("subtract", [](Context& context, JsonRPC::OptRequestId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
+    local.getCore().addExecutor("subtract", [](Context& context, OptSerializableId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
 
     std::istringstream   command{R"([{"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1}])"};
     std::ostringstream   result;
@@ -45,7 +45,7 @@ TEST(Protocol, protocol_v2025_03_26)
     MCPSession                                      session{[](){return "Test";}, [](){return ProtocolRange{Protocol::v2024_11_05, Protocol::v2024_11_05};}, SessionState::Confirmed, Protocol::v2025_03_26, {}};
     ThorsAnvil::Nisse::MCP::MCPLocal                local;
 
-    local.getCore().addExecutor("subtract", [](Context& context, JsonRPC::OptRequestId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
+    local.getCore().addExecutor("subtract", [](Context& context, OptSerializableId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
 
     std::istringstream   command{R"([{"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1}])"};
     std::ostringstream   result;
@@ -60,7 +60,7 @@ TEST(Protocol, protocol_v2025_06_18)
     MCPSession                                      session{[](){return "Test";}, [](){return ProtocolRange{Protocol::v2024_11_05, Protocol::v2024_11_05};}, SessionState::Confirmed, Protocol::v2025_06_18, {}};
     ThorsAnvil::Nisse::MCP::MCPLocal                local;
 
-    local.getCore().addExecutor("subtract", [](Context& context, JsonRPC::OptRequestId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
+    local.getCore().addExecutor("subtract", [](Context& context, OptSerializableId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
 
     std::istringstream   command{R"([{"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1}])"};
     std::ostringstream   result;
@@ -75,7 +75,7 @@ TEST(Protocol, protocol_v2025_11_25)
     MCPSession                                      session{[](){return "Test";}, [](){return ProtocolRange{Protocol::v2024_11_05, Protocol::v2024_11_05};}, SessionState::Confirmed, Protocol::v2025_11_25, {}};
     ThorsAnvil::Nisse::MCP::MCPLocal                local;
 
-    local.getCore().addExecutor("subtract", [](Context& context, JsonRPC::OptRequestId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
+    local.getCore().addExecutor("subtract", [](Context& context, OptSerializableId id, SubtractParam const& param){context.addItem(id, param.minuend - param.subtrahend);});
 
     std::istringstream   command{R"([{"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1}])"};
     std::ostringstream   result;

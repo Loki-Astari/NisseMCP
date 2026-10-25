@@ -4,28 +4,58 @@
 #include "NisseMCPConfig.h"
 #include "MCPUtil.h"
 #include "Session.h"
+#include "MCPRequestLogging.h"
 
 #include <boost/uuid.hpp>
 #include <string_view>
 #include <string>
+#include <thread>
 #include <functional>
 
 namespace ThorsAnvil::Nisse::MCP
 {
+
+void mcpLog(void* userData, const loguru::Message& message);
+void mcpLogClose(void* userData);
+void mcpLogFlush(void* userData);
+
+namespace UnitTest
+{
+void mcpLogUnitTest(void* userData, const loguru::Message& message);
+}
 
 class Context;
 
 using NameRet       = std::function<std::string_view()>;
 using ProtocolRet   = std::function<ProtocolRange()>;
 
+struct MCPSessionLoggingInfo
+{
+    using LogableThreads = std::set<std::thread::id>;
+
+    bool                hasBeenSet  = false;
+    LogableThreads      knownThreads;
+};
+
 class MCPSession: public Session
 {
-    SessionState        state;
-    Protocol            protocol;
-    boost::uuids::uuid  id;
-    Time                lastUsed;
-    NameRet             nameRetriever;
-    ProtocolRet         protocolRetriever;
+    friend void mcpLog(void* userData, const loguru::Message& message);
+    friend void UnitTest::mcpLogUnitTest(void* userData, const loguru::Message& message);
+    friend void mcpLogClose(void* userData);
+    friend void mcpLogFlush(void* userData);
+
+    // Logging Callbacks.
+    bool log(const loguru::Message& message);
+    void logClose();
+    void logFlush();
+
+    SessionState            state;
+    Protocol                protocol;
+    boost::uuids::uuid      id;
+    Time                    lastUsed;
+    NameRet                 nameRetriever;
+    ProtocolRet             protocolRetriever;
+    MCPSessionLoggingInfo   logging;
 
     public:
         MCPSession(NameRet&& nameRetriever, ProtocolRet&& protocolRetriever, SessionState initialState, Protocol defaultProtocol, boost::uuids::uuid id);
@@ -49,6 +79,11 @@ class MCPSession: public Session
         bool        hasTimedOut(Duration timeout)           const {return (Clock::now() - lastUsed) > timeout; }
 
         void initialize(Protocol newProtocol);
+
+        // Set Logging Level.
+        void setLogging(LoggingLevel logLevel);
+        void requestAdd(std::thread::id id);
+        void requestRemove(std::thread::id id);
 };
 
 using SessionMap = std::map<boost::uuids::uuid, MCPSession>;

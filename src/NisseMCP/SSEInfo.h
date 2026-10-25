@@ -1,5 +1,5 @@
-#ifndef THORSANVIL_NISSE_SSEINFO_H
-#define THORSANVIL_NISSE_SSEINFO_H
+#ifndef THORSANVIL_NISSE_MCP_SSEINFO_H
+#define THORSANVIL_NISSE_MCP_SSEINFO_H
 
 #include "NisseMCPConfig.h"
 
@@ -31,22 +31,15 @@ namespace ThorsAnvil::Nisse::MCP
  *      - "retry:" is read and discarded. This client does not reconnect.
  *      - A leading byte order mark is not stripped.
  */
-class SSEInfoBase
+class SSEInfo
 {
     public:
         std::string     id;         // The "last event ID". Persists until replaced.
         std::string     event;      // Reset to empty for every event.
+        std::string     dataBuffer;
 
-        virtual ~SSEInfoBase()     {}
+        virtual ~SSEInfo()     {}
 
-    protected:
-        SSEInfoBase() = default;
-        explicit SSEInfoBase(std::string lastEventId)
-            : id{std::move(lastEventId)}
-        {}
-
-        // Reads one complete event. Sets failbit if none was available.
-        std::istream& readEvent(std::istream& stream);
 
     private:
         // What the start of a line turned out to be.
@@ -58,11 +51,10 @@ class SSEInfoBase
             Field,          // Name read; its value follows at the stream position.
         };
 
-        // converts the 'data' field of an SSE event into appropriate data value.
-        // This is done in the derived type as we don't know the type in the base class.
-        virtual bool readData(std::string_view stream) = 0;
+        // Reads one complete event. Sets failbit if none was available.
+        std::istream& readEvent(std::istream& stream);
 
-
+        // Utility functions used by readEvent.
         void consumePairedLF(std::streambuf& buffer);
         void skipLine(std::streambuf& buffer);
         void readLine(std::streambuf& buffer, std::string& dst);
@@ -70,27 +62,11 @@ class SSEInfoBase
 
         static constexpr int   endOfFile = std::char_traits<char>::eof();
 
-
-};
-
-template<typename DataType>
-class SSEInfo: public SSEInfoBase
-{
     public:
-        DataType        data;
-
         SSEInfo() = default;
         explicit SSEInfo(std::string lastEventId)
-            : SSEInfoBase{std::move(lastEventId)}
+            : id{std::move(lastEventId)}
         {}
-
-        void swap(SSEInfo& other) noexcept
-        {
-            using std::swap;
-            swap(id,    other.id);
-            swap(event, other.event);
-            swap(data,  other.data);
-        }
 
         friend std::istream& operator>>(std::istream& stream, SSEInfo& dst)
         {
@@ -105,25 +81,16 @@ class SSEInfo: public SSEInfoBase
             return stream;
         }
 
-    private:
-        virtual bool readData(std::string_view stream) override
+        void swap(SSEInfo& other) noexcept
         {
-            static const ThorsAnvil::Serialize::ParserConfig     config{ThorsAnvil::Serialize::ParserConfig{}.setValidateNoTrailingData()};
-            if (stream >> ThorsAnvil::Serialize::jsonImporter(data, config)) {
-                return true;
-            }
-            // Failed parse.
-            // Should reset any data so that the error state is not polluted with partial data.
-            data = DataType{.error = JsonRPC::Error{.code = -32700, .message = "Parse Error"}};
-
-            // Returning true as we have compensated for the error.
-            // This will allow the stream to continue being read.
-            return true;
+            using std::swap;
+            swap(id,         other.id);
+            swap(event,      other.event);
+            swap(dataBuffer, other.dataBuffer);
         }
 };
 
-template<typename DataType>
-inline void swap(SSEInfo<DataType>& lhs, SSEInfo<DataType>& rhs) noexcept
+inline void swap(SSEInfo& lhs, SSEInfo& rhs) noexcept
 {
     lhs.swap(rhs);
 }

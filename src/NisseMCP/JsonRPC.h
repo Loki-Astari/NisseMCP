@@ -24,29 +24,45 @@ namespace ThorsAnvil::Nisse::MCP::JsonRPC
 using Params = ThorsAnvil::Serialize::AnyBlock;
 using OptParams = std::optional<Params>;
 
-using RequestId  = SerializableId;
-using OptRequestId = std::optional<RequestId>;
-
-using ResponseId = SerializableNullId;
-using OptResponseId = std::optional<ResponseId>;
-
 struct ResponseConverter
 {
     template<typename T>
-    ResponseId operator()(T const& val)   const {return val;}
+    SerializableNullId operator()(T const& val)   const {return val;}
 };
 
-inline ResponseId makeId(RequestId const& r)
+inline SerializableNullId makeId(SerializableId const& r)
 {
     return std::visit(ResponseConverter{}, r);
 }
 
+// Used by JsonRPCCore:
+// We decode the params based on the expected type of the callable.
+// So at this point we don't know if it is a request or a notification.
 struct Request
 {
     std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
     std::string         method;         // A String containing the name of the method to be invoked.
+    OptSerializableId   id;
     OptParams           params;
-    OptRequestId        id;
+};
+
+// Used by the client to send the request.
+// At the client we know what we are sending.
+template<typename T>
+struct ClientRequest
+{
+    std::string         jsonrpc;        // A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    std::string         method;         // A String containing the name of the method to be invoked.
+    SerializableId      id;
+    typename T::Param   params;
+
+    template<typename...Args>
+    ClientRequest(SerializableId id, Args&&... args)
+        : jsonrpc{"2.0"}
+        , method{T::method}
+        , id{std::move(id)}
+        , params{std::forward<Args>(args)...}
+    {}
 };
 
 class ResultSerializer;
@@ -103,34 +119,41 @@ struct Error
 using OptError = std::optional<Error>;
 
 // We can not 'import' an std::any. So we must know the expected result on the client side.
-struct ClientResponse
+struct ClientError
 {
-    std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
-    // OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
-    // If you are on the client side and want to read a specific response, Then look at the command you are sending their will
-    // be a response class available to use.
-    OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-    OptResponseId       id;
+    std::string             jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    Error                   error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    OptSerializableNullId   id;
 
     public:
-        ClientResponse(void);
-        ClientResponse(OptRequestId const& requestId);
-        ClientResponse(int code, std::string_view message, OptRequestId const& requestId);
+        ClientError(OptSerializableId const& requestId, int code, std::string_view message);
 };
 
+template<typename Response>
+struct ClientResponse
+{
+    std::string                 jsonrpc;
+    OptSerializableNullId       id;
+    std::optional<Response>     result;
+    OptError                    error;
+};
+
+using OptString = std::optional<std::string>;
 // We can build and serialize a normal response object on the server as we know the type as we generate the output.
 struct Response
 {
-    std::string         jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
-    OptResult           result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
-    OptError            error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
-    OptResponseId       id;
+    std::string             jsonrpc = "0.0";// A String specifying the version of the JSON-RPC protocol. MUST be exactly "2.0".
+    OptResult               result;         // REQUIRED on success. MUST NOT exist if there was an error invoking the method.
+    OptError                error;          // REQUIRED on error. MUST NOT exist if there was no error triggered during invocation.
+    OptString               method;         // REQUIRED if this is a notification or request coming from the server.
+    OptParams               param;          // Some notification/requests have parameters that we do not know how to decode until we know the method.
+    OptSerializableNullId   id;
 
     public:
         Response(void);
-        Response(int code, std::string_view message, OptRequestId const& requestId);
+        Response(int code, std::string_view message, OptSerializableId const& requestId);
         template<typename T>
-        Response(T&& result, OptRequestId const& requestId)
+        Response(T&& result, OptSerializableId const& requestId)
             : jsonrpc{"2.0"}
             , result{std::forward<T>(result)}
             , id{static_cast<char*>(nullptr)}
@@ -143,19 +166,22 @@ struct Response
 
 struct ErrorResponse
 {
-    std::string         jsonrpc;
-    Error               error;
-    OptResponseId       id;
+    std::string             jsonrpc;
+    Error                   error;
+    OptSerializableNullId   id;
 };
 
 }
 
 ThorsAnvil_MakeTraitCustomSerialize(ThorsAnvil::Nisse::MCP::JsonRPC::Result, ThorsAnvil::Nisse::MCP::JsonRPC::ResultSerializer);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request, jsonrpc, method, params, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error, code, message, data);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse, jsonrpc, error, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response, jsonrpc, result, error, id);
-ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse, jsonrpc, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Request,                      jsonrpc, method, id, params);
+ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::ClientRequest,    jsonrpc, method, id, params);
+ThorsAnvil_Template_MakeTrait(1, ThorsAnvil::Nisse::MCP::JsonRPC::ClientResponse,   jsonrpc, id, result, error);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Error,                        code, message, data);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ClientError,                  jsonrpc, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::Response,                     jsonrpc, result, error, id);
+ThorsAnvil_MakeTrait(ThorsAnvil::Nisse::MCP::JsonRPC::ErrorResponse,                jsonrpc, error, id);
+
 
 #if defined(NISSEMCP_HEADER_ONLY) && NISSEMCP_HEADER_ONLY == 1
 #include "JsonRPC.source"
